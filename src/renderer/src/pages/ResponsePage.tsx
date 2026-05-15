@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import PageFooter from '../components/PageFooter'
 
 type Status = 'streaming' | 'done' | 'error'
 
@@ -231,11 +232,11 @@ export default function ResponsePage(): React.JSX.Element {
 
       {/* 하단 버튼 */}
       {(status === 'done' || status === 'error') && (
-        <div className="page-footer">
+        <PageFooter>
           <button className="btn-primary" onClick={handleNewQuestion}>
             + 새 질문하기
           </button>
-        </div>
+        </PageFooter>
       )}
     </div>
   )

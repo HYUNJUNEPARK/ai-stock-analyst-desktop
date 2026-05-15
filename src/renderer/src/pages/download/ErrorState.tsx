@@ -1,12 +1,4 @@
-export default function ErrorState({
-  errorMsg,
-  onRetry,
-  onBack
-}: {
-  errorMsg: string
-  onRetry: () => void
-  onBack: () => void
-}): React.JSX.Element {
+export default function ErrorState({ errorMsg }: { errorMsg: string }): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
       <div className="status-icon error" style={{ marginBottom: 20 }} aria-label="설치 실패">
@@ -52,15 +44,6 @@ export default function ErrorState({
         }}
       >
         ⚠ {errorMsg}
-      </div>
-
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <button className="btn-primary danger" onClick={onRetry}>
-          다시 시도
-        </button>
-        <button className="btn-ghost" onClick={onBack}>
-          모델 다시 선택
-        </button>
       </div>
     </div>
   )

@@ -30,6 +30,11 @@ src/
         │   │   ├── AuthPage.tsx        # 진입점: selectedModel에 따라 분기
         │   │   ├── ClaudeAuthPage.tsx  # Claude 전용 (API 키 + CLI 로그인 탭)
         │   │   └── GptAuthPage.tsx     # GPT 전용 (API 키 입력)
+        │   ├── download/  # CLI 설치 화면 (상태별 분리)
+        │   │   ├── CliDownloadPage.tsx # 상태 관리 + 분기 렌더링
+        │   │   ├── InstallingState.tsx # 설치 중 화면
+        │   │   ├── SuccessState.tsx    # 설치 성공 화면
+        │   │   └── ErrorState.tsx      # 설치 실패 화면
         │   └── ...        # 기타 화면 컴포넌트
         └── assets/        # CSS, 이미지
 

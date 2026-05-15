@@ -14,6 +14,7 @@ interface AppContextValue {
   setLastResponse: (response: string) => void
 }
 
+// 초기값을 null로 설정해 Provider 외부에서 사용 시 오류를 감지할 수 있게 한다
 const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }): React.JSX.Element {
@@ -40,6 +41,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   )
 }
 
+// AppContext 접근 훅 — Provider 외부에서 호출하면 즉시 에러를 던져 잘못된 사용을 방지
 export function useApp(): AppContextValue {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')

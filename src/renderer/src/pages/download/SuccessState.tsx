@@ -3,15 +3,13 @@ export default function SuccessState({
   logs,
   showLogs,
   setShowLogs,
-  logRef,
-  onNext
+  logRef
 }: {
   modelLabel: string
   logs: string[]
   showLogs: boolean
   setShowLogs: (v: boolean) => void
   logRef: React.RefObject<HTMLDivElement | null>
-  onNext: () => void
 }): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
@@ -95,24 +93,6 @@ export default function SuccessState({
             </div>
           ))}
         </div>
-      </div>
-
-      <div style={{ width: '100%', marginTop: 8 }}>
-        <button className="btn-primary" onClick={onNext}>
-          다음: API 키 설정
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="6,3 12,9 6,15" />
-          </svg>
-        </button>
       </div>
     </div>
   )

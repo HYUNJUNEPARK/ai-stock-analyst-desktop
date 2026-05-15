@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import { EyeIcon, EyeOffIcon } from '../../components/EyeIcons'
+import PageFooter from '../../components/PageFooter'
 
 type BtnState = 'idle' | 'loading' | 'done'
 
@@ -112,20 +113,18 @@ export default function GptAuthPage(): React.JSX.Element {
         </div>
       </div>
 
-      <div className="page-footer">
-        <div className="content-container">
-          <button
-            className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
-            onClick={handleConfirm}
-            disabled={!apiKeyInput.trim() || btnState !== 'idle'}
-          >
-            {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
-            {btnState === 'idle' && '인증 확인'}
-            {btnState === 'loading' && '확인 중...'}
-            {btnState === 'done' && '✓ 인증 완료'}
-          </button>
-        </div>
-      </div>
+      <PageFooter>
+        <button
+          className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
+          onClick={handleConfirm}
+          disabled={!apiKeyInput.trim() || btnState !== 'idle'}
+        >
+          {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
+          {btnState === 'idle' && '인증 확인'}
+          {btnState === 'loading' && '확인 중...'}
+          {btnState === 'done' && '✓ 인증 완료'}
+        </button>
+      </PageFooter>
     </div>
   )
 }

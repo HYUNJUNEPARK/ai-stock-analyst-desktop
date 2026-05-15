@@ -1,12 +1,8 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import PageFooter from '../components/PageFooter'
 
-const EXAMPLE_PROMPTS = [
-  '💡 이 코드의 버그를 찾아줘',
-  '📝 이메일 초안 작성해줘',
-  '🔍 이 개념을 쉽게 설명해줘'
-]
 
 const MAX_CHARS = 5000
 const WARN_CHARS = 4000
@@ -97,10 +93,10 @@ export default function PromptPage(): React.JSX.Element {
           {/* 헤더 */}
           <div style={{ textAlign: 'center', paddingTop: 32, paddingBottom: 24 }}>
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
-              AI에게 질문해 보세요
+              주식 분석 리포트 생성
             </h1>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              어떤 것이든 물어보세요.
+              종목명 또는 티커를 포함해 분석을 요청하세요.
             </p>
           </div>
 
@@ -131,8 +127,8 @@ export default function PromptPage(): React.JSX.Element {
               value={text}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="AI에게 질문을 입력하세요..."
-              aria-label="AI 질문 입력"
+              placeholder="예) 삼성전자 2025년 실적 전망과 투자 의견을 알려줘"
+              aria-label="주식 분석 요청 입력"
               style={{
                 width: '100%',
                 minHeight: 140,
@@ -184,54 +180,11 @@ export default function PromptPage(): React.JSX.Element {
             </div>
           </div>
 
-          {/* 예시 프롬프트 칩 */}
-          {!text && (
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 8,
-                marginTop: 16
-              }}
-            >
-              {EXAMPLE_PROMPTS.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => {
-                    setText(p)
-                    setTimeout(autoResize, 0)
-                    textareaRef.current?.focus()
-                  }}
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 20,
-                    padding: '8px 14px',
-                    fontSize: 'var(--text-sm)',
-                    color: 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    transition: 'background 0.15s, color 0.15s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-tertiary)'
-                    e.currentTarget.style.color = 'var(--text-primary)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-secondary)'
-                    e.currentTarget.style.color = 'var(--text-secondary)'
-                  }}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
       {/* 하단 버튼 */}
-      <div className="page-footer">
+      <PageFooter>
         <button
           className="btn-primary"
           onClick={handleSubmit}
@@ -253,7 +206,7 @@ export default function PromptPage(): React.JSX.Element {
             <polyline points="4,9 9,4 14,9" />
           </svg>
         </button>
-      </div>
+      </PageFooter>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import PageFooter from '../../components/PageFooter'
 import InstallingState from './InstallingState'
 import SuccessState from './SuccessState'
 import ErrorState from './ErrorState'
@@ -53,6 +54,13 @@ export default function CliDownloadPage(): React.JSX.Element {
       ? 'npm install -g @anthropic-ai/claude-code'
       : 'npm install -g openai'
 
+  function handleRetry(): void {
+    setStatus('installing')
+    setLogs([])
+    setErrorMsg('')
+    window.api.startCliInstall(selectedModel!)
+  }
+
   return (
     <div className="page">
       <div
@@ -70,23 +78,42 @@ export default function CliDownloadPage(): React.JSX.Element {
               showLogs={showLogs}
               setShowLogs={setShowLogs}
               logRef={logRef}
-              onNext={() => navigate('/auth')}
             />
           )}
-          {status === 'error' && (
-            <ErrorState
-              errorMsg={errorMsg}
-              onRetry={() => {
-                setStatus('installing')
-                setLogs([])
-                setErrorMsg('')
-                window.api.startCliInstall(selectedModel!)
-              }}
-              onBack={() => navigate('/')}
-            />
-          )}
+          {status === 'error' && <ErrorState errorMsg={errorMsg} />}
         </div>
       </div>
+
+      {status === 'success' && (
+        <PageFooter>
+          <button className="btn-primary" onClick={() => navigate('/auth')}>
+            다음: API 키 설정
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6,3 12,9 6,15" />
+            </svg>
+          </button>
+        </PageFooter>
+      )}
+
+      {status === 'error' && (
+        <PageFooter>
+          <button className="btn-primary danger" onClick={handleRetry}>
+            다시 시도
+          </button>
+          <button className="btn-ghost btn-gap" onClick={() => navigate('/')}>
+            모델 다시 선택
+          </button>
+        </PageFooter>
+      )}
     </div>
   )
 }

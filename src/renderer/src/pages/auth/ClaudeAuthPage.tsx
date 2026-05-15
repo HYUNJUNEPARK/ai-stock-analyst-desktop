@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import claudeImg from '../../assets/claude.png'
 import { EyeIcon, EyeOffIcon } from '../../components/EyeIcons'
+import PageFooter from '../../components/PageFooter'
 
 type AuthMethod = 'apikey' | 'cli'
 type BtnState = 'idle' | 'loading' | 'done'
@@ -163,12 +164,6 @@ export default function ClaudeAuthPage(): React.JSX.Element {
                 ℹ &nbsp;claude login 명령을 실행하면 브라우저가 열리며 Anthropic 계정으로 로그인할 수 있습니다.
               </div>
 
-              {cliStatus === 'idle' && (
-                <button className="btn-primary" onClick={handleCliLogin}>
-                  claude login 시작하기
-                </button>
-              )}
-
               {cliStatus === 'running' && (
                 <div>
                   <div
@@ -217,22 +212,34 @@ export default function ClaudeAuthPage(): React.JSX.Element {
         </div>
       </div>
 
-      {/* 하단 버튼 — API 키 방식만 */}
+      {/* 하단 버튼 */}
       {authMethod === 'apikey' && (
-        <div className="page-footer">
-          <div className="content-container">
-            <button
-              className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
-              onClick={handleConfirm}
-              disabled={!apiKeyInput.trim() || btnState !== 'idle'}
-            >
-              {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
-              {btnState === 'idle' && '인증 확인'}
-              {btnState === 'loading' && '확인 중...'}
-              {btnState === 'done' && '✓ 인증 완료'}
-            </button>
-          </div>
-        </div>
+        <PageFooter>
+          <button
+            className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
+            onClick={handleConfirm}
+            disabled={!apiKeyInput.trim() || btnState !== 'idle'}
+          >
+            {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
+            {btnState === 'idle' && '인증 확인'}
+            {btnState === 'loading' && '확인 중...'}
+            {btnState === 'done' && '✓ 인증 완료'}
+          </button>
+        </PageFooter>
+      )}
+      {authMethod === 'cli' && (
+        <PageFooter>
+          <button
+            className="btn-primary"
+            onClick={handleCliLogin}
+            disabled={cliStatus !== 'idle'}
+          >
+            {cliStatus === 'running' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
+            {cliStatus === 'idle' && 'claude login 시작하기'}
+            {cliStatus === 'running' && '로그인 진행 중...'}
+            {cliStatus === 'done' && '✓ 로그인 완료'}
+          </button>
+        </PageFooter>
       )}
     </div>
   )
