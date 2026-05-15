@@ -4,6 +4,7 @@ import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/PromptPage'
 import ResponsePage from './pages/ResponsePage'
+import SettingsPage from './pages/SettingsPage'
 
 function App(): React.JSX.Element {
   return (
@@ -11,6 +12,7 @@ function App(): React.JSX.Element {
       <Route path="/" element={<ModelSelectionPage />} />
       <Route path="/download" element={<CliDownloadPage />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/prompt" element={<PromptPage />} />
       <Route path="/response" element={<ResponsePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />

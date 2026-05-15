@@ -40,20 +40,10 @@ export default function ModelSelectionPage(): React.JSX.Element {
         <div className="content-container">
           {/* 앱 로고 */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 60 }}>
-            <h1
-              style={{
-                fontSize: 'var(--text-2xl)',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                textAlign: 'center',
-                marginBottom: 8
-              }}
-            >
-              AI CLI Launcher
-            </h1>
+
             <p
               style={{
-                fontSize: 'var(--text-sm)',
+                fontSize: 'var(--text-md)',
                 color: 'var(--text-secondary)',
                 textAlign: 'center'
               }}

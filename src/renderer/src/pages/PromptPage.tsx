@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageFooter from '../components/PageFooter'
-
+import gptImg from '../assets/gpt.jpg'
+import claudeImg from '../assets/claude.png'
 
 const MAX_CHARS = 5000
 const WARN_CHARS = 4000
@@ -53,19 +54,25 @@ export default function PromptPage(): React.JSX.Element {
         : 'var(--text-tertiary)'
 
   const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
-  const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
+  // const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
+  const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
   return (
     <div className="page">
       {/* 내비게이션 바 */}
       <nav className="nav-bar">
         <div className="model-badge">
-          <div className="model-badge-dot" style={{ background: dotColor }} />
+          <img
+            src={modelImg}
+            alt={modelLabel}
+            style={{ width: 16, height: 16, borderRadius: 5, objectFit: 'cover', flexShrink: 0 }}
+          />
+          {/* <div className="model-badge-dot" style={{ background: dotColor }} /> */}
           {modelLabel}
         </div>
         <div className="nav-right">
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => navigate('/settings')}
             aria-label="설정"
             style={{
               background: 'none',
