@@ -13,21 +13,22 @@ import type { AgentStatus, ResponseLocationState, Status } from './types'
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
-  const { selectedModel, currentPrompt, setCurrentPrompt, setLastResponse } = useApp()
+  const { selectedModel, currentPrompt, setLastResponse } = useApp()
   const previewState = import.meta.env.DEV ? (location.state as ResponseLocationState) : null
   const isPreviewOnly = previewState?.previewOnly === true
+  const previewStatus = previewState?.previewStatus ?? 'done'
   const effectiveModel = isPreviewOnly
     ? (previewState?.model ?? selectedModel ?? 'gpt')
     : selectedModel
   const effectivePrompt = isPreviewOnly ? (previewState?.prompt ?? currentPrompt) : currentPrompt
   const apiKey = ''
-  const initialResponse = isPreviewOnly ? DEV_PREVIEW_RESPONSE : ''
+  const initialResponse = isPreviewOnly && previewStatus === 'done' ? DEV_PREVIEW_RESPONSE : ''
   const [response, setResponse] = useState(initialResponse)
-  const [status, setStatus] = useState<Status>(isPreviewOnly ? 'done' : 'streaming')
+  const [status, setStatus] = useState<Status>(isPreviewOnly ? previewStatus : 'streaming')
   const [errorMsg, setErrorMsg] = useState('')
   const [copied, setCopied] = useState(false)
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
-    getInitialAgentStatuses(isPreviewOnly ? 'done' : 'idle')
+    getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
   const responseRef = useRef(initialResponse)
   const hasStartedRef = useRef(false)
@@ -37,7 +38,9 @@ export default function ResponsePage(): React.JSX.Element {
     hasStartedRef.current = true
 
     if (isPreviewOnly) {
-      setLastResponse(DEV_PREVIEW_RESPONSE)
+      if (previewStatus === 'done') {
+        setLastResponse(DEV_PREVIEW_RESPONSE)
+      }
       return
     }
 
@@ -85,7 +88,7 @@ export default function ResponsePage(): React.JSX.Element {
 
       window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt, apiKey })
     }
-  }, [effectiveModel, effectivePrompt, isPreviewOnly, navigate, setLastResponse])
+  }, [effectiveModel, effectivePrompt, isPreviewOnly, navigate, previewStatus, setLastResponse])
 
   function handleCopy(): void {
     navigator.clipboard.writeText(responseRef.current)
@@ -93,13 +96,15 @@ export default function ResponsePage(): React.JSX.Element {
     setTimeout(() => setCopied(false), 1500)
   }
 
-  function handleNewQuestion(): void {
-    setCurrentPrompt('')
-    navigate('/prompt')
-  }
+  // function handleNewQuestion(): void {
+  //   setCurrentPrompt('')
+  //   navigate('/prompt')
+  // }
 
   function handleCancel(): void {
-    window.api.cancelStockAnalysis()
+    if (!isPreviewOnly) {
+      window.api.cancelStockAnalysis()
+    }
     setStatus('cancelled')
   }
 
@@ -111,10 +116,11 @@ export default function ResponsePage(): React.JSX.Element {
     setAgentStatuses(getInitialAgentStatuses('idle'))
 
     if (isPreviewOnly) {
-      responseRef.current = DEV_PREVIEW_RESPONSE
-      setResponse(DEV_PREVIEW_RESPONSE)
-      setStatus('done')
-      setAgentStatuses(getInitialAgentStatuses('done'))
+      const nextResponse = previewStatus === 'done' ? DEV_PREVIEW_RESPONSE : ''
+      responseRef.current = nextResponse
+      setResponse(nextResponse)
+      setStatus(previewStatus)
+      setAgentStatuses(getPreviewAgentStatuses(true, previewStatus))
       return
     }
 
@@ -227,6 +233,18 @@ export default function ResponsePage(): React.JSX.Element {
 
 function getInitialAgentStatuses(status: AgentStatus): Record<string, AgentStatus> {
   return Object.fromEntries(AGENT_CONFIG.map((agent) => [agent.key, status]))
+}
+
+function getPreviewAgentStatuses(
+  isPreviewOnly: boolean,
+  previewStatus: Status
+): Record<string, AgentStatus> {
+  if (!isPreviewOnly) return getInitialAgentStatuses('idle')
+  if (previewStatus === 'done') return getInitialAgentStatuses('done')
+
+  return Object.fromEntries(
+    AGENT_CONFIG.map((agent, index) => [agent.key, index === 0 ? 'running' : 'idle'])
+  )
 }
 
 function isStockAnalysisModel(model: string | null): model is 'gpt' | 'claude' {

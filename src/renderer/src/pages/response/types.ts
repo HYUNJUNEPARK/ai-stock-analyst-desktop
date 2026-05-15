@@ -4,6 +4,7 @@ export type PreviewModel = 'gpt' | 'claude'
 
 export type ResponseLocationState = {
   previewOnly?: boolean
+  previewStatus?: Extract<Status, 'streaming' | 'done'>
   model?: PreviewModel
   prompt?: string
 } | null
