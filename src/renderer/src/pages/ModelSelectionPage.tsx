@@ -58,6 +58,14 @@ export default function ModelSelectionPage(): React.JSX.Element {
               <ModelCard key={model.id} model={model} onSelect={handleSelect} />
             ))}
           </div>
+
+          <button
+            className="btn-ghost"
+            onClick={() => navigate('/reports/latest')}
+            style={{ marginTop: 24 }}
+          >
+            이전 보고서
+          </button>
         </div>
       </div>
 

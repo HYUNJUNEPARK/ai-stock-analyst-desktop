@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import gptImg from '../assets/gpt.jpg'
 import claudeImg from '../assets/claude.png'
-import PageFooter from '../components/PageFooter'
 
 export default function SettingsPage(): React.JSX.Element {
   const navigate = useNavigate()
