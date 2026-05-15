@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import claudeImg from '../assets/claude.png'
-import gptImg from '../assets/gpt.jpg'
+import { useApp } from '../../context/AppContext'
+import claudeImg from '../../assets/claude.png'
+import { EyeIcon, EyeOffIcon } from './EyeIcons'
 
 type AuthMethod = 'apikey' | 'cli'
 type BtnState = 'idle' | 'loading' | 'done'
 
-export default function AuthPage(): React.JSX.Element {
+export default function ClaudeAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, setApiKey: saveApiKey } = useApp()
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -22,7 +22,6 @@ export default function AuthPage(): React.JSX.Element {
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!selectedModel) { navigate('/'); return }
     window.api?.loadApiKey().then((key: string | null) => {
       if (key) { setApiKeyInput(key); setSavedKeyHint(true) }
     })
@@ -65,16 +64,8 @@ export default function AuthPage(): React.JSX.Element {
     window.api?.runClaudeLogin?.()
   }
 
-  const modelLabel = selectedModel === 'gpt' ? 'OpenAI' : 'Anthropic'
-  const placeholder = selectedModel === 'gpt' ? 'sk-proj-...' : 'sk-ant-...'
-  const hint =
-    selectedModel === 'gpt'
-      ? 'API 키는 sk-proj-로 시작합니다. platform.openai.com에서 발급받을 수 있습니다.'
-      : 'API 키는 sk-ant-로 시작합니다. console.anthropic.com에서 발급받을 수 있습니다.'
-
   return (
     <div className="page">
-      {/* 내비게이션 바 */}
       <nav className="nav-bar">
         <button className="nav-back" onClick={() => navigate('/')} aria-label="뒤로">
           <svg viewBox="0 0 18 18">
@@ -84,56 +75,43 @@ export default function AuthPage(): React.JSX.Element {
         </button>
       </nav>
 
-      {/* 콘텐츠 */}
       <div className="page-content">
         <div className="content-container">
-          {/* 헤더 */}
           <div style={{ textAlign: 'center', paddingTop: 40, paddingBottom: 32 }}>
             <img
-              src={selectedModel === 'gpt' ? gptImg : claudeImg}
-              alt={selectedModel === 'gpt' ? 'OpenAI' : 'Claude'}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                objectFit: 'cover',
-                marginBottom: 16
-              }}
+              src={claudeImg}
+              alt="Claude"
+              style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', marginBottom: 16 }}
             />
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
               API 키 설정
             </h1>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              {modelLabel} API 키를 입력해 주세요
+              Anthropic API 키를 입력해 주세요
             </p>
           </div>
 
-          {/* Claude 전용: 탭 */}
-          {selectedModel === 'claude' && (
-            <div className="tab-bar">
-              <button
-                className={`tab-item ${authMethod === 'apikey' ? 'active' : ''}`}
-                onClick={() => setAuthMethod('apikey')}
-              >
-                API 키로 인증
-              </button>
-              <button
-                className={`tab-item ${authMethod === 'cli' ? 'active' : ''}`}
-                onClick={() => setAuthMethod('cli')}
-              >
-                CLI 로그인
-              </button>
-            </div>
-          )}
+          <div className="tab-bar">
+            <button
+              className={`tab-item ${authMethod === 'apikey' ? 'active' : ''}`}
+              onClick={() => setAuthMethod('apikey')}
+            >
+              API 키로 인증
+            </button>
+            <button
+              className={`tab-item ${authMethod === 'cli' ? 'active' : ''}`}
+              onClick={() => setAuthMethod('cli')}
+            >
+              CLI 로그인
+            </button>
+          </div>
 
           {/* API 키 입력 폼 */}
-          {(selectedModel === 'gpt' || authMethod === 'apikey') && (
+          {authMethod === 'apikey' && (
             <div>
               {errorMsg && <div className="error-banner">⚠ {errorMsg}</div>}
 
-              <label className="input-label" htmlFor="api-key">
-                API 키
-              </label>
+              <label className="input-label" htmlFor="api-key">API 키</label>
               <div className="input-wrapper">
                 <input
                   id="api-key"
@@ -146,12 +124,10 @@ export default function AuthPage(): React.JSX.Element {
                     setErrorMsg('')
                     setSavedKeyHint(false)
                   }}
-                  placeholder={placeholder}
+                  placeholder="sk-ant-..."
                   autoComplete="off"
                   spellCheck={false}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleConfirm()
-                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm() }}
                 />
                 <button
                   className="input-eye-btn"
@@ -166,12 +142,16 @@ export default function AuthPage(): React.JSX.Element {
               {savedKeyHint && (
                 <p className="input-hint success">✓ 저장된 키를 불러왔습니다. 변경하려면 입력하세요.</p>
               )}
-              {!savedKeyHint && <p className="input-hint">{hint}</p>}
+              {!savedKeyHint && (
+                <p className="input-hint">
+                  API 키는 sk-ant-로 시작합니다. console.anthropic.com에서 발급받을 수 있습니다.
+                </p>
+              )}
             </div>
           )}
 
-          {/* Claude CLI 로그인 */}
-          {selectedModel === 'claude' && authMethod === 'cli' && (
+          {/* CLI 로그인 */}
+          {authMethod === 'cli' && (
             <div>
               <div className="info-card" style={{ marginBottom: 20 }}>
                 ℹ &nbsp;claude login 명령을 실행하면 브라우저가 열리며 Anthropic 계정으로 로그인할 수 있습니다.
@@ -232,7 +212,7 @@ export default function AuthPage(): React.JSX.Element {
       </div>
 
       {/* 하단 버튼 — API 키 방식만 */}
-      {(selectedModel === 'gpt' || authMethod === 'apikey') && (
+      {authMethod === 'apikey' && (
         <div className="page-footer">
           <div className="content-container">
             <button
@@ -249,24 +229,5 @@ export default function AuthPage(): React.JSX.Element {
         </div>
       )}
     </div>
-  )
-}
-
-function EyeIcon(): React.JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  )
-}
-
-function EyeOffIcon(): React.JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
   )
 }
