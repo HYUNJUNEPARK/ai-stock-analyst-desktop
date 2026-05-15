@@ -4,6 +4,14 @@ import { useApp } from '../context/AppContext'
 import PageFooter from '../components/PageFooter'
 
 type Status = 'streaming' | 'done' | 'error'
+type AgentStatus = 'idle' | 'running' | 'done'
+
+const AGENT_CONFIG: { key: string; label: string }[] = [
+  { key: 'financial-analyst-kr', label: '재무 분석' },
+  { key: 'news-sentiment-analyst', label: '뉴스 분석' },
+  { key: 'sector-researcher', label: '섹터 리서치' },
+  { key: 'aggressive-investment-strategist', label: '투자 전략' }
+]
 
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -12,6 +20,9 @@ export default function ResponsePage(): React.JSX.Element {
   const [status, setStatus] = useState<Status>('streaming')
   const [errorMsg, setErrorMsg] = useState('')
   const [copied, setCopied] = useState(false)
+  const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(
+    () => Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'idle']))
+  )
   const responseRef = useRef('')
 
   useEffect(() => {
@@ -21,25 +32,47 @@ export default function ResponsePage(): React.JSX.Element {
       return
     }
 
-    // 응답 청크를 ref에 누적하고 화면에 반영 (잦은 setState로 인한 렌더링 최적화)
-    window.api?.onResponseChunk?.((chunk: string) => {
-      responseRef.current += chunk
-      setResponse(responseRef.current)
-    })
+    if (selectedModel === 'claude') {
+      // 멀티 에이전트 주식 분석 흐름
+      window.api?.onStockAnalysisAgent?.(({ name, status: agentStatus }) => {
+        setAgentStatuses((prev) => ({ ...prev, [name]: agentStatus }))
+      })
 
-    // 응답 완료 이벤트: 성공 시 전역 상태에 저장, 실패 시 에러 표시
-    window.api?.onResponseDone?.((result: { success: boolean; error?: string }) => {
-      if (result.success) {
-        setStatus('done')
-        setLastResponse(responseRef.current)
-      } else {
-        setStatus('error')
-        setErrorMsg(result.error ?? '응답을 가져오지 못했습니다.')
-      }
-    })
+      window.api?.onStockAnalysisChunk?.((chunk: string) => {
+        responseRef.current += chunk
+        setResponse(responseRef.current)
+      })
 
-    // 프롬프트 실행 시작
-    window.api?.runPrompt?.({ model: selectedModel, prompt: currentPrompt, apiKey })
+      window.api?.onStockAnalysisDone?.((result: { success: boolean; error?: string }) => {
+        if (result.success) {
+          setStatus('done')
+          setLastResponse(responseRef.current)
+        } else {
+          setStatus('error')
+          setErrorMsg(result.error ?? '분석에 실패했습니다.')
+        }
+      })
+
+      window.api?.runStockAnalysis?.({ prompt: currentPrompt, apiKey })
+    } else {
+      // GPT 단순 프롬프트 흐름
+      window.api?.onResponseChunk?.((chunk: string) => {
+        responseRef.current += chunk
+        setResponse(responseRef.current)
+      })
+
+      window.api?.onResponseDone?.((result: { success: boolean; error?: string }) => {
+        if (result.success) {
+          setStatus('done')
+          setLastResponse(responseRef.current)
+        } else {
+          setStatus('error')
+          setErrorMsg(result.error ?? '응답을 가져오지 못했습니다.')
+        }
+      })
+
+      window.api?.runPrompt?.({ model: selectedModel, prompt: currentPrompt, apiKey })
+    }
   }, [])
 
   // 응답 전체를 클립보드에 복사하고 1.5초 후 버튼 상태를 원래대로 복원
@@ -53,6 +86,20 @@ export default function ResponsePage(): React.JSX.Element {
   function handleNewQuestion(): void {
     setCurrentPrompt('')
     navigate('/prompt')
+  }
+
+  function handleRetry(): void {
+    setStatus('streaming')
+    setResponse('')
+    responseRef.current = ''
+    setErrorMsg('')
+    setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'idle'])))
+
+    if (selectedModel === 'claude') {
+      window.api?.runStockAnalysis?.({ prompt: currentPrompt, apiKey })
+    } else {
+      window.api?.runPrompt?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
+    }
   }
 
   const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
@@ -85,6 +132,60 @@ export default function ResponsePage(): React.JSX.Element {
       {/* 콘텐츠 */}
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
+          {/* 멀티 에이전트 진행 상태 (Claude 전용) */}
+          {selectedModel === 'claude' && (
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                marginBottom: 16,
+                flexWrap: 'wrap'
+              }}
+            >
+              {AGENT_CONFIG.map((agent) => {
+                const agentStatus = agentStatuses[agent.key] ?? 'idle'
+                return (
+                  <div
+                    key={agent.key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '5px 10px',
+                      borderRadius: 20,
+                      fontSize: 'var(--text-xs)',
+                      fontWeight: 500,
+                      border: '1px solid var(--border)',
+                      background:
+                        agentStatus === 'done'
+                          ? 'var(--success)'
+                          : agentStatus === 'running'
+                            ? 'var(--accent-light)'
+                            : 'var(--bg-secondary)',
+                      color:
+                        agentStatus === 'done'
+                          ? '#fff'
+                          : agentStatus === 'running'
+                            ? 'var(--accent)'
+                            : 'var(--text-tertiary)',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {agentStatus === 'running' && (
+                      <div className="spinner" style={{ width: 10, height: 10 }} />
+                    )}
+                    {agentStatus === 'done' && (
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                      </svg>
+                    )}
+                    {agent.label}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
           {/* 내 질문 버블 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
             <div
@@ -210,19 +311,8 @@ export default function ResponsePage(): React.JSX.Element {
 
           {/* 오류 시 재시도 */}
           {status === 'error' && (
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}
-            >
-              <button
-                className="btn-primary danger"
-                onClick={() => {
-                  setStatus('streaming')
-                  setResponse('')
-                  responseRef.current = ''
-                  setErrorMsg('')
-                  window.api?.runPrompt?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
-                }}
-              >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
+              <button className="btn-primary danger" onClick={handleRetry}>
                 다시 시도
               </button>
             </div>

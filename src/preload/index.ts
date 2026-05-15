@@ -8,6 +8,9 @@ let cliLoginProgressCb: ((data: string) => void) | null = null
 let cliLoginCompleteCb: ((result: { success: boolean }) => void) | null = null
 let responseChunkCb: ((chunk: string) => void) | null = null
 let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
+let stockAnalysisAgentCb: ((event: { name: string; status: 'running' | 'done' }) => void) | null = null
+let stockAnalysisChunkCb: ((chunk: string) => void) | null = null
+let stockAnalysisDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
 
 ipcRenderer.on('install-progress', (_e, data: string) => installProgressCb?.(data))
 ipcRenderer.on('install-complete', (_e, result: { success: boolean; error?: string }) =>
@@ -20,6 +23,13 @@ ipcRenderer.on('cli-login-complete', (_e, result: { success: boolean }) =>
 ipcRenderer.on('prompt-response-chunk', (_e, chunk: string) => responseChunkCb?.(chunk))
 ipcRenderer.on('prompt-response-done', (_e, result: { success: boolean; error?: string }) =>
   responseDoneCb?.(result)
+)
+ipcRenderer.on('stock-analysis-agent', (_e, event: { name: string; status: 'running' | 'done' }) =>
+  stockAnalysisAgentCb?.(event)
+)
+ipcRenderer.on('stock-analysis-chunk', (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
+ipcRenderer.on('stock-analysis-done', (_e, result: { success: boolean; error?: string }) =>
+  stockAnalysisDoneCb?.(result)
 )
 
 // ── contextBridge 노출 ──
@@ -60,6 +70,19 @@ if (process.contextIsolated) {
       },
       onResponseDone: (cb: (result: { success: boolean; error?: string }) => void) => {
         responseDoneCb = cb
+      },
+
+      /* 주식 멀티 에이전트 분석 */
+      runStockAnalysis: (params: { prompt: string; apiKey: string }) =>
+        ipcRenderer.send('run-stock-analysis', params),
+      onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {
+        stockAnalysisAgentCb = cb
+      },
+      onStockAnalysisChunk: (cb: (chunk: string) => void) => {
+        stockAnalysisChunkCb = cb
+      },
+      onStockAnalysisDone: (cb: (result: { success: boolean; error?: string }) => void) => {
+        stockAnalysisDoneCb = cb
       }
     })
   } catch (error) {

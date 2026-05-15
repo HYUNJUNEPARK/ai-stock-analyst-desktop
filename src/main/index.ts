@@ -11,6 +11,12 @@ import icon from '../../resources/icon.png?asset'
 const CLI_PREFIX = join(homedir(), '.ai-cli-launcher')
 const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 
+// 멀티 에이전트 주식 분석 프로젝트 경로
+// 개발: 프로젝트 루트 기준, 프로덕션: extraResources 기준
+const STOCK_CLAUDE_DIR = is.dev
+  ? join(app.getAppPath(), 'src', 'main', 'claude', 'stock-claude')
+  : join(process.resourcesPath, 'claude', 'stock-claude')
+
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -249,6 +255,107 @@ function registerIpcHandlers(win: BrowserWindow): void {
       })
     }
   )
+
+  // ── 주식 멀티 에이전트 분석 ──
+  ipcMain.on('run-stock-analysis', (_event, { prompt, apiKey }: { prompt: string; apiKey: string }) => {
+    const claudeCmd = join(CLI_BIN, process.platform === 'win32' ? 'claude.cmd' : 'claude')
+    const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
+
+    const env: NodeJS.ProcessEnv = { ...process.env }
+    if (apiKey) env['ANTHROPIC_API_KEY'] = apiKey
+
+    const child = spawn(claudeCmd, args, {
+      env,
+      cwd: STOCK_CLAUDE_DIR,
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
+
+    let buf = ''
+    // tool_use_id → 에이전트 key 매핑 (어느 에이전트가 완료됐는지 추적)
+    const agentToolMap = new Map<string, string>()
+
+    child.stdout.on('data', (data: Buffer) => {
+      buf += data.toString()
+      const lines = buf.split('\n')
+      buf = lines.pop() ?? ''
+
+      for (const line of lines) {
+        if (!line.trim()) continue
+        try {
+          const ev = JSON.parse(line) as Record<string, unknown>
+
+          // 에이전트 Tool 호출 감지 → running 상태 전송
+          if (ev.type === 'assistant') {
+            const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
+            for (const block of content) {
+              const b = block as Record<string, unknown>
+              if (b.type === 'tool_use') {
+                const input = b.input as Record<string, unknown> | undefined
+                const agentType = input?.subagent_type as string | undefined
+                if (agentType) {
+                  agentToolMap.set(b.id as string, agentType)
+                  win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
+                }
+              }
+            }
+          }
+
+          // Tool 결과 수신 → 해당 에이전트 done 상태 전송
+          if (ev.type === 'user') {
+            const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
+            for (const block of content) {
+              const b = block as Record<string, unknown>
+              if (b.type === 'tool_result') {
+                const agentType = agentToolMap.get(b.tool_use_id as string)
+                if (agentType) {
+                  win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
+                  agentToolMap.delete(b.tool_use_id as string)
+                }
+              }
+            }
+          }
+
+          // 최종 결과 전송
+          if (ev.type === 'result') {
+            if (ev.subtype === 'success') {
+              win.webContents.send('stock-analysis-chunk', ev.result ?? '')
+              win.webContents.send('stock-analysis-done', { success: true })
+            } else {
+              win.webContents.send('stock-analysis-done', {
+                success: false,
+                error: (ev.error as string) ?? '분석 실패'
+              })
+            }
+          }
+        } catch {
+          // JSON이 아닌 출력은 무시
+        }
+      }
+    })
+
+    child.stderr.on('data', (data: Buffer) => {
+      const text = data.toString()
+      if (text.toLowerCase().includes('error')) {
+        console.error('[stock-analysis]', text.trim())
+      }
+    })
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        win.webContents.send('stock-analysis-done', {
+          success: false,
+          error: `분석 실패 (exit code: ${code})`
+        })
+      }
+    })
+
+    child.on('error', (err) => {
+      win.webContents.send('stock-analysis-done', {
+        success: false,
+        error: `CLI 실행 오류: ${err.message}`
+      })
+    })
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────
