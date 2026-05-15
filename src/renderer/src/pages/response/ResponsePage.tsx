@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import claudeImg from '../../assets/claude.png'
 import gptImg from '../../assets/gpt.jpg'
-import PageFooter from '../../components/PageFooter'
 import { useApp } from '../../context/AppContext'
 import PromptBubble from './components/PromptBubble'
 import ResponseCard from './components/ResponseCard'
@@ -25,7 +24,6 @@ export default function ResponsePage(): React.JSX.Element {
   const [response, setResponse] = useState(initialResponse)
   const [status, setStatus] = useState<Status>(isPreviewOnly ? previewStatus : 'streaming')
   const [errorMsg, setErrorMsg] = useState('')
-  const [copied, setCopied] = useState(false)
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
@@ -89,12 +87,6 @@ export default function ResponsePage(): React.JSX.Element {
     }
   }, [effectiveModel, effectivePrompt, isPreviewOnly, navigate, previewStatus, setLastResponse])
 
-  function handleCopy(): void {
-    navigator.clipboard.writeText(responseRef.current)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-
   function handleCancel(): void {
     if (!isPreviewOnly) {
       window.api.cancelStockAnalysis()
@@ -155,53 +147,17 @@ export default function ResponsePage(): React.JSX.Element {
 
           <ResponseCard
             agentStatuses={agentStatuses}
-            copied={copied}
             errorMsg={errorMsg}
             model={effectiveModel}
             modelImg={modelImg}
             modelLabel={modelLabel}
             onCancel={handleCancel}
-            onCopy={handleCopy}
+            onRetry={handleRetry}
             response={response}
             status={status}
           />
-
-          {status === 'error' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
-              <button className="btn-primary danger" onClick={handleRetry}>
-                다시 시도
-              </button>
-            </div>
-          )}
-
-          {status === 'cancelled' && (
-            <div
-              style={{
-                marginTop: 16,
-                padding: '12px 16px',
-                borderRadius: 12,
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
-                fontSize: 'var(--text-sm)',
-                textAlign: 'center'
-              }}
-            >
-              분석을 취소했습니다.
-            </div>
-          )}
         </div>
       </div>
-
-      {(status === 'done' || status === 'error' || status === 'cancelled') && (
-        <PageFooter>
-          {status === 'cancelled' && (
-            <button className="btn-ghost" onClick={handleRetry} style={{ marginRight: 8 }}>
-              다시 시도
-            </button>
-          )}
-        </PageFooter>
-      )}
     </div>
   )
 }
