@@ -18,8 +18,8 @@ Electron main process(src/main/index.ts)와 renderer(src/renderer/src/pages/CliD
 
 2. 모델별 설치 명령어:
    - claude (모든 OS): `npm install -g @anthropic-ai/claude-code`
-   - gpt (모든 OS): `npm install -g openai` (openai CLI가 없으므로 일단 패키지만 설치)
-     → 실제로는 추후 변경 가능하도록 설치 명령어를 상수로 분리
+   - gpt (모든 OS): `npm install -g @openai/codex`
+     → GPT 경로는 Codex CLI 기반 멀티 에이전트 분석으로 실행
 
 3. child_process.spawn으로 명령 실행, stdout/stderr 데이터를
    `event.sender.send('install-progress', data)` 로 renderer에 전송

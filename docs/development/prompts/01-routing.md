@@ -16,7 +16,7 @@ src/renderer/src/ 하위에 아래 작업을 진행해 주세요.
    라우트 구성:
    - /            → ModelSelectionPage  (모델 선택)
    - /download    → CliDownloadPage     (CLI 다운로드)
-   - /auth        → AuthPage            (API 키 / 로그인)
+   - /auth        → AuthPage            (CLI 로그인)
    - /prompt      → PromptPage          (프롬프트 입력)
    - /response    → ResponsePage        (응답 확인)
 

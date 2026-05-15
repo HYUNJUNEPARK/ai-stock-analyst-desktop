@@ -8,7 +8,7 @@ const INSTALL_LOGS_GPT = [
   'npm warn deprecated inflight@1.0.6',
   'added 12 packages in 1.2s',
   '',
-  '> openai@4.68.0 postinstall',
+  '> @openai/codex@0.84.0 postinstall',
   '> node ./scripts/postinstall.js',
   '',
   'added 89 packages, and audited 90 packages in 3.4s',
@@ -16,7 +16,7 @@ const INSTALL_LOGS_GPT = [
   '  run `npm fund` for details',
   '',
   'found 0 vulnerabilities',
-  '✓ openai installed successfully'
+  '✓ Codex CLI installed successfully'
 ]
 
 const INSTALL_LOGS_CLAUDE = [
@@ -39,11 +39,11 @@ const INSTALL_LOGS_CLAUDE = [
 ]
 
 const CLI_LOGIN_LOGS = [
-  '$ claude login',
+  '$ cli login',
   'Opening browser for authentication...',
   'Waiting for login to complete...',
   '✓ Authentication successful',
-  '✓ Credentials saved to ~/.claude/config.json'
+  '✓ Credentials saved to local CLI config'
 ]
 
 const MOCK_RESPONSE_GPT = `# 안녕하세요! 무엇이든 물어보세요.
@@ -117,13 +117,15 @@ function setupMockApi(): void {
     installProgress?: (data: string) => void
     installComplete?: (result: { success: boolean; error?: string }) => void
     cliLoginProgress?: (data: string) => void
-    cliLoginComplete?: (result: { success: boolean }) => void
+    cliLoginComplete?: (result: { success: boolean; error?: string }) => void
     responseChunk?: (chunk: string) => void
     responseDone?: (result: { success: boolean; error?: string }) => void
+    stockAnalysisAgent?: (event: { name: string; status: 'running' | 'done' }) => void
+    stockAnalysisChunk?: (chunk: string) => void
+    stockAnalysisDone?: (result: { success: boolean; error?: string }) => void
   } = {}
 
-  // localStorage 기반 key 저장
-  const STORAGE_KEY = 'mock_api_key'
+  const STORAGE_KEY_PREFIX = 'mock_api_key_'
 
   window.api = {
     /* ── CLI 설치 ── */
@@ -157,11 +159,11 @@ function setupMockApi(): void {
       }
       return { valid: true }
     },
-    saveApiKey: async ({ apiKey }) => {
-      localStorage.setItem(STORAGE_KEY, apiKey)
+    saveApiKey: async ({ model, apiKey }) => {
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}${model}`, apiKey)
     },
-    loadApiKey: async () => {
-      return localStorage.getItem(STORAGE_KEY)
+    loadApiKey: async (model) => {
+      return localStorage.getItem(`${STORAGE_KEY_PREFIX}${model}`)
     },
 
     /* ── Claude CLI 로그인 ── */
@@ -184,6 +186,21 @@ function setupMockApi(): void {
     },
     onCliLoginComplete: (cb) => {
       callbacks.cliLoginComplete = cb
+    },
+    runGptLogin: () => {
+      let i = 0
+      const logs = CLI_LOGIN_LOGS.map((line, index) => (index === 0 ? '$ codex login' : line))
+      const timer = setInterval(() => {
+        if (i < logs.length) {
+          callbacks.cliLoginProgress?.(logs[i])
+          i++
+        } else {
+          clearInterval(timer)
+          setTimeout(() => {
+            callbacks.cliLoginComplete?.({ success: true })
+          }, 400)
+        }
+      }, 600)
     },
 
     /* ── 프롬프트 실행 ── */
@@ -211,6 +228,46 @@ function setupMockApi(): void {
     },
     onResponseDone: (cb) => {
       callbacks.responseDone = cb
+    },
+
+    runStockAnalysis: ({ model }) => {
+      const roles = [
+        'financial-analyst-kr',
+        'news-sentiment-analyst',
+        'sector-researcher',
+        'aggressive-investment-strategist'
+      ] as const
+
+      let index = 0
+      const timer = setInterval(() => {
+        const role = roles[index]
+        if (!role) {
+          clearInterval(timer)
+          callbacks.stockAnalysisChunk?.(
+            model === 'gpt' ? MOCK_RESPONSE_GPT : MOCK_RESPONSE_CLAUDE
+          )
+          callbacks.stockAnalysisDone?.({ success: true })
+          return
+        }
+
+        callbacks.stockAnalysisAgent?.({ name: role, status: 'running' })
+        setTimeout(() => {
+          callbacks.stockAnalysisAgent?.({ name: role, status: 'done' })
+        }, 500)
+        index += 1
+      }, 700)
+    },
+    cancelStockAnalysis: () => {
+      callbacks.stockAnalysisDone?.({ success: false, error: '분석이 취소되었습니다.' })
+    },
+    onStockAnalysisAgent: (cb) => {
+      callbacks.stockAnalysisAgent = cb
+    },
+    onStockAnalysisChunk: (cb) => {
+      callbacks.stockAnalysisChunk = cb
+    },
+    onStockAnalysisDone: (cb) => {
+      callbacks.stockAnalysisDone = cb
     }
   }
 }

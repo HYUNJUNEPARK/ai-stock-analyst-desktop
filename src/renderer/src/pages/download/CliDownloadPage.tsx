@@ -48,11 +48,11 @@ export default function CliDownloadPage(): React.JSX.Element {
     window.api.startCliInstall(selectedModel)
   }, [])
 
-  const modelLabel = selectedModel === 'gpt' ? 'OpenAI GPT' : 'Claude Code'
+  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
   const command =
     selectedModel === 'claude'
       ? 'npm install -g @anthropic-ai/claude-code'
-      : 'npm install -g openai'
+      : 'npm install -g @openai/codex'
 
   function handleRetry(): void {
     setStatus('installing')
@@ -87,7 +87,7 @@ export default function CliDownloadPage(): React.JSX.Element {
       {status === 'success' && (
         <PageFooter>
           <button className="btn-primary" onClick={() => navigate('/auth')}>
-            다음: API 키 설정
+            로그인
             <svg
               width="18"
               height="18"

@@ -13,7 +13,7 @@ src/renderer/src/pages/PromptPage.tsx를 구현해 주세요.
 요구사항:
 
 1. 상단 헤더 영역:
-   - 현재 선택된 모델 표시 (예: "GPT o3" 또는 "Claude Code")
+   - 현재 선택된 모델 표시 (예: "OpenAI Codex" 또는 "Claude Code")
    - 설정 아이콘 버튼 → 클릭 시 /auth로 이동 (API 키 변경용)
 
 2. 메인 입력 영역:

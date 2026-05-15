@@ -1,8 +1,8 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
-import { spawn } from 'child_process'
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { spawn, spawnSync } from 'child_process'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
@@ -16,11 +16,14 @@ const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 const STOCK_CLAUDE_DIR = is.dev
   ? join(app.getAppPath(), 'src', 'main', 'claude', 'stock-claude')
   : join(process.resourcesPath, 'claude', 'stock-claude')
+const STOCK_GPT_DIR = is.dev
+  ? join(app.getAppPath(), 'src', 'main', 'gpt')
+  : join(process.resourcesPath, 'gpt')
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1080,
+    height: 804,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -53,8 +56,94 @@ function createWindow(): void {
 function registerIpcHandlers(win: BrowserWindow): void {
   // CLI 패키지 매핑
   const CLI_PACKAGES: Record<string, string> = {
-    gpt: 'openai',
+    gpt: '@openai/codex',
     claude: '@anthropic-ai/claude-code'
+  }
+
+  function getCliCommand(name: 'claude' | 'codex'): string {
+    const ext = process.platform === 'win32' ? '.cmd' : ''
+    return join(CLI_BIN, `${name}${ext}`)
+  }
+
+  function resolveCliCommand(name: 'claude' | 'codex'): { command: string | null; source: 'local' | 'path' | 'missing' } {
+    const localCommand = getCliCommand(name)
+    if (existsSync(localCommand)) {
+      return { command: localCommand, source: 'local' }
+    }
+
+    const fallbackCommand = process.platform === 'win32' ? `${name}.cmd` : name
+    const resolver = process.platform === 'win32' ? 'where' : 'which'
+    const result = spawnSync(resolver, [fallbackCommand], {
+      env: { ...process.env },
+      stdio: 'ignore'
+    })
+
+    if (result.status === 0) {
+      return { command: fallbackCommand, source: 'path' }
+    }
+
+    return { command: null, source: 'missing' }
+  }
+
+  function streamLines(
+    child: ReturnType<typeof spawn>,
+    channel: 'install-progress' | 'cli-login-progress',
+    source: 'stdout' | 'stderr'
+  ): void {
+    const stream = child[source]
+    if (!stream) return
+
+    stream.on('data', (data: Buffer) => {
+      const lines = data.toString().split('\n')
+      for (const line of lines) {
+        if (line.trim()) {
+          win.webContents.send(channel, line)
+        }
+      }
+    })
+  }
+
+  function runCliLogin(name: 'claude' | 'codex', args: string[] = []): void {
+    const resolved = resolveCliCommand(name)
+    if (!resolved.command) {
+      const label = name === 'codex' ? 'Codex CLI' : 'Claude CLI'
+      win.webContents.send('cli-login-progress', `${label} 실행 파일을 찾지 못했습니다.`)
+      win.webContents.send('cli-login-complete', {
+        success: false,
+        error: `${label}가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.`
+      })
+      return
+    }
+
+    if (resolved.source === 'path') {
+      win.webContents.send(
+        'cli-login-progress',
+        `앱 전용 ${name} 설치본이 없어 시스템 PATH의 ${resolved.command}를 사용합니다.`
+      )
+    }
+
+    const child = spawn(resolved.command, args, {
+      env: { ...process.env },
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
+
+    streamLines(child, 'cli-login-progress', 'stdout')
+    streamLines(child, 'cli-login-progress', 'stderr')
+
+    child.on('close', (code) => {
+      win.webContents.send('cli-login-complete', {
+        success: code === 0,
+        error: code === 0 ? undefined : `로그인 실패 (exit code: ${code})`
+      })
+    })
+
+    child.on('error', (err) => {
+      win.webContents.send('cli-login-progress', `오류: ${err.message}`)
+      win.webContents.send('cli-login-complete', {
+        success: false,
+        error: `CLI 실행 오류: ${err.message}`
+      })
+    })
   }
 
   // ── CLI 설치 ──
@@ -77,23 +166,8 @@ function registerIpcHandlers(win: BrowserWindow): void {
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
-    child.stdout.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        if (line.trim()) {
-          win.webContents.send('install-progress', line)
-        }
-      }
-    })
-
-    child.stderr.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        if (line.trim()) {
-          win.webContents.send('install-progress', line)
-        }
-      }
-    })
+    streamLines(child, 'install-progress', 'stdout')
+    streamLines(child, 'install-progress', 'stderr')
 
     child.on('close', (code) => {
       if (code === 0) {
@@ -152,50 +226,23 @@ function registerIpcHandlers(win: BrowserWindow): void {
   })
 
   // ── API 키 로드 ──
-  ipcMain.handle('load-api-key', (_event) => {
+  ipcMain.handle('load-api-key', (_event, model: string) => {
     try {
-      // model 정보 없이 호출되므로 파일 전체를 반환하지 않고
-      // renderer가 model을 넘기지 않는 현재 구조에선 null 반환
-      // (AuthPage에서 loadApiKey 호출 시 model 미전달 → 저장된 키를 빈 객체로 읽어 null 반환)
       const stored: Record<string, string> = JSON.parse(readFileSync(getKeyFilePath(), 'utf-8'))
-      // 가장 최근 저장된 키를 반환 (단일 모델 사용 가정)
-      const values = Object.values(stored)
-      return values.length > 0 ? values[values.length - 1] : null
+      return stored[model] ?? null
     } catch {
       return null
     }
   })
 
   // ── Claude CLI 로그인 ──
-  ipcMain.on('run-claude-login', (_event) => {
-    const claudeCmd = join(CLI_BIN, process.platform === 'win32' ? 'claude.cmd' : 'claude')
-    const child = spawn(claudeCmd, ['login'], {
-      env: { ...process.env },
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
+  ipcMain.on('run-claude-login', () => {
+    runCliLogin('claude', ['login'])
+  })
 
-    child.stdout.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        if (line.trim()) win.webContents.send('cli-login-progress', line)
-      }
-    })
-
-    child.stderr.on('data', (data: Buffer) => {
-      const lines = data.toString().split('\n')
-      for (const line of lines) {
-        if (line.trim()) win.webContents.send('cli-login-progress', line)
-      }
-    })
-
-    child.on('close', (code) => {
-      win.webContents.send('cli-login-complete', { success: code === 0 })
-    })
-
-    child.on('error', (err) => {
-      win.webContents.send('cli-login-progress', `오류: ${err.message}`)
-      win.webContents.send('cli-login-complete', { success: false })
-    })
+  // ── Codex CLI 로그인 ──
+  ipcMain.on('run-gpt-login', () => {
+    runCliLogin('codex', ['login'])
   })
 
   // ── 프롬프트 실행 ──
@@ -206,12 +253,11 @@ function registerIpcHandlers(win: BrowserWindow): void {
       let args: string[]
 
       if (model === 'gpt') {
-        // openai CLI: OPENAI_API_KEY 환경변수로 인증
-        cmd = join(CLI_BIN, process.platform === 'win32' ? 'openai.cmd' : 'openai')
-        args = ['api', 'chat.completions.create', '-m', 'gpt-4o-mini', '-g', `user:${prompt}`]
+        cmd = getCliCommand('codex')
+        args = ['exec', '--skip-git-repo-check', '--color', 'never', prompt]
       } else {
         // claude CLI: ANTHROPIC_API_KEY 환경변수로 인증 (또는 claude login 세션)
-        cmd = join(CLI_BIN, process.platform === 'win32' ? 'claude.cmd' : 'claude')
+        cmd = getCliCommand('claude')
         args = ['-p', prompt, '--output-format', 'text']
       }
 
@@ -278,111 +324,232 @@ function registerIpcHandlers(win: BrowserWindow): void {
     }
   })
 
-  ipcMain.on('run-stock-analysis', (_event, { prompt, apiKey }: { prompt: string; apiKey: string }) => {
-    const claudeCmd = join(CLI_BIN, process.platform === 'win32' ? 'claude.cmd' : 'claude')
-    const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
-
+  ipcMain.on(
+    'run-stock-analysis',
+    (_event, { model, prompt, apiKey }: { model: string; prompt: string; apiKey: string }) => {
     const env: NodeJS.ProcessEnv = { ...process.env }
-    if (apiKey) env['ANTHROPIC_API_KEY'] = apiKey
+      if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
+      if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
-    // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
-    const child = spawn(claudeCmd, args, {
-      env,
-      cwd: STOCK_CLAUDE_DIR,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      detached: process.platform !== 'win32'
-    })
-    activeAnalysisChild = child
+      if (model === 'gpt') {
+        const resolvedCodex = resolveCliCommand('codex')
+        if (!resolvedCodex.command) {
+          win.webContents.send('stock-analysis-done', {
+            success: false,
+            error: 'Codex CLI가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.'
+          })
+          return
+        }
 
-    let buf = ''
-    // tool_use_id → 에이전트 key 매핑 (어느 에이전트가 완료됐는지 추적)
-    const agentToolMap = new Map<string, string>()
+        env['CODEX_BIN'] = resolvedCodex.command
 
-    child.stdout.on('data', (data: Buffer) => {
-      buf += data.toString()
-      const lines = buf.split('\n')
-      buf = lines.pop() ?? ''
+        const child = spawn(
+          process.execPath,
+          [join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs'), '--request', prompt],
+          {
+            env,
+            cwd: STOCK_GPT_DIR,
+            stdio: ['ignore', 'pipe', 'pipe'],
+            detached: process.platform !== 'win32'
+          }
+        )
+        activeAnalysisChild = child
 
-      for (const line of lines) {
-        if (!line.trim()) continue
-        try {
-          const ev = JSON.parse(line) as Record<string, unknown>
+        let buf = ''
+        let finalReportPath = ''
 
-          // 에이전트 Tool 호출 감지 → running 상태 전송
-          if (ev.type === 'assistant') {
-            const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
-            for (const block of content) {
-              const b = block as Record<string, unknown>
-              if (b.type === 'tool_use') {
-                const input = b.input as Record<string, unknown> | undefined
-                const agentType = input?.subagent_type as string | undefined
-                if (agentType) {
-                  agentToolMap.set(b.id as string, agentType)
-                  win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
-                }
-              }
+        child.stdout.on('data', (data: Buffer) => {
+          buf += data.toString()
+          const lines = buf.split('\n')
+          buf = lines.pop() ?? ''
+
+          for (const rawLine of lines) {
+            const line = rawLine.trim()
+            if (!line) continue
+
+            if (resolvedCodex.source === 'path' && line === '[bootstrap] codex-fallback:path') {
+              win.webContents.send(
+                'stock-analysis-chunk',
+                '> 시스템 PATH의 `codex` 실행 파일을 사용합니다.\n\n'
+              )
+              continue
+            }
+
+            const startMatch = line.match(/^\[start\]\s+(.+)$/)
+            if (startMatch) {
+              win.webContents.send('stock-analysis-agent', {
+                name: startMatch[1],
+                status: 'running'
+              })
+              continue
+            }
+
+            const doneMatch = line.match(/^\[done\]\s+(.+)$/)
+            if (doneMatch) {
+              win.webContents.send('stock-analysis-agent', {
+                name: doneMatch[1],
+                status: 'done'
+              })
+              continue
+            }
+
+            const reportMatch = line.match(/^최종 리포트 저장 완료:\s+(.+)$/)
+            if (reportMatch) {
+              finalReportPath = reportMatch[1]
             }
           }
+        })
 
-          // Tool 결과 수신 → 해당 에이전트 done 상태 전송
-          if (ev.type === 'user') {
-            const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
-            for (const block of content) {
-              const b = block as Record<string, unknown>
-              if (b.type === 'tool_result') {
-                const agentType = agentToolMap.get(b.tool_use_id as string)
-                if (agentType) {
-                  win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
-                  agentToolMap.delete(b.tool_use_id as string)
-                }
-              }
-            }
+        child.stderr.on('data', (data: Buffer) => {
+          const text = data.toString().trim()
+          if (text) {
+            console.error('[stock-analysis:gpt]', text)
           }
+        })
 
-          // 최종 결과 전송
-          if (ev.type === 'result') {
-            if (ev.subtype === 'success') {
-              win.webContents.send('stock-analysis-chunk', ev.result ?? '')
-              win.webContents.send('stock-analysis-done', { success: true })
-            } else {
+        child.on('close', (code) => {
+          const wasCancelled = activeAnalysisChild === null
+          activeAnalysisChild = null
+
+          if (code === 0) {
+            if (!finalReportPath) {
               win.webContents.send('stock-analysis-done', {
                 success: false,
-                error: (ev.error as string) ?? '분석 실패'
+                error: '최종 리포트 경로를 확인하지 못했습니다.'
+              })
+              return
+            }
+
+            try {
+              const report = readFileSync(finalReportPath, 'utf-8')
+              win.webContents.send('stock-analysis-chunk', report)
+              win.webContents.send('stock-analysis-done', { success: true })
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error)
+              win.webContents.send('stock-analysis-done', {
+                success: false,
+                error: `리포트 읽기 실패: ${message}`
               })
             }
+            return
           }
-        } catch {
-          // JSON이 아닌 출력은 무시
+
+          if (!wasCancelled) {
+            win.webContents.send('stock-analysis-done', {
+              success: false,
+              error: `분석 실패 (exit code: ${code})`
+            })
+          }
+        })
+
+        child.on('error', (err) => {
+          activeAnalysisChild = null
+          win.webContents.send('stock-analysis-done', {
+            success: false,
+            error: `CLI 실행 오류: ${err.message}`
+          })
+        })
+        return
+      }
+
+      const claudeCmd = getCliCommand('claude')
+      const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
+
+      // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
+      const child = spawn(claudeCmd, args, {
+        env,
+        cwd: STOCK_CLAUDE_DIR,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: process.platform !== 'win32'
+      })
+      activeAnalysisChild = child
+
+      let buf = ''
+      const agentToolMap = new Map<string, string>()
+
+      child.stdout.on('data', (data: Buffer) => {
+        buf += data.toString()
+        const lines = buf.split('\n')
+        buf = lines.pop() ?? ''
+
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const ev = JSON.parse(line) as Record<string, unknown>
+
+            if (ev.type === 'assistant') {
+              const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
+              for (const block of content) {
+                const b = block as Record<string, unknown>
+                if (b.type === 'tool_use') {
+                  const input = b.input as Record<string, unknown> | undefined
+                  const agentType = input?.subagent_type as string | undefined
+                  if (agentType) {
+                    agentToolMap.set(b.id as string, agentType)
+                    win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
+                  }
+                }
+              }
+            }
+
+            if (ev.type === 'user') {
+              const content = (ev.message as { content?: unknown[] } | undefined)?.content ?? []
+              for (const block of content) {
+                const b = block as Record<string, unknown>
+                if (b.type === 'tool_result') {
+                  const agentType = agentToolMap.get(b.tool_use_id as string)
+                  if (agentType) {
+                    win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
+                    agentToolMap.delete(b.tool_use_id as string)
+                  }
+                }
+              }
+            }
+
+            if (ev.type === 'result') {
+              if (ev.subtype === 'success') {
+                win.webContents.send('stock-analysis-chunk', ev.result ?? '')
+                win.webContents.send('stock-analysis-done', { success: true })
+              } else {
+                win.webContents.send('stock-analysis-done', {
+                  success: false,
+                  error: (ev.error as string) ?? '분석 실패'
+                })
+              }
+            }
+          } catch {
+            // JSON이 아닌 출력은 무시
+          }
         }
-      }
-    })
+      })
 
-    child.stderr.on('data', (data: Buffer) => {
-      const text = data.toString()
-      if (text.toLowerCase().includes('error')) {
-        console.error('[stock-analysis]', text.trim())
-      }
-    })
+      child.stderr.on('data', (data: Buffer) => {
+        const text = data.toString()
+        if (text.toLowerCase().includes('error')) {
+          console.error('[stock-analysis:claude]', text.trim())
+        }
+      })
 
-    child.on('close', (code) => {
-      const wasCancelled = activeAnalysisChild === null
-      activeAnalysisChild = null
-      if (code !== 0 && !wasCancelled) {
+      child.on('close', (code) => {
+        const wasCancelled = activeAnalysisChild === null
+        activeAnalysisChild = null
+        if (code !== 0 && !wasCancelled) {
+          win.webContents.send('stock-analysis-done', {
+            success: false,
+            error: `분석 실패 (exit code: ${code})`
+          })
+        }
+      })
+
+      child.on('error', (err) => {
+        activeAnalysisChild = null
         win.webContents.send('stock-analysis-done', {
           success: false,
-          error: `분석 실패 (exit code: ${code})`
+          error: `CLI 실행 오류: ${err.message}`
         })
-      }
-    })
-
-    child.on('error', (err) => {
-      activeAnalysisChild = null
-      win.webContents.send('stock-analysis-done', {
-        success: false,
-        error: `CLI 실행 오류: ${err.message}`
       })
-    })
-  })
+    }
+  )
 }
 
 // ─────────────────────────────────────────────────────────────────

@@ -5,7 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 let installProgressCb: ((data: string) => void) | null = null
 let installCompleteCb: ((result: { success: boolean; error?: string }) => void) | null = null
 let cliLoginProgressCb: ((data: string) => void) | null = null
-let cliLoginCompleteCb: ((result: { success: boolean }) => void) | null = null
+let cliLoginCompleteCb: ((result: { success: boolean; error?: string }) => void) | null = null
 let responseChunkCb: ((chunk: string) => void) | null = null
 let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
 let stockAnalysisAgentCb: ((event: { name: string; status: 'running' | 'done' }) => void) | null = null
@@ -17,7 +17,7 @@ ipcRenderer.on('install-complete', (_e, result: { success: boolean; error?: stri
   installCompleteCb?.(result)
 )
 ipcRenderer.on('cli-login-progress', (_e, data: string) => cliLoginProgressCb?.(data))
-ipcRenderer.on('cli-login-complete', (_e, result: { success: boolean }) =>
+ipcRenderer.on('cli-login-complete', (_e, result: { success: boolean; error?: string }) =>
   cliLoginCompleteCb?.(result)
 )
 ipcRenderer.on('prompt-response-chunk', (_e, chunk: string) => responseChunkCb?.(chunk))
@@ -51,14 +51,15 @@ if (process.contextIsolated) {
         ipcRenderer.invoke('validate-api-key', params),
       saveApiKey: (params: { model: string; apiKey: string }) =>
         ipcRenderer.invoke('save-api-key', params),
-      loadApiKey: () => ipcRenderer.invoke('load-api-key'),
+      loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
 
       /* Claude CLI 로그인 */
       runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
+      runGptLogin: () => ipcRenderer.send('run-gpt-login'),
       onCliLoginProgress: (cb: (data: string) => void) => {
         cliLoginProgressCb = cb
       },
-      onCliLoginComplete: (cb: (result: { success: boolean }) => void) => {
+      onCliLoginComplete: (cb: (result: { success: boolean; error?: string }) => void) => {
         cliLoginCompleteCb = cb
       },
 
@@ -73,7 +74,7 @@ if (process.contextIsolated) {
       },
 
       /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis: (params: { prompt: string; apiKey: string }) =>
+      runStockAnalysis: (params: { model: string; prompt: string; apiKey: string }) =>
         ipcRenderer.send('run-stock-analysis', params),
       cancelStockAnalysis: () => ipcRenderer.send('cancel-stock-analysis'),
       onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {

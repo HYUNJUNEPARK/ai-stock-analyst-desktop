@@ -34,7 +34,7 @@ export default function ResponsePage(): React.JSX.Element {
       return
     }
 
-    if (selectedModel === 'claude') {
+    if (selectedModel === 'claude' || selectedModel === 'gpt') {
       // 멀티 에이전트 주식 분석 흐름
       window.api?.onStockAnalysisAgent?.(({ name, status: agentStatus }) => {
         setAgentStatuses((prev) => ({ ...prev, [name]: agentStatus }))
@@ -55,7 +55,7 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api?.runStockAnalysis?.({ prompt: currentPrompt, apiKey })
+      window.api?.runStockAnalysis?.({ model: selectedModel, prompt: currentPrompt, apiKey })
     } else {
       // GPT 단순 프롬프트 흐름
       window.api?.onResponseChunk?.((chunk: string) => {
@@ -102,14 +102,14 @@ export default function ResponsePage(): React.JSX.Element {
     setErrorMsg('')
     setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'idle'])))
 
-    if (selectedModel === 'claude') {
-      window.api?.runStockAnalysis?.({ prompt: currentPrompt, apiKey })
+    if (selectedModel === 'claude' || selectedModel === 'gpt') {
+      window.api?.runStockAnalysis?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
     } else {
       window.api?.runPrompt?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
     }
   }
 
-  const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
+  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
   const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
   return (
@@ -138,8 +138,8 @@ export default function ResponsePage(): React.JSX.Element {
       {/* 콘텐츠 */}
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
-          {/* 멀티 에이전트 진행 상태 (Claude 전용) */}
-          {selectedModel === 'claude' && (
+          {/* 멀티 에이전트 진행 상태 */}
+          {(selectedModel === 'claude' || selectedModel === 'gpt') && (
             <div
               style={{
                 display: 'flex',
@@ -255,7 +255,7 @@ export default function ResponsePage(): React.JSX.Element {
                     fontStyle: 'italic'
                   }}
                 >
-                  {selectedModel === 'claude'
+                  {selectedModel === 'claude' || selectedModel === 'gpt'
                     ? (() => {
                         const running = AGENT_CONFIG.find((a) => agentStatuses[a.key] === 'running')
                         const doneCount = AGENT_CONFIG.filter((a) => agentStatuses[a.key] === 'done').length
@@ -344,7 +344,7 @@ export default function ResponsePage(): React.JSX.Element {
       </div>
 
       {/* 하단 버튼 */}
-      {status === 'streaming' && selectedModel === 'claude' && (
+      {status === 'streaming' && (selectedModel === 'claude' || selectedModel === 'gpt') && (
         <PageFooter>
           <button className="btn-ghost" onClick={handleCancel} aria-label="분석 취소">
             분석 취소

@@ -1,10 +1,9 @@
-# 단계 4 - API 키 등록 / 로그인 화면 구현
+# 단계 4 - 로그인 화면 구현
 
 ## 목표
 - 선택한 모델에 따라 인증 방식 분기
-  - GPT: OpenAI API 키 입력 후 유효성 검증
-  - Claude: Anthropic API 키 입력 또는 `claude login` 실행
-- 인증 성공 시 API 키를 안전하게 로컬 저장
+  - GPT: `codex login` 실행
+  - Claude: `claude login` 실행
 - 인증 완료 후 /prompt 화면으로 이동
 
 ## 프롬프트
@@ -34,25 +33,24 @@
    - `claude login` 명령을 실행하고 stdout을 실시간 전송
    - 완료 시 성공/실패 이벤트 전송
 
-5. preload에 위 핸들러들에 대응하는 함수를 노출합니다.
+5. (GPT 전용) ipcMain 핸들러 'run-gpt-login':
+   - `codex login` 명령을 실행하고 stdout/stderr를 실시간 전송
+   - 완료 시 성공/실패 이벤트 전송
+
+6. preload에 위 핸들러들에 대응하는 함수를 노출합니다.
 
 [Renderer - AuthPage.tsx]
 
 1. selectedModel이 'gpt'인 경우:
-   - "OpenAI API 키를 입력하세요" 안내 문구
-   - password 타입 input (눈 아이콘으로 토글 가능)
-   - "확인" 버튼 → validateApiKey 호출 → 성공 시 saveApiKey 후 /prompt 이동
-   - 오류 메시지 표시
+   - "Codex 로그인" 버튼으로 `codex login` 실행
+   - 터미널 스타일 로그를 표시
+   - 성공하면 /prompt 이동
 
 2. selectedModel이 'claude'인 경우:
-   - 탭 또는 라디오 버튼으로 두 가지 옵션 선택:
-     (A) "API 키로 인증" - GPT와 동일한 방식
-     (B) "claude login으로 인증" - 버튼 클릭 시 터미널 스타일 로그 표시
+   - "claude login으로 인증" 버튼 클릭 시 터미널 스타일 로그 표시
    - 인증 완료 시 /prompt로 이동
 
-3. 저장된 API 키가 있으면 자동으로 채워줍니다 (loadApiKey 호출).
-
-4. "뒤로가기" 버튼으로 모델 선택 화면으로 돌아갈 수 있습니다.
+3. "뒤로가기" 버튼으로 모델 선택 화면으로 돌아갈 수 있습니다.
 
 패키지: electron-store 설치 필요 여부를 확인하고 설치 명령어를 알려주세요.
 ```

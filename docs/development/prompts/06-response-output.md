@@ -21,11 +21,9 @@ CLI 실행 로직과 응답 출력 화면을 구현해 주세요.
      - (claude-code CLI의 non-interactive 모드 사용)
 
    - GPT인 경우:
-     - OPENAI_API_KEY 환경변수를 설정하고
-     - Node.js 스크립트로 OpenAI API 직접 호출 (CLI가 없으므로)
-     - 또는 main process에서 직접 fetch로 OpenAI Chat Completions API 호출
-       POST https://api.openai.com/v1/chat/completions
-       model: "o4-mini", messages: [{role: "user", content: prompt}]
+     - 간단한 단일 응답은 `codex exec` 또는 별도 CLI 경로를 사용할 수 있음
+     - 주식 분석 화면에서는 `run-stock-analysis`로 `src/main/gpt/scripts/analyze-stock.mjs`를 실행
+     - API 키가 있으면 `OPENAI_API_KEY` 환경변수로 전달하고, 없으면 `codex login` 세션을 사용
 
    - stdout 데이터를 `event.sender.send('prompt-response-chunk', chunk)` 로 스트리밍 전송
    - 완료 시 `event.sender.send('prompt-response-done', { success: boolean, error?: string })`
@@ -37,7 +35,9 @@ CLI 실행 로직과 응답 출력 화면을 구현해 주세요.
 
 [Renderer - ResponsePage.tsx]
 
-1. 진입 즉시 window.electron.runPrompt({ model, prompt, apiKey }) 호출
+1. 진입 즉시 모델별 실행 호출
+   - Claude / GPT 주식 분석: `window.api.runStockAnalysis({ model, prompt, apiKey })`
+   - 기타 단일 응답 경로: `window.api.runPrompt(...)`
 
 2. 로딩 상태:
    - 스피너 또는 "응답을 생성 중입니다..." 애니메이션 텍스트

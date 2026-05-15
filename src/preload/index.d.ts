@@ -15,12 +15,13 @@ declare global {
         apiKey: string
       }) => Promise<{ valid: boolean; error?: string }>
       saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
-      loadApiKey: () => Promise<string | null>
+      loadApiKey: (model: string) => Promise<string | null>
 
       /* Claude CLI 로그인 */
       runClaudeLogin?: () => void
+      runGptLogin?: () => void
       onCliLoginProgress?: (callback: (data: string) => void) => void
-      onCliLoginComplete?: (callback: (result: { success: boolean }) => void) => void
+      onCliLoginComplete?: (callback: (result: { success: boolean; error?: string }) => void) => void
 
       /* 프롬프트 실행 */
       runPrompt?: (params: { model: string; prompt: string; apiKey: string }) => void
@@ -28,7 +29,7 @@ declare global {
       onResponseDone?: (callback: (result: { success: boolean; error?: string }) => void) => void
 
       /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis?: (params: { prompt: string; apiKey: string }) => void
+      runStockAnalysis?: (params: { model: string; prompt: string; apiKey: string }) => void
       cancelStockAnalysis?: () => void
       onStockAnalysisAgent?: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
       onStockAnalysisChunk?: (callback: (chunk: string) => void) => void

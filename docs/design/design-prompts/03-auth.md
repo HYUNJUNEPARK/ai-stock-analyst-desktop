@@ -7,8 +7,8 @@
 
 ## 화면 목적
 
-선택한 모델의 API 키를 입력하거나 CLI 로그인을 수행하는 인증 화면.
-GPT / Claude 여부에 따라 UI가 분기되며, Claude는 추가로 `claude login` 방식도 지원한다.
+선택한 모델의 CLI 로그인을 수행하는 인증 화면.
+GPT / Claude 여부에 따라 UI가 분기되며, GPT는 `codex login`, Claude는 `claude login`을 사용한다.
 
 ---
 
@@ -22,9 +22,9 @@ GPT / Claude 여부에 따라 UI가 분기되며, Claude는 추가로 `claude lo
 │  ── 여백 40px ──                │
 │                                 │
 │  [모델 아이콘]                   │  40×40px, 카드와 동일 스타일
-│  API 키 설정                    │  text-xl, bold, 중앙
-│  OpenAI API 키를 입력해 주세요   │  text-sm, text-secondary, 중앙
-│  (또는 Anthropic API 키를 ~)    │
+│  인증 설정                      │  text-xl, bold, 중앙
+│  선택한 CLI 로그인 인증을       │  text-sm, text-secondary, 중앙
+│  진행해 주세요                  │
 │                                 │
 │  ── 여백 32px ──                │
 ```
@@ -34,23 +34,33 @@ GPT / Claude 여부에 따라 UI가 분기되며, Claude는 추가로 `claude lo
 ## GPT 선택 시 레이아웃
 
 ```
-│  ── API 키 입력 섹션 ──          │
+│  ── 여백 24px ──                │
 │                                 │
-│  ┌─ 입력 필드 카드 ───────────┐  │
-│  │  API 키                    │  │  레이블: text-sm, font-weight 500
-│  │  [sk-proj-............] 👁  │  │  입력 + 눈 아이콘 (password toggle)
+│  ┌─ 안내 카드 ─────────────────┐ │
+│  │ ℹ codex login 명령을 실행   │ │
+│  │   하면 브라우저가 열리며     │ │
+│  │   ChatGPT 계정으로           │ │
+│  │   로그인할 수 있습니다.      │ │
+│  └────────────────────────────┘ │
+│                                 │
+│  [상태: 대기 중]                │
+│  [codex login 시작하기]         │
+│                                 │
+│  [상태: 진행 중]                │
+│  [스피너] Codex 로그인 진행 중...│
+│  ┌─ 터미널 로그 박스 ─────────┐  │
+│  │ $ codex login              │  │
+│  │ Opening browser...         │  │
 │  └────────────────────────────┘  │
 │                                 │
-│  ── 여백 8px ──                 │
-│  OpenAI API 키는 sk-proj-로     │  text-xs, text-tertiary
-│  시작합니다. platform.openai.com │
-│  에서 발급받을 수 있습니다.       │
+│  [상태: 완료]                   │
+│  (체크 아이콘) Codex 로그인 성공 │
 │                                 │
 │  ── 여백 auto ──                │
 │                                 │
 ├─────────────────────────────────┤
 │  [오류 메시지 - 조건부]           │  오류 시 버튼 위에 표시
-│  [인증 확인]                     │  primary button, 하단 고정
+│  [codex login 시작하기]          │  primary button, 하단 고정
 │  ── 여백 20px ──                 │
 └─────────────────────────────────┘
 ```
@@ -59,28 +69,7 @@ GPT / Claude 여부에 따라 UI가 분기되며, Claude는 추가로 `claude lo
 
 ## Claude 선택 시 레이아웃
 
-Claude는 두 가지 인증 방식을 탭으로 제공한다.
-
-### 탭 UI
-```
-┌──────────────────────────────────┐
-│  [API 키로 인증]  [CLI 로그인]    │
-│  ▔▔▔▔▔▔▔▔▔▔▔                    │  선택된 탭: 하단 2px accent 밑줄
-└──────────────────────────────────┘
-
-탭 바:
-  - 높이: 44px
-  - 배경: var(--bg-primary)
-  - border-bottom: 1px solid var(--border)
-  - 탭 텍스트: font-size 15px, font-weight 500
-  - 활성 탭: color --accent, border-bottom 2px --accent
-  - 비활성 탭: color --text-secondary
-```
-
-### 탭 A — API 키로 인증 (GPT와 동일)
-→ 위 GPT 레이아웃과 동일하되, 안내 문구만 Anthropic 기준으로 변경
-
-### 탭 B — CLI 로그인
+### CLI 로그인
 
 ```
 │  ── 여백 24px ──                │
@@ -143,13 +132,13 @@ box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15)
 
 ---
 
-## 로딩 상태 (API 키 검증 중)
+## 로딩 상태 (CLI 로그인 진행 중)
 
 버튼 내부에 인라인 스피너 + 텍스트 변경:
 ```
-[기본]    [인증 확인]
+[기본]    [로그인 시작하기]
 [로딩]    [◌ 확인 중...]  ← 스피너 + 텍스트
-[완료]    [✓ 인증 완료]   ← 체크 아이콘 + 텍스트 (0.5초 후 이동)
+[완료]    [✓ 로그인 완료] ← 체크 아이콘 + 텍스트 (0.5초 후 이동)
 ```
 
 버튼 상태:
@@ -173,33 +162,7 @@ box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15)
 
 ---
 
-## 비밀번호 토글 (눈 아이콘)
-
-```
-위치: 입력 필드 우측 내부, padding-right: 44px
-아이콘: eye / eye.slash (SF Symbols 스타일)
-크기: 18×18px
-color: var(--text-tertiary)
-hover: var(--text-secondary)
-cursor: pointer
-```
-
----
-
-## 저장된 키 자동 채우기
-
-이미 저장된 API 키가 있을 경우:
-```
-입력 필드: "••••••••••••••••" (마스킹)
-하단 힌트: "✓ 저장된 키를 불러왔습니다. 변경하려면 입력하세요."
-           text-xs, color: --success
-```
-
----
-
 ## 접근성 고려사항
 
-- 탭: `role="tablist"` + `role="tab"` + `aria-selected`
-- 비밀번호 토글: `aria-label="비밀번호 표시"` / `"비밀번호 숨기기"`
 - 오류 메시지: `role="alert"`, `aria-live="assertive"`
-- API 키 입력: `autocomplete="off"`, `spellcheck="false"`
+- 로그 영역: `role="log"`, `aria-live="polite"`

@@ -53,7 +53,7 @@ export default function PromptPage(): React.JSX.Element {
         ? 'var(--warning)'
         : 'var(--text-tertiary)'
 
-  const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
+  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
   const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
 
   return (

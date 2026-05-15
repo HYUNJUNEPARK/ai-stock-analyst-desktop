@@ -39,7 +39,7 @@ export default function SuccessState({
       >
         {modelLabel} CLI가 성공적으로 설치되었습니다.
         <br />
-        <span style={{ color: 'var(--text-tertiary)' }}>3초 후 자동으로 이동합니다.</span>
+        {/* <span style={{ color: 'var(--text-tertiary)' }}>3초 후 자동으로 이동합니다.</span> */}
       </p>
 
       <button

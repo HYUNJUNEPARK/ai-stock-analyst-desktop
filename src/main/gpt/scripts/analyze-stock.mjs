@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
@@ -10,6 +12,7 @@ const __dirname = path.dirname(__filename)
 const projectRoot = path.resolve(__dirname, '..')
 const promptsDir = path.join(projectRoot, 'prompts')
 const reportsDir = path.join(projectRoot, 'reports')
+const codexCommand = process.env.CODEX_BIN || 'codex'
 
 const ROLE_FILES = {
   'financial-analyst-kr': 'financial-analyst-kr.md',
@@ -20,6 +23,10 @@ const ROLE_FILES = {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2))
+
+  if (process.env.CODEX_BIN && process.env.CODEX_BIN !== 'codex') {
+    console.log('[bootstrap] codex-fallback:path')
+  }
 
   if (options.help) {
     printHelp()
@@ -54,11 +61,7 @@ async function main() {
     return
   }
 
-  const specialistRoles = [
-    'financial-analyst-kr',
-    'news-sentiment-analyst',
-    'sector-researcher'
-  ]
+  const specialistRoles = ['financial-analyst-kr', 'news-sentiment-analyst', 'sector-researcher']
 
   const specialistResults = await Promise.all(
     specialistRoles.map((role) => {
@@ -67,8 +70,7 @@ async function main() {
         role,
         context,
         outputPath,
-        model: options.model,
-        enableSearch: options.search
+        model: options.model
       })
     })
   )
@@ -87,8 +89,7 @@ async function main() {
     role: 'aggressive-investment-strategist',
     context: strategistContext,
     outputPath: strategistOutputPath,
-    model: options.model,
-    enableSearch: options.search
+    model: options.model
   })
 
   await writeFile(finalReportPath, finalReport.content, 'utf8')
@@ -96,7 +97,7 @@ async function main() {
   console.log(`최종 리포트 저장 완료: ${finalReportPath}`)
 }
 
-async function runRole({ role, context, outputPath, model, enableSearch: _enableSearch }) {
+async function runRole({ role, context, outputPath, model }) {
   const promptTemplate = await loadPromptTemplate(role)
   const prompt = applyTemplate(promptTemplate, context)
 
@@ -149,7 +150,7 @@ function execCodex({ prompt, outputPath, model }) {
 
     args.push(prompt)
 
-    const child = spawn('codex', args, {
+    const child = spawn(codexCommand, args, {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe']
     })

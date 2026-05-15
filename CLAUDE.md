@@ -4,7 +4,7 @@
 
 사용자가 PC에 설치하는 Electron 데스크탑 앱.
 GPT 또는 Claude 모델을 선택하면 OS에 맞는 CLI를 자동 설치하고,
-API 키 인증 후 단발성 프롬프트 질의 → 응답 확인 흐름으로 동작한다.
+각 모델의 CLI 로그인 인증 후 단발성 프롬프트 질의 → 응답 확인 흐름으로 동작한다.
 
 **기술 스택**: Electron 39 + React 19 + TypeScript + electron-vite
 
@@ -28,8 +28,8 @@ src/
         ├── pages/
         │   ├── auth/      # 인증 화면 (모델별 분리)
         │   │   ├── AuthPage.tsx        # 진입점: selectedModel에 따라 분기
-        │   │   ├── ClaudeAuthPage.tsx  # Claude 전용 (API 키 + CLI 로그인 탭)
-        │   │   └── GptAuthPage.tsx     # GPT 전용 (API 키 입력)
+        │   │   ├── ClaudeAuthPage.tsx  # Claude 전용 (claude login)
+        │   │   └── GptAuthPage.tsx     # GPT 전용 (codex login)
         │   ├── download/  # CLI 설치 화면 (상태별 분리)
         │   │   ├── CliDownloadPage.tsx # 상태 관리 + 분기 렌더링
         │   │   ├── InstallingState.tsx # 설치 중 화면
