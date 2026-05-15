@@ -127,7 +127,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
           {cliStatus === 'running' && (
             <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
           )}
-          {cliStatus === 'idle' && 'claude login 시작하기'}
+          {cliStatus === 'idle' && '시작하기'}
           {cliStatus === 'running' && '로그인 진행 중...'}
           {cliStatus === 'done' && '✓ 로그인 완료'}
         </button>
