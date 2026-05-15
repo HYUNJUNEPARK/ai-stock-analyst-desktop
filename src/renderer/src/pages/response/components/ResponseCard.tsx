@@ -1,7 +1,6 @@
-import { AGENT_CONFIG } from '../constants'
-import MarkdownRenderer from './MarkdownRenderer'
-import AgentStatusBar from './AgentStatusBar'
 import type { AgentStatus, PreviewModel, Status } from '../types'
+import AgentStatusBar from './AgentStatusBar'
+import MarkdownRenderer from './MarkdownRenderer'
 
 type ResponseCardProps = {
   agentStatuses: Record<string, AgentStatus>
@@ -54,28 +53,14 @@ export default function ResponseCard({
           {modelLabel}
         </span>
 
-        {status === 'streaming' && (
+        {/* {status === 'streaming' && (
           <div className="spinner" style={{ marginLeft: 'auto' }} aria-label="응답 생성 중" />
-        )}
+        )} */}
       </div>
 
       <div style={{ padding: 16 }} role="article" aria-label="AI 응답">
         {status === 'streaming' && (model === 'claude' || model === 'gpt') && (
           <AgentStatusBar agentStatuses={agentStatuses} />
-        )}
-
-        {status === 'streaming' && !response && (
-          <div
-            style={{
-              color: 'var(--text-tertiary)',
-              fontSize: 'var(--text-sm)',
-              fontStyle: 'italic'
-            }}
-          >
-            {model === 'claude' || model === 'gpt'
-              ? getStockAnalysisPendingMessage(agentStatuses)
-              : '응답을 생성 중입니다...'}
-          </div>
         )}
 
         {(response || status !== 'streaming') && (
@@ -124,15 +109,4 @@ export default function ResponseCard({
       )}
     </div>
   )
-}
-
-function getStockAnalysisPendingMessage(agentStatuses: Record<string, AgentStatus>): string {
-  const running = AGENT_CONFIG.find((agent) => agentStatuses[agent.key] === 'running')
-  const doneCount = AGENT_CONFIG.filter((agent) => agentStatuses[agent.key] === 'done').length
-
-  if (running) return `${running.label} 진행 중...`
-  if (doneCount === AGENT_CONFIG.length - 1) return '투자 전략 종합 중...'
-  if (doneCount > 0)
-    return `분석 완료 ${doneCount}/${AGENT_CONFIG.length - 1}, 다음 에이전트 대기 중...`
-  return '에이전트 초기화 중...'
 }

@@ -152,7 +152,7 @@ export default function ResponsePage(): React.JSX.Element {
           </svg>
           뒤로
         </button>
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+        {/* <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           <div className="model-badge">
             <img
               src={modelImg}
@@ -161,7 +161,7 @@ export default function ResponsePage(): React.JSX.Element {
             />
             {modelLabel}
           </div>
-        </div>
+        </div> */}
       </nav>
 
       <div className="page-content">
