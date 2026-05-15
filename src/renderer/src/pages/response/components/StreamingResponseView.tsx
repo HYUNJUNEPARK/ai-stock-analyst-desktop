@@ -13,7 +13,13 @@ export default function StreamingResponseView({
   showAgentFlow
 }: StreamingResponseViewProps): React.JSX.Element {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100%'
+      }}
+    >
       <div>
         <div
           style={{
@@ -39,7 +45,8 @@ export default function StreamingResponseView({
       {showAgentFlow && (
         <div
           style={{
-            padding: 12,
+            margin: '28px 0 24px',
+            padding: 14,
             borderRadius: 14,
             border: '1px solid var(--border)',
             background: 'var(--bg-secondary)'
@@ -50,25 +57,11 @@ export default function StreamingResponseView({
       )}
 
       <div
-        aria-hidden="true"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          paddingTop: 2
-        }}
-      >
-        <SkeletonLine width="94%" />
-        <SkeletonLine width="78%" />
-        <SkeletonLine width="88%" />
-        <SkeletonLine width="52%" />
-      </div>
-
-      <div
         style={{
           display: 'flex',
           justifyContent: 'center',
-          paddingTop: 2
+          marginTop: 'auto',
+          paddingTop: 8
         }}
       >
         <button className="btn-ghost" onClick={onCancel} aria-label="분석 취소">
@@ -76,17 +69,5 @@ export default function StreamingResponseView({
         </button>
       </div>
     </div>
-  )
-}
-
-function SkeletonLine({ width }: { width: string }): React.JSX.Element {
-  return (
-    <div
-      className="skeleton-line"
-      style={{
-        width,
-        height: 10
-      }}
-    />
   )
 }

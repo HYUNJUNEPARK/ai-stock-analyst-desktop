@@ -366,24 +366,6 @@
   animation: blink 0.8s ease-in-out infinite;
 }
 
-.skeleton-line {
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--bg-tertiary) 0%,
-    var(--bg-secondary) 35%,
-    var(--bg-tertiary) 70%
-  );
-  background-size: 220% 100%;
-  animation: skeletonShimmer 1.4s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-line {
-    animation: none;
-  }
-}
-
 /* ── 섹션 구분선 ── */
 .divider {
   height: 0.5px;

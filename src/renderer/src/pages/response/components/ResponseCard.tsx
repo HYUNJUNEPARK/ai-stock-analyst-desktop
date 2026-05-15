@@ -28,6 +28,7 @@ export default function ResponseCard({
   status
 }: ResponseCardProps): React.JSX.Element {
   const isStreamingEmpty = status === 'streaming' && !response
+  const contentMinHeight = status === 'done' ? 216 : 260
 
   return (
     <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
@@ -57,16 +58,12 @@ export default function ResponseCard({
           {modelLabel}
         </span>
 
-        {status === 'streaming' && (
+        {/* {status === 'streaming' && (
           <div className="spinner" style={{ marginLeft: 'auto' }} aria-label="응답 생성 중" />
-        )}
+        )} */}
       </div>
 
-      <div
-        style={{ padding: 16, minHeight: isStreamingEmpty ? 260 : undefined }}
-        role="article"
-        aria-label="AI 응답"
-      >
+      <div style={{ padding: 16, minHeight: contentMinHeight }} role="article" aria-label="AI 응답">
         {isStreamingEmpty && (
           <StreamingResponseView
             agentStatuses={agentStatuses}
