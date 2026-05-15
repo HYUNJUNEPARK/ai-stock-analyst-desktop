@@ -31,7 +31,7 @@ export default function CliDownloadPage(): React.JSX.Element {
     window.api.onInstallComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setStatus('success')
-        setTimeout(() => navigate('/auth'), 3000)
+        // setTimeout(() => navigate('/auth'), 3000)
       } else {
         setStatus('error')
         setErrorMsg(result.error ?? '알 수 없는 오류가 발생했습니다.')

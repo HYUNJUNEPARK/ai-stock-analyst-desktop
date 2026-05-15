@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import claudeImg from '../assets/claude.png'
+import gptImg from '../assets/gpt.jpg'
 
 type AuthMethod = 'apikey' | 'cli'
 type BtnState = 'idle' | 'loading' | 'done'
@@ -87,22 +89,17 @@ export default function AuthPage(): React.JSX.Element {
         <div className="content-container">
           {/* 헤더 */}
           <div style={{ textAlign: 'center', paddingTop: 40, paddingBottom: 32 }}>
-            <div
+            <img
+              src={selectedModel === 'gpt' ? gptImg : claudeImg}
+              alt={selectedModel === 'gpt' ? 'OpenAI' : 'Claude'}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: 10,
-                background: selectedModel === 'gpt' ? '#000' : '#D4A853',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                objectFit: 'cover',
                 marginBottom: 16
               }}
-            >
-              <span style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>
-                {selectedModel === 'gpt' ? 'G' : 'C'}
-              </span>
-            </div>
+            />
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
               API 키 설정
             </h1>
@@ -237,16 +234,18 @@ export default function AuthPage(): React.JSX.Element {
       {/* 하단 버튼 — API 키 방식만 */}
       {(selectedModel === 'gpt' || authMethod === 'apikey') && (
         <div className="page-footer">
-          <button
-            className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
-            onClick={handleConfirm}
-            disabled={!apiKeyInput.trim() || btnState !== 'idle'}
-          >
-            {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
-            {btnState === 'idle' && '인증 확인'}
-            {btnState === 'loading' && '확인 중...'}
-            {btnState === 'done' && '✓ 인증 완료'}
-          </button>
+          <div className="content-container">
+            <button
+              className={`btn-primary ${btnState === 'loading' ? 'loading' : ''}`}
+              onClick={handleConfirm}
+              disabled={!apiKeyInput.trim() || btnState !== 'idle'}
+            >
+              {btnState === 'loading' && <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
+              {btnState === 'idle' && '인증 확인'}
+              {btnState === 'loading' && '확인 중...'}
+              {btnState === 'done' && '✓ 인증 완료'}
+            </button>
+          </div>
         </div>
       )}
     </div>

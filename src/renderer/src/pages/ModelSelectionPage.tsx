@@ -1,22 +1,22 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import gptIcon from '../assets/gpt.jpg'
+import claudeIcon from '../assets/claude.png'
 
 const models = [
   {
     id: 'gpt' as const,
-    name: 'OpenAI GPT',
-    subtitle: 'o3 / o4-mini',
+    name: 'GPT',
+    subtitle: 'OpenAI',
     dotColor: '#000000',
-    iconBg: '#000000',
-    initial: 'G'
+    icon: gptIcon
   },
   {
     id: 'claude' as const,
-    name: 'Anthropic Claude',
-    subtitle: 'claude-code CLI',
+    name: 'Claude',
+    subtitle: 'Anthropic',
     dotColor: '#D4A853',
-    iconBg: '#D4A853',
-    initial: 'C'
+    icon: claudeIcon
   }
 ]
 
@@ -39,40 +39,6 @@ export default function ModelSelectionPage(): React.JSX.Element {
         <div className="content-container">
           {/* 앱 로고 */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 60 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 14,
-                background: 'linear-gradient(135deg, #007AFF 0%, #5856D6 100%)',
-                boxShadow: '0 4px 16px rgba(0, 122, 255, 0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 20
-              }}
-            >
-              {/* 터미널 아이콘 */}
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <polyline
-                  points="6,10 12,14 6,18"
-                  stroke="white"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="14"
-                  y1="18"
-                  x2="22"
-                  y2="18"
-                  stroke="white"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-
             <h1
               style={{
                 fontSize: 'var(--text-2xl)',
@@ -166,29 +132,11 @@ function ModelCard({
       }}
     >
       {/* 모델 아이콘 */}
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: 12,
-          background: model.iconBg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}
-      >
-        <span
-          style={{
-            color: 'white',
-            fontSize: 20,
-            fontWeight: 700,
-            lineHeight: 1
-          }}
-        >
-          {model.initial}
-        </span>
-      </div>
+      <img
+        src={model.icon}
+        alt={model.name}
+        style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+      />
 
       {/* 텍스트 */}
       <div style={{ flex: 1, minWidth: 0 }}>
