@@ -257,6 +257,15 @@ function registerIpcHandlers(win: BrowserWindow): void {
   )
 
   // ── 주식 멀티 에이전트 분석 ──
+  let activeAnalysisChild: ReturnType<typeof spawn> | null = null
+
+  ipcMain.on('cancel-stock-analysis', () => {
+    if (activeAnalysisChild) {
+      activeAnalysisChild.kill()
+      activeAnalysisChild = null
+    }
+  })
+
   ipcMain.on('run-stock-analysis', (_event, { prompt, apiKey }: { prompt: string; apiKey: string }) => {
     const claudeCmd = join(CLI_BIN, process.platform === 'win32' ? 'claude.cmd' : 'claude')
     const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
@@ -269,6 +278,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       cwd: STOCK_CLAUDE_DIR,
       stdio: ['ignore', 'pipe', 'pipe']
     })
+    activeAnalysisChild = child
 
     let buf = ''
     // tool_use_id → 에이전트 key 매핑 (어느 에이전트가 완료됐는지 추적)
@@ -341,7 +351,9 @@ function registerIpcHandlers(win: BrowserWindow): void {
     })
 
     child.on('close', (code) => {
-      if (code !== 0) {
+      const wasCancelled = activeAnalysisChild === null
+      activeAnalysisChild = null
+      if (code !== 0 && !wasCancelled) {
         win.webContents.send('stock-analysis-done', {
           success: false,
           error: `분석 실패 (exit code: ${code})`
@@ -350,6 +362,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
     })
 
     child.on('error', (err) => {
+      activeAnalysisChild = null
       win.webContents.send('stock-analysis-done', {
         success: false,
         error: `CLI 실행 오류: ${err.message}`

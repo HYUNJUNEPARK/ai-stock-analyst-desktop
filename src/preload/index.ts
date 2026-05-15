@@ -75,6 +75,7 @@ if (process.contextIsolated) {
       /* 주식 멀티 에이전트 분석 */
       runStockAnalysis: (params: { prompt: string; apiKey: string }) =>
         ipcRenderer.send('run-stock-analysis', params),
+      cancelStockAnalysis: () => ipcRenderer.send('cancel-stock-analysis'),
       onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {
         stockAnalysisAgentCb = cb
       },

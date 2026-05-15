@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageFooter from '../components/PageFooter'
 
-type Status = 'streaming' | 'done' | 'error'
+type Status = 'streaming' | 'done' | 'error' | 'cancelled'
 type AgentStatus = 'idle' | 'running' | 'done'
 
 const AGENT_CONFIG: { key: string; label: string }[] = [
@@ -88,6 +88,11 @@ export default function ResponsePage(): React.JSX.Element {
     navigate('/prompt')
   }
 
+  function handleCancel(): void {
+    window.api?.cancelStockAnalysis?.()
+    setStatus('cancelled')
+  }
+
   function handleRetry(): void {
     setStatus('streaming')
     setResponse('')
@@ -119,7 +124,7 @@ export default function ResponsePage(): React.JSX.Element {
           <svg viewBox="0 0 18 18">
             <polyline points="12,3 6,9 12,15" />
           </svg>
-          {status === 'streaming' ? '취소' : '뒤로'}
+          뒤로
         </button>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           <div className="model-badge">
@@ -258,7 +263,16 @@ export default function ResponsePage(): React.JSX.Element {
                     fontStyle: 'italic'
                   }}
                 >
-                  응답을 생성 중입니다...
+                  {selectedModel === 'claude'
+                    ? (() => {
+                        const running = AGENT_CONFIG.find((a) => agentStatuses[a.key] === 'running')
+                        const doneCount = AGENT_CONFIG.filter((a) => agentStatuses[a.key] === 'done').length
+                        if (running) return `${running.label} 진행 중...`
+                        if (doneCount === 3) return '투자 전략 종합 중...'
+                        if (doneCount > 0) return `분석 완료 ${doneCount}/3 — 다음 에이전트 대기 중...`
+                        return '에이전트 초기화 중...'
+                      })()
+                    : '응답을 생성 중입니다...'}
                 </div>
               )}
 
@@ -317,12 +331,42 @@ export default function ResponsePage(): React.JSX.Element {
               </button>
             </div>
           )}
+
+          {status === 'cancelled' && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px 16px',
+                borderRadius: 12,
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center'
+              }}
+            >
+              분석이 취소되었습니다.
+            </div>
+          )}
         </div>
       </div>
 
       {/* 하단 버튼 */}
-      {(status === 'done' || status === 'error') && (
+      {status === 'streaming' && selectedModel === 'claude' && (
         <PageFooter>
+          <button className="btn-ghost" onClick={handleCancel} aria-label="분석 취소">
+            분석 취소
+          </button>
+        </PageFooter>
+      )}
+
+      {(status === 'done' || status === 'error' || status === 'cancelled') && (
+        <PageFooter>
+          {status === 'cancelled' && (
+            <button className="btn-ghost" onClick={handleRetry} style={{ marginRight: 8 }}>
+              다시 시도
+            </button>
+          )}
           <button className="btn-primary" onClick={handleNewQuestion}>
             + 새 질문하기
           </button>
