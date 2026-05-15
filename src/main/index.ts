@@ -1,9 +1,10 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
-import { spawn, spawnSync } from 'child_process'
+import { spawn, spawnSync, type ChildProcessByStdio, type SpawnOptions } from 'child_process'
 import { readFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import type { Readable } from 'stream'
 import icon from '../../resources/icon.png?asset'
 
 // CLI를 설치·실행할 앱 전용 경로 (~/.ai-cli-launcher)
@@ -20,6 +21,22 @@ const STOCK_GPT_DIR = is.dev
   ? join(app.getAppPath(), 'src', 'main', 'gpt')
   : join(process.resourcesPath, 'gpt')
 const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')
+
+type PipedSpawnOptions = SpawnOptions & { stdio: ['ignore', 'pipe', 'pipe'] }
+type PipedChildProcess = ChildProcessByStdio<null, Readable, Readable>
+
+// Windows/Electron에서 .cmd/.bat 파일을 직접 실행하면 spawn EINVAL/ENVAL 오류가 날 수 있어서 추가한 코드.
+function spawnCommand(
+  command: string,
+  args: string[],
+  options: PipedSpawnOptions
+): PipedChildProcess {
+  if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
+    return spawn(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
+  }
+
+  return spawn(command, args, options)
+}
 
 function createWindow(): void {
   // 메인 창 생성(프로그램 시작 시 기본 창 크기 설정)
@@ -125,7 +142,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       )
     }
 
-    const child = spawn(resolved.command, args, {
+    const child = spawnCommand(resolved.command, args, {
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe']
     })
@@ -164,7 +181,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
     const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
     // -g 대신 --prefix로 사용자 홈 하위 경로에 설치 → EACCES(exit 243) 방지
     mkdirSync(CLI_PREFIX, { recursive: true })
-    const child = spawn(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
+    const child = spawnCommand(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe']
     })
@@ -292,7 +309,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
       // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
-      const child = spawn(cmd, args, {
+      const child = spawnCommand(cmd, args, {
         env,
         stdio: ['ignore', 'pipe', 'pipe']
       })
@@ -483,7 +500,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
 
       // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
-      const child = spawn(claudeCmd, args, {
+      const child = spawnCommand(claudeCmd, args, {
         env,
         cwd: STOCK_CLAUDE_DIR,
         stdio: ['ignore', 'pipe', 'pipe'],
