@@ -1,5 +1,6 @@
 import { AGENT_CONFIG } from '../constants'
 import MarkdownRenderer from './MarkdownRenderer'
+import AgentStatusBar from './AgentStatusBar'
 import type { AgentStatus, PreviewModel, Status } from '../types'
 
 type ResponseCardProps = {
@@ -59,6 +60,10 @@ export default function ResponseCard({
       </div>
 
       <div style={{ padding: 16 }} role="article" aria-label="AI 응답">
+        {status === 'streaming' && (model === 'claude' || model === 'gpt') && (
+          <AgentStatusBar agentStatuses={agentStatuses} />
+        )}
+
         {status === 'streaming' && !response && (
           <div
             style={{

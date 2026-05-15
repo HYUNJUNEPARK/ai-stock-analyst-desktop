@@ -4,7 +4,6 @@ import claudeImg from '../../assets/claude.png'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
 import { useApp } from '../../context/AppContext'
-import AgentStatusBar from './components/AgentStatusBar'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import PromptBubble from './components/PromptBubble'
 import ResponseCard from './components/ResponseCard'
@@ -167,8 +166,6 @@ export default function ResponsePage(): React.JSX.Element {
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
-          {isStockAnalysisModel(effectiveModel) && <AgentStatusBar agentStatuses={agentStatuses} />}
-
           <PromptBubble prompt={effectivePrompt} />
 
           <ResponseCard
