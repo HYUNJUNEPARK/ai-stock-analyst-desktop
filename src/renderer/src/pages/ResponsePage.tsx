@@ -1,0 +1,397 @@
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
+
+type Status = 'streaming' | 'done' | 'error'
+
+export default function ResponsePage(): React.JSX.Element {
+  const navigate = useNavigate()
+  const { selectedModel, apiKey, currentPrompt, setCurrentPrompt, setLastResponse } = useApp()
+  const [response, setResponse] = useState('')
+  const [status, setStatus] = useState<Status>('streaming')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [copied, setCopied] = useState(false)
+  const responseRef = useRef('')
+
+  useEffect(() => {
+    if (!selectedModel || !currentPrompt) {
+      navigate('/')
+      return
+    }
+
+    window.api?.onResponseChunk?.((chunk: string) => {
+      responseRef.current += chunk
+      setResponse(responseRef.current)
+    })
+
+    window.api?.onResponseDone?.((result: { success: boolean; error?: string }) => {
+      if (result.success) {
+        setStatus('done')
+        setLastResponse(responseRef.current)
+      } else {
+        setStatus('error')
+        setErrorMsg(result.error ?? '응답을 가져오지 못했습니다.')
+      }
+    })
+
+    window.api?.runPrompt?.({ model: selectedModel, prompt: currentPrompt, apiKey })
+  }, [])
+
+  function handleCopy(): void {
+    navigator.clipboard.writeText(responseRef.current)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  function handleNewQuestion(): void {
+    setCurrentPrompt('')
+    navigate('/prompt')
+  }
+
+  const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
+  const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
+  const iconInitial = selectedModel === 'gpt' ? 'G' : 'C'
+
+  return (
+    <div className="page">
+      {/* 내비게이션 바 */}
+      <nav className="nav-bar">
+        <button
+          className="nav-back"
+          onClick={() => navigate('/prompt')}
+          disabled={status === 'streaming'}
+          aria-label="뒤로"
+        >
+          <svg viewBox="0 0 18 18">
+            <polyline points="12,3 6,9 12,15" />
+          </svg>
+          {status === 'streaming' ? '취소' : '뒤로'}
+        </button>
+        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          <div className="model-badge">
+            <div className="model-badge-dot" style={{ background: dotColor }} />
+            {modelLabel}
+          </div>
+        </div>
+      </nav>
+
+      {/* 콘텐츠 */}
+      <div className="page-content">
+        <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
+          {/* 내 질문 버블 */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <div
+              style={{
+                maxWidth: '80%',
+                background: 'var(--accent)',
+                color: '#fff',
+                borderRadius: '18px 18px 4px 18px',
+                padding: '12px 16px',
+                fontSize: 'var(--text-base)',
+                lineHeight: 1.5,
+                wordBreak: 'break-word',
+                userSelect: 'text'
+              }}
+            >
+              {currentPrompt}
+            </div>
+          </div>
+
+          {/* AI 응답 카드 */}
+          <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
+            {/* 카드 헤더 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '0 16px',
+                height: 48,
+                background: 'var(--bg-primary)',
+                borderBottom: '1px solid var(--border)'
+              }}
+            >
+              <div
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 6,
+                  background: dotColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>{iconInitial}</span>
+              </div>
+              <span
+                style={{
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 600,
+                  color: 'var(--text-secondary)'
+                }}
+              >
+                {modelLabel}
+              </span>
+
+              {status === 'streaming' && (
+                <div className="spinner" style={{ marginLeft: 'auto' }} aria-label="응답 생성 중" />
+              )}
+            </div>
+
+            {/* 응답 본문 */}
+            <div style={{ padding: 16 }} role="article" aria-label="AI 응답">
+              {status === 'streaming' && !response && (
+                <div
+                  style={{
+                    color: 'var(--text-tertiary)',
+                    fontSize: 'var(--text-sm)',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  응답을 생성 중입니다...
+                </div>
+              )}
+
+              {(response || status !== 'streaming') && (
+                <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
+              )}
+
+              {status === 'error' && (
+                <div className="error-banner" style={{ marginTop: response ? 16 : 0 }}>
+                  ⚠ {errorMsg}
+                </div>
+              )}
+            </div>
+
+            {/* 카드 하단 액션 바 (완료 시) */}
+            {status === 'done' && (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 4,
+                  padding: '0 10px',
+                  height: 44,
+                  borderTop: '1px solid var(--border)',
+                  alignItems: 'center'
+                }}
+              >
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: 'none',
+                    border: 'none',
+                    fontSize: 'var(--text-xs)',
+                    color: copied ? 'var(--success)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    fontFamily: 'inherit',
+                    transition: 'background 0.15s, color 0.15s'
+                  }}
+                  aria-label="응답 복사"
+                >
+                  {copied ? '✓ 복사됨' : '📋 복사'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 오류 시 재시도 */}
+          {status === 'error' && (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}
+            >
+              <button
+                className="btn-primary danger"
+                onClick={() => {
+                  setStatus('streaming')
+                  setResponse('')
+                  responseRef.current = ''
+                  setErrorMsg('')
+                  window.api?.runPrompt?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
+                }}
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 하단 버튼 */}
+      {(status === 'done' || status === 'error') && (
+        <div className="page-footer">
+          <button className="btn-primary" onClick={handleNewQuestion}>
+            + 새 질문하기
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── 간단한 마크다운 렌더러 ── */
+function MarkdownRenderer({
+  text,
+  isStreaming
+}: {
+  text: string
+  isStreaming: boolean
+}): React.JSX.Element {
+  const lines = text.split('\n')
+  const elements: React.JSX.Element[] = []
+  let codeBlock: string[] = []
+  let codeLang = ''
+  let inCode = false
+  let key = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+
+    if (line.startsWith('```')) {
+      if (!inCode) {
+        inCode = true
+        codeLang = line.slice(3).trim()
+        codeBlock = []
+      } else {
+        elements.push(
+          <CodeBlock key={key++} lang={codeLang} code={codeBlock.join('\n')} />
+        )
+        inCode = false
+        codeBlock = []
+        codeLang = ''
+      }
+      continue
+    }
+
+    if (inCode) {
+      codeBlock.push(line)
+      continue
+    }
+
+    if (line.startsWith('### ')) {
+      elements.push(
+        <h3 key={key++} style={{ fontSize: 15, fontWeight: 600, margin: '12px 0 6px', color: 'var(--text-primary)' }}>
+          {line.slice(4)}
+        </h3>
+      )
+    } else if (line.startsWith('## ')) {
+      elements.push(
+        <h2 key={key++} style={{ fontSize: 17, fontWeight: 600, margin: '16px 0 8px', color: 'var(--text-primary)' }}>
+          {line.slice(3)}
+        </h2>
+      )
+    } else if (line.startsWith('# ')) {
+      elements.push(
+        <h1 key={key++} style={{ fontSize: 20, fontWeight: 700, margin: '20px 0 10px', color: 'var(--text-primary)' }}>
+          {line.slice(2)}
+        </h1>
+      )
+    } else if (line.startsWith('> ')) {
+      elements.push(
+        <blockquote
+          key={key++}
+          style={{
+            borderLeft: '3px solid var(--accent)',
+            margin: '0 0 12px',
+            padding: '4px 0 4px 14px',
+            color: 'var(--text-secondary)',
+            fontStyle: 'italic'
+          }}
+        >
+          {line.slice(2)}
+        </blockquote>
+      )
+    } else if (line.match(/^[-*]\s/)) {
+      elements.push(
+        <div
+          key={key++}
+          style={{ paddingLeft: 16, marginBottom: 4, color: 'var(--text-primary)', fontSize: 'var(--text-base)' }}
+        >
+          • {renderInline(line.slice(2))}
+        </div>
+      )
+    } else if (line.trim() === '') {
+      elements.push(<div key={key++} style={{ height: 8 }} />)
+    } else {
+      elements.push(
+        <p
+          key={key++}
+          style={{ marginBottom: 12, color: 'var(--text-primary)', fontSize: 'var(--text-base)', lineHeight: 1.7 }}
+        >
+          {renderInline(line)}
+        </p>
+      )
+    }
+  }
+
+  // 미완성 코드 블록 (스트리밍 중)
+  if (inCode && codeBlock.length > 0) {
+    elements.push(
+      <CodeBlock key={key++} lang={codeLang} code={codeBlock.join('\n')} />
+    )
+  }
+
+  return (
+    <div className="markdown-body" style={{ userSelect: 'text' }}>
+      {elements}
+      {isStreaming && <span className="streaming-cursor" aria-hidden="true" />}
+    </div>
+  )
+}
+
+function renderInline(text: string): React.ReactNode {
+  // 굵게: **text**
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code
+          key={i}
+          style={{
+            background: 'var(--bg-tertiary)',
+            borderRadius: 4,
+            padding: '2px 6px',
+            fontFamily: "'SF Mono', 'Menlo', monospace",
+            fontSize: 13,
+            color: '#D73A49',
+            userSelect: 'text'
+          }}
+        >
+          {part.slice(1, -1)}
+        </code>
+      )
+    }
+    return part
+  })
+}
+
+function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.Element {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy(): void {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className="code-block">
+      <div className="code-block-header">
+        <span className="code-lang">{lang || 'code'}</span>
+        <button className="code-copy-btn" onClick={handleCopy}>
+          {copied ? '✓ 복사됨' : '복사'}
+        </button>
+      </div>
+      <div className="code-body">{code}</div>
+    </div>
+  )
+}

@@ -1,0 +1,272 @@
+import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
+
+const EXAMPLE_PROMPTS = [
+  '💡 이 코드의 버그를 찾아줘',
+  '📝 이메일 초안 작성해줘',
+  '🔍 이 개념을 쉽게 설명해줘'
+]
+
+const MAX_CHARS = 5000
+const WARN_CHARS = 4000
+
+export default function PromptPage(): React.JSX.Element {
+  const navigate = useNavigate()
+  const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
+  const [text, setText] = useState(currentPrompt)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const isMac = navigator.platform.toUpperCase().includes('MAC')
+  const shortcutLabel = isMac ? '⌘↩' : 'Ctrl+↩'
+
+  function autoResize(): void {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 320) + 'px'
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void {
+    const val = e.target.value
+    if (val.length > MAX_CHARS) return
+    setText(val)
+    autoResize()
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>): void {
+    const submit = isMac ? e.metaKey && e.key === 'Enter' : e.ctrlKey && e.key === 'Enter'
+    if (submit && text.trim()) handleSubmit()
+  }
+
+  function handleSubmit(): void {
+    if (!text.trim()) return
+    setCurrentPrompt(text.trim())
+    navigate('/response')
+  }
+
+  const charColor =
+    text.length > MAX_CHARS
+      ? 'var(--danger)'
+      : text.length > WARN_CHARS
+        ? 'var(--warning)'
+        : 'var(--text-tertiary)'
+
+  const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
+  const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
+
+  return (
+    <div className="page">
+      {/* 내비게이션 바 */}
+      <nav className="nav-bar">
+        <div className="model-badge">
+          <div className="model-badge-dot" style={{ background: dotColor }} />
+          {modelLabel}
+        </div>
+        <div className="nav-right">
+          <button
+            onClick={() => navigate('/auth')}
+            aria-label="설정"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              padding: 4,
+              borderRadius: 8,
+              transition: 'color 0.15s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          >
+            <SettingsIcon />
+          </button>
+        </div>
+      </nav>
+
+      {/* 콘텐츠 */}
+      <div className="page-content">
+        <div className="content-container">
+          {/* 헤더 */}
+          <div style={{ textAlign: 'center', paddingTop: 32, paddingBottom: 24 }}>
+            <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
+              AI에게 질문해 보세요
+            </h1>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+              어떤 것이든 물어보세요.
+            </p>
+          </div>
+
+          {/* 입력 카드 */}
+          <div
+            className="card"
+            style={{
+              border: '1.5px solid transparent',
+              borderRadius: 20,
+              boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+              transition: 'border-color 0.15s, box-shadow 0.15s'
+            }}
+            onFocusCapture={(e) => {
+              const el = e.currentTarget
+              el.style.borderColor = 'var(--accent)'
+              el.style.boxShadow = '0 0 0 3px var(--accent-light), 0 2px 12px rgba(0,0,0,0.08)'
+            }}
+            onBlurCapture={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                const el = e.currentTarget
+                el.style.borderColor = 'transparent'
+                el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'
+              }
+            }}
+          >
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder="AI에게 질문을 입력하세요..."
+              aria-label="AI 질문 입력"
+              style={{
+                width: '100%',
+                minHeight: 140,
+                maxHeight: 320,
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-base)',
+                lineHeight: 1.6,
+                color: 'var(--text-primary)',
+                background: 'transparent',
+                padding: '16px 16px 0',
+                overflowY: 'auto'
+              }}
+            />
+
+            {/* 툴바 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderTop: '1px solid var(--border)'
+              }}
+            >
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                <kbd
+                  style={{
+                    background: 'var(--bg-tertiary)',
+                    borderRadius: 4,
+                    padding: '1px 5px',
+                    fontFamily: 'monospace',
+                    fontSize: 10
+                  }}
+                >
+                  {shortcutLabel}
+                </kbd>{' '}
+                로 제출
+              </span>
+              <span
+                style={{ fontSize: 'var(--text-xs)', color: charColor }}
+                aria-label={`글자 수: ${text.length}`}
+                aria-live="polite"
+              >
+                {text.length.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* 예시 프롬프트 칩 */}
+          {!text && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 8,
+                marginTop: 16
+              }}
+            >
+              {EXAMPLE_PROMPTS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => {
+                    setText(p)
+                    setTimeout(autoResize, 0)
+                    textareaRef.current?.focus()
+                  }}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 20,
+                    padding: '8px 14px',
+                    fontSize: 'var(--text-sm)',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'background 0.15s, color 0.15s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-tertiary)'
+                    e.currentTarget.style.color = 'var(--text-primary)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-secondary)'
+                    e.currentTarget.style.color = 'var(--text-secondary)'
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 하단 버튼 */}
+      <div className="page-footer">
+        <button
+          className="btn-primary"
+          onClick={handleSubmit}
+          disabled={!text.trim()}
+          aria-disabled={!text.trim()}
+        >
+          제출
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="9" y1="14" x2="9" y2="4" />
+            <polyline points="4,9 9,4 14,9" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function SettingsIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  )
+}

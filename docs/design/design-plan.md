@@ -16,7 +16,7 @@ Claude Design과 협업하여 5개 화면의 UI를 구현한다.
 
 ### Step 0 — 디자인 시스템 공유 (필수 선행)
 
-> `design-prompts/00-design-system.md` 를 가장 먼저 Claude Design에게 전달한다.
+> `design-prompts/00-design-system.md`
 
 이 파일에는 모든 화면에서 공통으로 사용하는 기준이 담겨 있다:
 - CSS 변수 팔레트 (색상, 텍스트, 테두리)
