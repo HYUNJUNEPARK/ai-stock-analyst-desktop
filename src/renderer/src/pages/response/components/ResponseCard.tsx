@@ -5,6 +5,7 @@ import StreamingResponseView from './StreamingResponseView'
 
 type ResponseCardProps = {
   agentStatuses: Record<string, AgentStatus>
+  analysisLog: string
   errorMsg: string
   model: PreviewModel | null
   modelImg: string
@@ -17,6 +18,7 @@ type ResponseCardProps = {
 
 export default function ResponseCard({
   agentStatuses,
+  analysisLog,
   errorMsg,
   model,
   modelImg,
@@ -101,6 +103,7 @@ export default function ResponseCard({
         {!isCancelled && !isError && isStreamingEmpty && (
           <StreamingResponseView
             agentStatuses={agentStatuses}
+            analysisLog={analysisLog}
             onCancel={onCancel}
             showAgentFlow={model === 'claude' || model === 'gpt'}
           />

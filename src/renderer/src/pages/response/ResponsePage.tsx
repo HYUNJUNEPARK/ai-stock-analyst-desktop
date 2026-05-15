@@ -24,6 +24,7 @@ export default function ResponsePage(): React.JSX.Element {
   const [response, setResponse] = useState(initialResponse)
   const [status, setStatus] = useState<Status>(isPreviewOnly ? previewStatus : 'streaming')
   const [errorMsg, setErrorMsg] = useState('')
+  const [analysisLog, setAnalysisLog] = useState('분석 결과를 종합하고 있습니다.')
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
@@ -49,6 +50,10 @@ export default function ResponsePage(): React.JSX.Element {
     if (isStockAnalysisModel(effectiveModel)) {
       window.api.onStockAnalysisAgent(({ name, status: agentStatus }) => {
         setAgentStatuses((prev) => ({ ...prev, [name]: agentStatus }))
+      })
+
+      window.api.onStockAnalysisLog((message: string) => {
+        setAnalysisLog(message)
       })
 
       window.api.onStockAnalysisChunk((chunk: string) => {
@@ -99,6 +104,7 @@ export default function ResponsePage(): React.JSX.Element {
     setResponse('')
     responseRef.current = ''
     setErrorMsg('')
+    setAnalysisLog('분석 결과를 종합하고 있습니다.')
     setAgentStatuses(getInitialAgentStatuses('idle'))
 
     if (isPreviewOnly) {
@@ -147,6 +153,7 @@ export default function ResponsePage(): React.JSX.Element {
 
           <ResponseCard
             agentStatuses={agentStatuses}
+            analysisLog={analysisLog}
             errorMsg={errorMsg}
             model={effectiveModel}
             modelImg={modelImg}

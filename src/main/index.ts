@@ -348,6 +348,20 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
   // ── 주식 멀티 에이전트 분석 ──
   let activeAnalysisChild: ReturnType<typeof spawn> | null = null
+  const stockAgentLabels: Record<string, string> = {
+    'financial-analyst-kr': '재무 분석',
+    'news-sentiment-analyst': '뉴스 분석',
+    'sector-researcher': '섹터 분석',
+    'aggressive-investment-strategist': '투자 전략'
+  }
+
+  function sendStockAnalysisLog(message: string): void {
+    win.webContents.send('stock-analysis-log', message)
+  }
+
+  function getStockAgentLabel(name: string): string {
+    return stockAgentLabels[name] ?? name
+  }
 
   ipcMain.on('cancel-stock-analysis', () => {
     if (activeAnalysisChild) {
@@ -398,6 +412,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
           }
         )
         activeAnalysisChild = child
+        sendStockAnalysisLog('투자 리포트 생성을 시작했습니다.')
 
         let buf = ''
         let finalReportPath = ''
@@ -421,6 +436,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             const startMatch = line.match(/^\[start\]\s+(.+)$/)
             if (startMatch) {
+              sendStockAnalysisLog(`${getStockAgentLabel(startMatch[1])}을 시작했습니다.`)
               win.webContents.send('stock-analysis-agent', {
                 name: startMatch[1],
                 status: 'running'
@@ -430,6 +446,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             const doneMatch = line.match(/^\[done\]\s+(.+)$/)
             if (doneMatch) {
+              sendStockAnalysisLog(`${getStockAgentLabel(doneMatch[1])}을 완료했습니다.`)
               win.webContents.send('stock-analysis-agent', {
                 name: doneMatch[1],
                 status: 'done'
@@ -440,6 +457,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
             const reportMatch = line.match(/^최종 리포트 저장 완료:\s+(.+)$/)
             if (reportMatch) {
               finalReportPath = reportMatch[1]
+              sendStockAnalysisLog('최종 투자 리포트를 저장했습니다.')
             }
           }
         })
@@ -448,6 +466,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
           const text = data.toString().trim()
           if (text) {
             console.error('[stock-analysis:gpt]', text)
+            sendStockAnalysisLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
           }
         })
 
@@ -507,6 +526,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
         detached: process.platform !== 'win32'
       })
       activeAnalysisChild = child
+      sendStockAnalysisLog('투자 리포트 생성을 시작했습니다.')
 
       let buf = ''
       const agentToolMap = new Map<string, string>()
@@ -530,6 +550,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
                   const agentType = input?.subagent_type as string | undefined
                   if (agentType) {
                     agentToolMap.set(b.id as string, agentType)
+                    sendStockAnalysisLog(`${getStockAgentLabel(agentType)}을 시작했습니다.`)
                     win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
                   }
                 }
@@ -543,6 +564,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
                 if (b.type === 'tool_result') {
                   const agentType = agentToolMap.get(b.tool_use_id as string)
                   if (agentType) {
+                    sendStockAnalysisLog(`${getStockAgentLabel(agentType)}을 완료했습니다.`)
                     win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
                     agentToolMap.delete(b.tool_use_id as string)
                   }
@@ -552,6 +574,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             if (ev.type === 'result') {
               if (ev.subtype === 'success') {
+                sendStockAnalysisLog('최종 투자 리포트를 생성했습니다.')
                 win.webContents.send('stock-analysis-chunk', ev.result ?? '')
                 win.webContents.send('stock-analysis-done', { success: true })
               } else {
@@ -571,6 +594,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
         const text = data.toString()
         if (text.toLowerCase().includes('error')) {
           console.error('[stock-analysis:claude]', text.trim())
+          sendStockAnalysisLog(`Claude CLI: ${text.trim().split(/\r?\n/).at(-1) ?? text.trim()}`)
         }
       })
 

@@ -3,12 +3,14 @@ import AgentStatusBar from './AgentStatusBar'
 
 type StreamingResponseViewProps = {
   agentStatuses: Record<string, AgentStatus>
+  analysisLog: string
   onCancel: () => void
   showAgentFlow: boolean
 }
 
 export default function StreamingResponseView({
   agentStatuses,
+  analysisLog,
   onCancel,
   showAgentFlow
 }: StreamingResponseViewProps): React.JSX.Element {
@@ -35,10 +37,14 @@ export default function StreamingResponseView({
           style={{
             fontSize: 'var(--text-sm)',
             color: 'var(--text-tertiary)',
-            lineHeight: 1.5
+            lineHeight: 1.5,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}
+          title={analysisLog}
         >
-          분석 결과를 종합하고 있습니다.
+          {analysisLog}
         </div>
       </div>
 
