@@ -12,18 +12,79 @@
 
 ---
 
-## 개발 단계
+## 진행 상태
 
-| 단계 | 내용 | 프롬프트 파일 |
-|------|------|--------------|
-| 1 | 앱 전체 화면 흐름 및 라우팅 설계 | [01-routing.md](prompts/01-routing.md) |
-| 2 | 모델 선택 화면 구현 | [02-model-selection.md](prompts/02-model-selection.md) |
-| 3 | OS 감지 및 CLI 자동 다운로드 모듈 | [03-cli-downloader.md](prompts/03-cli-downloader.md) |
-| 4 | API 키 등록 / 로그인 화면 구현 | [04-auth.md](prompts/04-auth.md) |
-| 5 | 프롬프트 입력 화면 구현 | [05-prompt-input.md](prompts/05-prompt-input.md) |
-| 6 | CLI 실행 및 응답 출력 화면 구현 | [06-response-output.md](prompts/06-response-output.md) |
-| 7 | 전체 UI 스타일링 및 UX 다듬기 | [07-styling.md](prompts/07-styling.md) |
-| 8 | 빌드 및 배포 설정 | [08-build.md](prompts/08-build.md) |
+| 단계 | 내용 | 상태 | 비고 |
+|------|------|------|------|
+| 1 | 앱 전체 화면 흐름 및 라우팅 설계 | ✅ 완료 | HashRouter, 5개 페이지, AppContext, AppProvider 모두 구현 완료 |
+| 2 | 모델 선택 화면 구현 | ✅ 완료 | UI + 모델 선택 → /download 네비게이션 로직 완료 |
+| 3 | CLI 자동 설치 모듈 (main process IPC) | ✅ 완료 | main: spawn으로 npm install -g 실행, preload: contextBridge로 api 노출 |
+| 4 | API 키 등록 / 로그인 화면 구현 | ✅ 완료 | validate/save/load-api-key 핸들러, run-claude-login 핸들러, preload 노출 완료 |
+| 5 | 프롬프트 입력 화면 구현 | ✅ 완료 | UI + navigate 로직 완료 |
+| 6 | CLI 실행 및 응답 출력 화면 구현 | ✅ 완료 | run-prompt 핸들러(spawn), prompt-response-chunk/done 스트리밍, preload 노출 완료 |
+| 7 | 전체 UI 스타일링 및 UX 다듬기 | ✅ 완료 | 모든 페이지 UI/스타일 완성 상태 |
+| 8 | 빌드 및 배포 설정 | ⏳ 대기 | 미시작 |
+
+---
+
+## 단계 3 상세 — CLI 자동 설치 모듈 ✅
+
+### 구현 내용
+
+**`src/main/index.ts`**
+- `start-cli-install` 핸들러: `child_process.spawn`으로 `npm install -g` 실행
+- `install-progress` 이벤트: stdout/stderr 라인 단위로 renderer에 전송
+- `install-complete` 이벤트: 성공(exit code 0) / 실패 결과 전송
+- 플랫폼별 npm 경로 처리 (win32: npm.cmd)
+
+**`src/preload/index.ts`**
+- `contextBridge.exposeInMainWorld('api', {...})` 로 renderer에 노출
+- `startCliInstall`, `onInstallProgress`, `onInstallComplete` 연결
+- IPC 이벤트 리스너를 모듈 최상위에 등록 (콜백 패턴)
+
+### CLI 패키지 매핑
+- `gpt` → `npm install -g openai`
+- `claude` → `npm install -g @anthropic-ai/claude-code`
+
+---
+
+## 단계 4 상세 — API 키 등록 / 로그인 ✅
+
+### 구현 내용
+
+**`src/main/index.ts`**
+- `validate-api-key`: 모델별 API 키 형식 검증 (GPT: `sk-`, Claude: `sk-ant-`)
+- `save-api-key`: API 키를 `app.getPath('userData')/config/apikey.json`에 저장
+- `load-api-key`: 저장된 API 키 로드
+- `run-claude-login`: `claude login` 실행, stdout/stderr 스트리밍
+
+**`src/preload/index.ts`**
+- 위 채널들을 `window.api`에 추가 노출
+
+---
+
+## 단계 6 상세 — CLI 실행 및 응답 출력 ✅
+
+### 구현 내용
+
+**`src/main/index.ts`**
+- `run-prompt` 핸들러: 모델별 CLI 명령 spawn
+  - GPT: `openai api chat.completions.create ...`
+  - Claude: `claude -p <prompt> --output-format text`
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` 환경변수로 API 키 전달
+- stdout 청크 → `prompt-response-chunk` 이벤트로 스트리밍
+- 종료 코드 → `prompt-response-done` 이벤트 전송
+
+**`src/preload/index.ts`**
+- `runPrompt`, `onResponseChunk`, `onResponseDone` 노출
+
+---
+
+## 다음 단계
+
+| 단계 | 내용 |
+|------|------|
+| 8 | 빌드 및 배포 설정 (`electron-builder`, 플랫폼별 패키저) |
 
 ---
 
@@ -32,25 +93,25 @@
 ```
 [앱 시작]
     ↓
-[모델 선택 화면]
+[모델 선택 화면] ✅
   - GPT (o3/o4-mini 등) 선택
   - Claude (claude-code CLI) 선택
     ↓
-[CLI 다운로드 화면]
+[CLI 다운로드 화면] 🔄
   - OS 감지 (macOS / Windows / Linux)
   - 해당 CLI 자동 다운로드 & 설치
   - 진행 상태 표시
     ↓
-[인증 화면]
+[인증 화면] ⏳
   - GPT 선택 시: OpenAI API 키 입력
   - Claude 선택 시: Anthropic API 키 입력 또는 claude login
   - 인증 성공 확인
     ↓
-[프롬프트 입력 화면]
+[프롬프트 입력 화면] ✅
   - 텍스트 입력창
   - 제출 버튼
     ↓
-[응답 확인 화면]
+[응답 확인 화면] ⏳
   - 모델 응답 출력 (마크다운 렌더링)
   - 새 질문하기 버튼 (프롬프트 입력 화면으로 돌아가기)
 ```
@@ -62,5 +123,5 @@
 - **CLI 실행**: Electron main process에서 `child_process.spawn`으로 CLI 실행
 - **IPC**: main ↔ renderer 간 `ipcMain` / `ipcRenderer` 통신
 - **상태 관리**: React 내장 `useState` / `useContext` (단순한 앱이므로 외부 라이브러리 불필요)
-- **설정 저장**: `electron-store` 또는 main process에서 직접 파일 저장 (API 키, 선택한 모델)
+- **설정 저장**: main process에서 직접 파일 저장 (API 키, 선택한 모델)
 - **라우팅**: `react-router-dom` (Hash Router 사용, Electron 환경 호환)

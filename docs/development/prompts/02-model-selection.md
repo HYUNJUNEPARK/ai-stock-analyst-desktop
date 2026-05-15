@@ -14,8 +14,8 @@ src/renderer/src/pages/ModelSelectionPage.tsx를 구현해 주세요.
 1. 화면 중앙에 "AI 모델을 선택하세요" 제목을 표시합니다.
 
 2. 두 개의 선택 카드를 나란히 배치합니다:
-   - GPT 카드: 아이콘(또는 텍스트 로고), "OpenAI GPT", 부제목 "o3 / o4-mini"
-   - Claude 카드: 아이콘(또는 텍스트 로고), "Anthropic Claude", 부제목 "claude-code CLI"
+   - GPT 카드: 아이콘(또는 텍스트 로고),
+   - Claude 카드: 아이콘(또는 텍스트 로고),
 
 3. 카드 클릭 시:
    - AppContext의 setSelectedModel 호출 ('gpt' 또는 'claude')
