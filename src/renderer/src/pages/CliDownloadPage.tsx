@@ -19,33 +19,26 @@ export default function CliDownloadPage(): React.JSX.Element {
       return
     }
 
-    const onProgress = window.api?.onInstallProgress
-    const onComplete = window.api?.onInstallComplete
-
-    if (onProgress) {
-      onProgress((data: string) => {
-        setLogs((prev) => [...prev, data])
-        setTimeout(() => {
-          if (logRef.current) {
-            logRef.current.scrollTop = logRef.current.scrollHeight
-          }
-        }, 0)
-      })
-    }
-
-    if (onComplete) {
-      onComplete((result: { success: boolean; error?: string }) => {
-        if (result.success) {
-          setStatus('success')
-          setTimeout(() => navigate('/auth'), 3000)
-        } else {
-          setStatus('error')
-          setErrorMsg(result.error ?? '알 수 없는 오류가 발생했습니다.')
+    window.api.onInstallProgress((data: string) => {
+      setLogs((prev) => [...prev, data])
+      setTimeout(() => {
+        if (logRef.current) {
+          logRef.current.scrollTop = logRef.current.scrollHeight
         }
-      })
-    }
+      }, 0)
+    })
 
-    window.api?.startCliInstall(selectedModel)
+    window.api.onInstallComplete((result: { success: boolean; error?: string }) => {
+      if (result.success) {
+        setStatus('success')
+        setTimeout(() => navigate('/auth'), 3000)
+      } else {
+        setStatus('error')
+        setErrorMsg(result.error ?? '알 수 없는 오류가 발생했습니다.')
+      }
+    })
+
+    window.api.startCliInstall(selectedModel)
   }, [])
 
   const modelLabel = selectedModel === 'gpt' ? 'OpenAI GPT' : 'Claude Code'
@@ -97,7 +90,7 @@ export default function CliDownloadPage(): React.JSX.Element {
                 setStatus('installing')
                 setLogs([])
                 setErrorMsg('')
-                window.api?.startCliInstall(selectedModel!)
+                window.api.startCliInstall(selectedModel!)
               }}
               onBack={() => navigate('/')}
             />

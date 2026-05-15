@@ -5,6 +5,9 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 import { AppProvider } from './context/AppContext'
+import setupMockApi from './mock/mockApi'
+
+setupMockApi()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
