@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageFooter from '../components/PageFooter'
+import claudeImg from '../assets/claude.png'
+import gptImg from '../assets/gpt.jpg'
 
 type Status = 'streaming' | 'done' | 'error' | 'cancelled'
 type AgentStatus = 'idle' | 'running' | 'done'
@@ -108,8 +110,7 @@ export default function ResponsePage(): React.JSX.Element {
   }
 
   const modelLabel = selectedModel === 'gpt' ? 'GPT o3' : 'Claude Code'
-  const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
-  const iconInitial = selectedModel === 'gpt' ? 'G' : 'C'
+  const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
   return (
     <div className="page">
@@ -128,7 +129,7 @@ export default function ResponsePage(): React.JSX.Element {
         </button>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           <div className="model-badge">
-            <div className="model-badge-dot" style={{ background: dotColor }} />
+            <img src={modelImg} alt={modelLabel} style={{ width: 16, height: 16, borderRadius: 4, objectFit: 'cover' }} />
             {modelLabel}
           </div>
         </div>
@@ -224,20 +225,11 @@ export default function ResponsePage(): React.JSX.Element {
                 borderBottom: '1px solid var(--border)'
               }}
             >
-              <div
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 6,
-                  background: dotColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <span style={{ color: '#fff', fontSize: 11, fontWeight: 700 }}>{iconInitial}</span>
-              </div>
+              <img
+                src={modelImg}
+                alt={modelLabel}
+                style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+              />
               <span
                 style={{
                   fontSize: 'var(--text-sm)',

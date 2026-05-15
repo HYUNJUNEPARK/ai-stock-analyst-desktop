@@ -261,8 +261,20 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
   ipcMain.on('cancel-stock-analysis', () => {
     if (activeAnalysisChild) {
-      activeAnalysisChild.kill()
+      const pid = activeAnalysisChild.pid
       activeAnalysisChild = null
+      if (pid !== undefined) {
+        // 프로세스 그룹 전체 종료 — 에이전트 하위 프로세스까지 모두 제거
+        if (process.platform === 'win32') {
+          spawn('taskkill', ['/pid', String(pid), '/T', '/F'])
+        } else {
+          try {
+            process.kill(-pid, 'SIGKILL')
+          } catch {
+            // 이미 종료된 경우 무시
+          }
+        }
+      }
     }
   })
 
@@ -273,10 +285,12 @@ function registerIpcHandlers(win: BrowserWindow): void {
     const env: NodeJS.ProcessEnv = { ...process.env }
     if (apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
+    // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
     const child = spawn(claudeCmd, args, {
       env,
       cwd: STOCK_CLAUDE_DIR,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: process.platform !== 'win32'
     })
     activeAnalysisChild = child
 

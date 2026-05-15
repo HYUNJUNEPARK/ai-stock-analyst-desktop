@@ -9,3 +9,5 @@ out
 src/main/claude/stock-claude/.claude/agent-memory/
 src/main/claude/stock-claude/.claude/settings.local.json
 src/main/claude/stock-claude/reports/
+src/main/gpt/reports/*.md
+src/main/gpt/reports/.artifacts/
