@@ -16,6 +16,7 @@ declare global {
       }) => Promise<{ valid: boolean; error?: string }>
       saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
       loadApiKey: (model: string) => Promise<string | null>
+      listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string }>>
 
       /* Claude CLI 로그인 */
       runClaudeLogin: () => void

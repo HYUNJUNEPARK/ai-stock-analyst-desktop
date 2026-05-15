@@ -58,7 +58,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
             <img
               src={claudeImg}
               alt="Claude"
-              style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', marginBottom: 16 }}
+              style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', marginBottom: 16 }}
             />
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
               Claude 인증
@@ -70,14 +70,14 @@ export default function ClaudeAuthPage(): React.JSX.Element {
 
           <div>
             <div className="info-card" style={{ marginBottom: 20 }}>
-              ℹ &nbsp;`claude login` 명령을 실행합니다. 브라우저가 열리면 Anthropic 계정으로 로그인해 주세요.
+              `claude login` 명령을 실행합니다. 브라우저가 열리면 Anthropic 계정으로 로그인해 주세요.
             </div>
 
             {cliError && <div className="error-banner">⚠ {cliError}</div>}
 
             {cliStatus === 'running' && (
               <div>
-                <div
+                {/* <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -89,13 +89,13 @@ export default function ClaudeAuthPage(): React.JSX.Element {
                 >
                   <div className="spinner" />
                   브라우저에서 로그인을 완료해 주세요...
-                </div>
+                </div> */}
                 <div
                   ref={logRef}
                   className="terminal"
                   role="log"
                   aria-live="polite"
-                  style={{ height: 120 }}
+                  style={{ height: 60 }}
                 >
                   {cliLogs.map((line, index) => (
                     <div key={index}>{line}</div>

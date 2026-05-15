@@ -87,7 +87,7 @@ export default function CliDownloadPage(): React.JSX.Element {
       {status === 'success' && (
         <PageFooter>
           <button className="btn-primary" onClick={() => navigate('/auth')}>
-            로그인
+            로그인 하기
             <svg
               width="18"
               height="18"

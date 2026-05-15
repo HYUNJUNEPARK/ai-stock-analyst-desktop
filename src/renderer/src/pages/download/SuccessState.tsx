@@ -2,7 +2,7 @@ export default function SuccessState({
   modelLabel,
   logs,
   showLogs,
-  setShowLogs,
+  // setShowLogs,
   logRef
 }: {
   modelLabel: string
@@ -42,7 +42,7 @@ export default function SuccessState({
         {/* <span style={{ color: 'var(--text-tertiary)' }}>3초 후 자동으로 이동합니다.</span> */}
       </p>
 
-      <button
+      {/* <button
         onClick={() => setShowLogs(!showLogs)}
         style={{
           background: 'none',
@@ -74,7 +74,7 @@ export default function SuccessState({
         >
           <polyline points="2,4 7,10 12,4" />
         </svg>
-      </button>
+      </button> */}
 
       <div
         style={{

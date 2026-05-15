@@ -58,26 +58,26 @@ export default function GptAuthPage(): React.JSX.Element {
             <img
               src={gptImg}
               alt="Codex"
-              style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', marginBottom: 16 }}
+              style={{ width: 58, height: 58, borderRadius: 10, objectFit: 'cover', marginBottom: 16 }}
             />
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
               Codex 인증
             </h1>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              `codex login`으로 ChatGPT 계정 인증을 진행해 주세요
+              ChatGPT로 Codex에 로그인을 진행해 주세요
             </p>
           </div>
 
           <div>
             <div className="info-card" style={{ marginBottom: 20 }}>
-              ℹ &nbsp;`codex login`을 실행합니다. 브라우저가 열리면 ChatGPT 계정으로 로그인해 주세요.
+             `codex login`을 실행합니다. 브라우저가 열리면 ChatGPT 계정으로 Codex에 로그인해 주세요.
             </div>
 
             {cliError && <div className="error-banner">⚠ {cliError}</div>}
 
             {cliStatus === 'running' && (
               <div>
-                <div
+                {/* <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -89,13 +89,13 @@ export default function GptAuthPage(): React.JSX.Element {
                 >
                   <div className="spinner" />
                   Codex 로그인 진행 중...
-                </div>
+                </div> */}
                 <div
                   ref={logRef}
                   className="terminal"
                   role="log"
                   aria-live="polite"
-                  style={{ height: 140 }}
+                  style={{ height: 80 }}
                 >
                   {cliLogs.map((line, index) => (
                     <div key={index}>{line}</div>

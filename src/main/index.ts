@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
 import { spawn, spawnSync } from 'child_process'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
@@ -19,11 +19,13 @@ const STOCK_CLAUDE_DIR = is.dev
 const STOCK_GPT_DIR = is.dev
   ? join(app.getAppPath(), 'src', 'main', 'gpt')
   : join(process.resourcesPath, 'gpt')
+const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')
 
 function createWindow(): void {
+  // 메인 창 생성(프로그램 시작 시 기본 창 크기 설정)
   const mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 804,
+    width: 756,
+    height: 563,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -103,6 +105,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
     })
   }
 
+  // CLI 로그인 실행 함수 (Codex, Claude 공통)
   function runCliLogin(name: 'claude' | 'codex', args: string[] = []): void {
     const resolved = resolveCliCommand(name)
     if (!resolved.command) {
@@ -232,6 +235,29 @@ function registerIpcHandlers(win: BrowserWindow): void {
       return stored[model] ?? null
     } catch {
       return null
+    }
+  })
+
+  // GPT 보고서 파일 목록 조회
+  ipcMain.handle('list-gpt-report-files', () => {
+    try {
+      if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
+
+      return readdirSync(STOCK_GPT_REPORTS_DIR)
+        .filter((name) => name.endsWith('.md'))
+        .map((name) => {
+          const path = join(STOCK_GPT_REPORTS_DIR, name)
+          const stats = statSync(path)
+
+          return {
+            name,
+            updatedAt: stats.mtime.toISOString()
+          }
+        })
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    } catch (error) {
+      console.error('GPT 리포트 목록 조회 실패:', error)
+      return []
     }
   })
 

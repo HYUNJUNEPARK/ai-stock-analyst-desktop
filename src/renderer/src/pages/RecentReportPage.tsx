@@ -1,11 +1,32 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
+import gptIcon from '../assets/gpt.jpg'
+// import claudeIcon from '../assets/claude.png'
+
+type ReportFile = {
+  name: string
+  updatedAt: string
+}
 
 export default function RecentReportPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { currentPrompt, lastResponse } = useApp()
+  const [reports, setReports] = useState<ReportFile[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const hasReport = Boolean(lastResponse)
+  useEffect(() => {
+    let cancelled = false
+
+    window.api.listGptReportFiles().then((files) => {
+      if (!cancelled) {
+        setReports(files)
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div className="page">
@@ -21,68 +42,96 @@ export default function RecentReportPage(): React.JSX.Element {
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 24, paddingBottom: 24 }}>
-          {!hasReport && (
+          <div style={{ marginBottom: 16 }}>
+            <h1
+              style={{
+                fontSize: 'var(--text-xl)',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                marginBottom: 8
+              }}
+            >
+              보고서 목록
+            </h1>
+          </div>
+
+          {loading && (
+            <div className="card" style={{ padding: 20, fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+              보고서 목록을 불러오는 중입니다...
+            </div>
+          )}
+
+          {!loading && reports.length === 0 && (
             <div className="card" style={{ padding: 20 }}>
               <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 8 }}>
                 저장된 보고서가 없습니다
               </div>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                먼저 분석을 실행하면 최근 생성한 결과 보고서를 여기서 다시 확인할 수 있습니다.
+                GPT 분석을 먼저 실행하면 이 목록에 `.md` 보고서 파일이 표시됩니다.
               </p>
             </div>
           )}
 
-          {hasReport && (
-            <>
-              {currentPrompt && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                  <div
-                    style={{
-                      maxWidth: '80%',
-                      background: 'var(--accent)',
-                      color: '#fff',
-                      borderRadius: '18px 18px 4px 18px',
-                      padding: '12px 16px',
-                      fontSize: 'var(--text-base)',
-                      lineHeight: 1.5,
-                      wordBreak: 'break-word'
-                    }}
-                  >
-                    {currentPrompt}
-                  </div>
-                </div>
-              )}
-
-              <div className="card" style={{ overflow: 'hidden' }}>
-                <div
-                  style={{
-                    padding: '14px 16px',
-                    borderBottom: '1px solid var(--border)',
-                    background: 'var(--bg-primary)',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    color: 'var(--text-secondary)'
-                  }}
-                >
-                  최근 생성 결과
-                </div>
-                <div
-                  style={{
-                    padding: 16,
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    fontSize: 'var(--text-sm)',
-                    lineHeight: 1.8,
-                    color: 'var(--text-primary)'
-                  }}
-                >
-                  {lastResponse}
-                </div>
-              </div>
-            </>
+          {!loading && reports.length > 0 && (
+            <div style={{ display: 'grid', gap: 12 }}>
+              {reports.map((report) => (
+                reportCard(report)
+              ))}
+            </div>
           )}
         </div>
       </div>
     </div>
   )
+}
+
+function reportCard(report: ReportFile): React.JSX.Element {
+  return (
+    <div
+      key={report.name}
+      className="card"
+      style={{
+        padding: 18,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <img
+        src={gptIcon}
+        alt={report.name}
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 8,
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
+      />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 8 }}>
+          {report.name}
+        </div>
+
+        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+          {formatDate(report.updatedAt)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(value))
 }

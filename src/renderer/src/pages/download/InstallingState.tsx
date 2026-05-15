@@ -21,7 +21,7 @@ export default function InstallingState({
       >
         CLI 설치 중
       </h2>
-      <p
+      {/* <p
         style={{
           fontSize: 'var(--text-sm)',
           color: 'var(--text-secondary)',
@@ -30,7 +30,7 @@ export default function InstallingState({
         }}
       >
         잠시만 기다려 주세요...
-      </p>
+      </p> */}
       <code
         style={{
           fontSize: 'var(--text-xs)',
@@ -46,7 +46,7 @@ export default function InstallingState({
         className="terminal"
         role="log"
         aria-live="polite"
-        style={{ width: '100%', height: 200 }}
+        style={{ width: '100%', height: 120 }}
       >
         {logs.length === 0 ? (
           <span className="terminal-line dim">설치를 시작하는 중...</span>

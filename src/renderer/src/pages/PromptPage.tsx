@@ -99,11 +99,8 @@ export default function PromptPage(): React.JSX.Element {
           {/* 헤더 */}
           <div style={{ textAlign: 'center', paddingTop: 32, paddingBottom: 24 }}>
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
-              주식 분석 리포트 생성
+              투자 분석 리포트 생성
             </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              종목명 또는 티커를 포함해 분석을 요청하세요.
-            </p>
           </div>
 
           {/* 입력 카드 */}
@@ -137,7 +134,7 @@ export default function PromptPage(): React.JSX.Element {
               aria-label="주식 분석 요청 입력"
               style={{
                 width: '100%',
-                minHeight: 140,
+                minHeight: 200,
                 maxHeight: 320,
                 border: 'none',
                 outline: 'none',

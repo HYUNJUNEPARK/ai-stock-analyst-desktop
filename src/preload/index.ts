@@ -32,7 +32,7 @@ ipcRenderer.on('stock-analysis-done', (_e, result: { success: boolean; error?: s
   stockAnalysisDoneCb?.(result)
 )
 
-// ── contextBridge 노출 ──
+// contextBridge로 API 노출
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
@@ -52,6 +52,9 @@ if (process.contextIsolated) {
       saveApiKey: (params: { model: string; apiKey: string }) =>
         ipcRenderer.invoke('save-api-key', params),
       loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
+
+      /// 보고서 파일 목록 조회
+      listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
 
       /* Claude CLI 로그인 */
       runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
