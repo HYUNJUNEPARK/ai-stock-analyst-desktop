@@ -3,7 +3,7 @@ import ModelSelectionPage from './pages/ModelSelectionPage'
 import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/PromptPage'
-import ResponsePage from './pages/ResponsePage'
+import ResponsePage from './pages/response/ResponsePage'
 import SettingsPage from './pages/SettingsPage'
 import RecentReportPage from './pages/RecentReportPage'
 

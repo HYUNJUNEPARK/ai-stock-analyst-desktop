@@ -41,8 +41,8 @@ function spawnCommand(
 function createWindow(): void {
   // 메인 창 생성(프로그램 시작 시 기본 창 크기 설정)
   const mainWindow = new BrowserWindow({
-    width: 756,
-    height: 563,
+    width: 1040,
+    height: 780,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
