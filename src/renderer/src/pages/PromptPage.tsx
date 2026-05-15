@@ -14,7 +14,6 @@ export default function PromptPage(): React.JSX.Element {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const isMac = navigator.platform.toUpperCase().includes('MAC')
-  const shortcutLabel = isMac ? '⌘↩' : 'Ctrl+↩'
 
   // textarea 내용 길이에 맞게 높이를 자동 조절 (최대 320px)
   function autoResize(): void {
@@ -127,7 +126,7 @@ export default function PromptPage(): React.JSX.Element {
               value={text}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="예) 삼성전자 2025년 실적 전망과 투자 의견을 알려줘"
+              placeholder="예) 삼성전자 분석해 줘"
               aria-label="주식 분석 요청 입력"
               style={{
                 width: '100%',
@@ -156,7 +155,7 @@ export default function PromptPage(): React.JSX.Element {
                 borderTop: '1px solid var(--border)'
               }}
             >
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+              {/* <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
                 <kbd
                   style={{
                     background: 'var(--bg-tertiary)',
@@ -169,7 +168,7 @@ export default function PromptPage(): React.JSX.Element {
                   {shortcutLabel}
                 </kbd>{' '}
                 로 제출
-              </span>
+              </span> */}
               <span
                 style={{ fontSize: 'var(--text-xs)', color: charColor }}
                 aria-label={`글자 수: ${text.length}`}
@@ -191,8 +190,8 @@ export default function PromptPage(): React.JSX.Element {
           disabled={!text.trim()}
           aria-disabled={!text.trim()}
         >
-          제출
-          <svg
+          분석 시작
+          {/* <svg
             width="18"
             height="18"
             viewBox="0 0 18 18"
@@ -204,7 +203,7 @@ export default function PromptPage(): React.JSX.Element {
           >
             <line x1="9" y1="14" x2="9" y2="4" />
             <polyline points="4,9 9,4 14,9" />
-          </svg>
+          </svg> */}
         </button>
       </PageFooter>
     </div>

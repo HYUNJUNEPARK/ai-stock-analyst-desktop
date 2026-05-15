@@ -36,16 +36,16 @@ export default function ResponsePage(): React.JSX.Element {
 
     if (selectedModel === 'claude' || selectedModel === 'gpt') {
       // 멀티 에이전트 주식 분석 흐름
-      window.api?.onStockAnalysisAgent?.(({ name, status: agentStatus }) => {
+      window.api.onStockAnalysisAgent(({ name, status: agentStatus }) => {
         setAgentStatuses((prev) => ({ ...prev, [name]: agentStatus }))
       })
 
-      window.api?.onStockAnalysisChunk?.((chunk: string) => {
+      window.api.onStockAnalysisChunk((chunk: string) => {
         responseRef.current += chunk
         setResponse(responseRef.current)
       })
 
-      window.api?.onStockAnalysisDone?.((result: { success: boolean; error?: string }) => {
+      window.api.onStockAnalysisDone((result: { success: boolean; error?: string }) => {
         if (result.success) {
           setStatus('done')
           setLastResponse(responseRef.current)
@@ -55,15 +55,15 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api?.runStockAnalysis?.({ model: selectedModel, prompt: currentPrompt, apiKey })
+      window.api.runStockAnalysis({ model: selectedModel, prompt: currentPrompt, apiKey })
     } else {
       // GPT 단순 프롬프트 흐름
-      window.api?.onResponseChunk?.((chunk: string) => {
+      window.api.onResponseChunk((chunk: string) => {
         responseRef.current += chunk
         setResponse(responseRef.current)
       })
 
-      window.api?.onResponseDone?.((result: { success: boolean; error?: string }) => {
+      window.api.onResponseDone((result: { success: boolean; error?: string }) => {
         if (result.success) {
           setStatus('done')
           setLastResponse(responseRef.current)
@@ -73,7 +73,7 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api?.runPrompt?.({ model: selectedModel, prompt: currentPrompt, apiKey })
+      window.api.runPrompt({ model: selectedModel, prompt: currentPrompt, apiKey })
     }
   }, [])
 
@@ -91,7 +91,7 @@ export default function ResponsePage(): React.JSX.Element {
   }
 
   function handleCancel(): void {
-    window.api?.cancelStockAnalysis?.()
+    window.api.cancelStockAnalysis()
     setStatus('cancelled')
   }
 
@@ -103,9 +103,9 @@ export default function ResponsePage(): React.JSX.Element {
     setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'idle'])))
 
     if (selectedModel === 'claude' || selectedModel === 'gpt') {
-      window.api?.runStockAnalysis?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
+      window.api.runStockAnalysis({ model: selectedModel!, prompt: currentPrompt, apiKey })
     } else {
-      window.api?.runPrompt?.({ model: selectedModel!, prompt: currentPrompt, apiKey })
+      window.api.runPrompt({ model: selectedModel!, prompt: currentPrompt, apiKey })
     }
   }
 

@@ -17,7 +17,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
     setCliError('')
     setCliLogs([])
 
-    window.api?.onCliLoginProgress?.((data: string) => {
+    window.api.onCliLoginProgress((data: string) => {
       setCliLogs((prev) => [...prev, data])
       setTimeout(() => {
         if (logRef.current) {
@@ -26,7 +26,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
       }, 0)
     })
 
-    window.api?.onCliLoginComplete?.((result: { success: boolean; error?: string }) => {
+    window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setCliStatus('done')
         saveApiKey('')
@@ -38,7 +38,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
       setCliError(result.error ?? 'Claude CLI 로그인에 실패했습니다.')
     })
 
-    window.api?.runClaudeLogin?.()
+    window.api.runClaudeLogin()
   }
 
   return (
