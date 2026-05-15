@@ -18,7 +18,7 @@ declare global {
       // loadApiKey: (model: string) => Promise<string | null>
 
       // GPT 리포트 파일 목록 조회
-      listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string }>>
+      listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string; model: string }>>
 
       /* CLI 로그인 */
       runClaudeLogin: () => void

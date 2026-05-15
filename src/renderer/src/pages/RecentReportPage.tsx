@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import gptIcon from '../assets/gpt.jpg'
-// import claudeIcon from '../assets/claude.png'
+import claudeIcon from '../assets/claude.png'
 
 type ReportFile = {
   name: string
   updatedAt: string
+  model: string
 }
 
 export default function RecentReportPage(): React.JSX.Element {
@@ -98,7 +99,7 @@ function reportCard(report: ReportFile): React.JSX.Element {
       }}
     >
       <img
-        src={gptIcon}
+        src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}
         alt={report.name}
         style={{
           width: 48,
