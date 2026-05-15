@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
-import { EyeIcon, EyeOffIcon } from './EyeIcons'
+import { EyeIcon, EyeOffIcon } from '../../components/EyeIcons'
 
 type BtnState = 'idle' | 'loading' | 'done'
 
@@ -16,12 +16,14 @@ export default function GptAuthPage(): React.JSX.Element {
   const [inputError, setInputError] = useState(false)
   const [savedKeyHint, setSavedKeyHint] = useState(false)
 
+  // 마운트 시 저장된 API 키를 불러와 입력란에 미리 채운다
   useEffect(() => {
     window.api?.loadApiKey().then((key: string | null) => {
       if (key) { setApiKeyInput(key); setSavedKeyHint(true) }
     })
   }, [])
 
+  // API 키 유효성을 검증하고, 성공 시 저장 후 프롬프트 화면으로 이동한다
   async function handleConfirm(): Promise<void> {
     if (!apiKeyInput.trim()) return
     setErrorMsg('')
@@ -30,6 +32,7 @@ export default function GptAuthPage(): React.JSX.Element {
 
     const result = await window.api?.validateApiKey({ model: selectedModel!, apiKey: apiKeyInput })
     if (result?.valid) {
+      // 유효한 키를 로컬에 저장하고 전역 상태에도 반영
       await window.api?.saveApiKey({ model: selectedModel!, apiKey: apiKeyInput })
       saveApiKey(apiKeyInput)
       setBtnState('done')

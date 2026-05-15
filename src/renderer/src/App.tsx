@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ModelSelectionPage from './pages/ModelSelectionPage'
-import CliDownloadPage from './pages/CliDownloadPage'
+import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/PromptPage'
 import ResponsePage from './pages/ResponsePage'

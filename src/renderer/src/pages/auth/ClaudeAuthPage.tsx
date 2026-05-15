@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import claudeImg from '../../assets/claude.png'
-import { EyeIcon, EyeOffIcon } from './EyeIcons'
+import { EyeIcon, EyeOffIcon } from '../../components/EyeIcons'
 
 type AuthMethod = 'apikey' | 'cli'
 type BtnState = 'idle' | 'loading' | 'done'
@@ -21,12 +21,14 @@ export default function ClaudeAuthPage(): React.JSX.Element {
   const [cliLogs, setCliLogs] = useState<string[]>([])
   const logRef = useRef<HTMLDivElement>(null)
 
+  // 마운트 시 저장된 API 키를 불러와 입력란에 미리 채운다
   useEffect(() => {
     window.api?.loadApiKey().then((key: string | null) => {
       if (key) { setApiKeyInput(key); setSavedKeyHint(true) }
     })
   }, [])
 
+  // API 키 유효성을 검증하고, 성공 시 저장 후 프롬프트 화면으로 이동한다
   async function handleConfirm(): Promise<void> {
     if (!apiKeyInput.trim()) return
     setErrorMsg('')
@@ -35,6 +37,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
 
     const result = await window.api?.validateApiKey({ model: selectedModel!, apiKey: apiKeyInput })
     if (result?.valid) {
+      // 유효한 키를 로컬에 저장하고 전역 상태에도 반영
       await window.api?.saveApiKey({ model: selectedModel!, apiKey: apiKeyInput })
       saveApiKey(apiKeyInput)
       setBtnState('done')
@@ -46,15 +49,18 @@ export default function ClaudeAuthPage(): React.JSX.Element {
     }
   }
 
+  // claude login 명령을 실행하고, 진행 로그를 터미널에 스트리밍한다
   function handleCliLogin(): void {
     setCliStatus('running')
     setCliLogs([])
+    // 로그 수신 시마다 터미널을 자동 스크롤
     window.api?.onCliLoginProgress?.((data: string) => {
       setCliLogs((p) => [...p, data])
       setTimeout(() => {
         if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight
       }, 0)
     })
+    // 로그인 완료 이벤트: 성공하면 프롬프트 화면으로 이동
     window.api?.onCliLoginComplete?.((result: { success: boolean }) => {
       if (result.success) {
         setCliStatus('done')

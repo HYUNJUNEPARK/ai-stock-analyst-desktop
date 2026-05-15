@@ -8,6 +8,7 @@ export default function AuthPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel } = useApp()
 
+  // 모델이 선택되지 않은 상태로 직접 접근하면 홈으로 리다이렉트
   useEffect(() => {
     if (!selectedModel) navigate('/')
   }, [])

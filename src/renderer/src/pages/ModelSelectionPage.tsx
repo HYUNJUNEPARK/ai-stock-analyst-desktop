@@ -24,6 +24,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { setSelectedModel } = useApp()
 
+  // 선택한 모델을 전역 상태에 저장하고 CLI 설치 화면으로 이동
   function handleSelect(id: 'gpt' | 'claude'): void {
     setSelectedModel(id)
     navigate('/download')

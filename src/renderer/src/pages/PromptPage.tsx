@@ -20,6 +20,7 @@ export default function PromptPage(): React.JSX.Element {
   const isMac = navigator.platform.toUpperCase().includes('MAC')
   const shortcutLabel = isMac ? '⌘↩' : 'Ctrl+↩'
 
+  // textarea 내용 길이에 맞게 높이를 자동 조절 (최대 320px)
   function autoResize(): void {
     const el = textareaRef.current
     if (!el) return
@@ -27,6 +28,7 @@ export default function PromptPage(): React.JSX.Element {
     el.style.height = Math.min(el.scrollHeight, 320) + 'px'
   }
 
+  // 최대 글자 수 초과 입력을 막고, 변경 시마다 높이를 재조정
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void {
     const val = e.target.value
     if (val.length > MAX_CHARS) return
@@ -34,17 +36,20 @@ export default function PromptPage(): React.JSX.Element {
     autoResize()
   }
 
+  // OS별 단축키(Mac: ⌘↩ / Windows: Ctrl+↩)로 제출 트리거
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>): void {
     const submit = isMac ? e.metaKey && e.key === 'Enter' : e.ctrlKey && e.key === 'Enter'
     if (submit && text.trim()) handleSubmit()
   }
 
+  // 프롬프트를 전역 상태에 저장하고 응답 화면으로 이동
   function handleSubmit(): void {
     if (!text.trim()) return
     setCurrentPrompt(text.trim())
     navigate('/response')
   }
 
+  // 글자 수에 따라 카운터 색상을 동적으로 변경 (경고 → 위험)
   const charColor =
     text.length > MAX_CHARS
       ? 'var(--danger)'

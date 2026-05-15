@@ -24,8 +24,14 @@ src/
         ├── App.tsx        # 라우팅 루트
         ├── main.tsx       # React 진입점
         ├── context/       # 전역 상태 (AppContext)
-        ├── pages/         # 화면 컴포넌트
-        └── assets/        # CSS, SVG
+        ├── components/    # 공통 UI 컴포넌트 (EyeIcons 등)
+        ├── pages/
+        │   ├── auth/      # 인증 화면 (모델별 분리)
+        │   │   ├── AuthPage.tsx        # 진입점: selectedModel에 따라 분기
+        │   │   ├── ClaudeAuthPage.tsx  # Claude 전용 (API 키 + CLI 로그인 탭)
+        │   │   └── GptAuthPage.tsx     # GPT 전용 (API 키 입력)
+        │   └── ...        # 기타 화면 컴포넌트
+        └── assets/        # CSS, 이미지
 
 docs/
 ├── development-plan.md   # 전체 개발 순서 및 화면 흐름

@@ -14,16 +14,19 @@ export default function ResponsePage(): React.JSX.Element {
   const responseRef = useRef('')
 
   useEffect(() => {
+    // 필수 상태 없이 직접 접근하면 홈으로 리다이렉트
     if (!selectedModel || !currentPrompt) {
       navigate('/')
       return
     }
 
+    // 응답 청크를 ref에 누적하고 화면에 반영 (잦은 setState로 인한 렌더링 최적화)
     window.api?.onResponseChunk?.((chunk: string) => {
       responseRef.current += chunk
       setResponse(responseRef.current)
     })
 
+    // 응답 완료 이벤트: 성공 시 전역 상태에 저장, 실패 시 에러 표시
     window.api?.onResponseDone?.((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setStatus('done')
@@ -34,15 +37,18 @@ export default function ResponsePage(): React.JSX.Element {
       }
     })
 
+    // 프롬프트 실행 시작
     window.api?.runPrompt?.({ model: selectedModel, prompt: currentPrompt, apiKey })
   }, [])
 
+  // 응답 전체를 클립보드에 복사하고 1.5초 후 버튼 상태를 원래대로 복원
   function handleCopy(): void {
     navigator.clipboard.writeText(responseRef.current)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
 
+  // 현재 프롬프트를 초기화하고 질문 입력 화면으로 돌아간다
   function handleNewQuestion(): void {
     setCurrentPrompt('')
     navigate('/prompt')
@@ -236,6 +242,7 @@ export default function ResponsePage(): React.JSX.Element {
 }
 
 /* ── 간단한 마크다운 렌더러 ── */
+// 마크다운 텍스트를 줄 단위로 파싱하여 React 엘리먼트 배열로 변환
 function MarkdownRenderer({
   text,
   isStreaming
@@ -253,6 +260,7 @@ function MarkdownRenderer({
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
+    // ``` 펜스를 만나면 코드 블록 진입/탈출 토글
     if (line.startsWith('```')) {
       if (!inCode) {
         inCode = true
@@ -269,6 +277,7 @@ function MarkdownRenderer({
       continue
     }
 
+    // 코드 블록 내부 줄은 그대로 누적
     if (inCode) {
       codeBlock.push(line)
       continue
@@ -345,8 +354,9 @@ function MarkdownRenderer({
   )
 }
 
+// **bold**와 `code` 인라인 마크다운을 React 엘리먼트로 변환
 function renderInline(text: string): React.ReactNode {
-  // 굵게: **text**
+  // **text** → <strong>, `text` → <code> 패턴 분리
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -377,6 +387,7 @@ function renderInline(text: string): React.ReactNode {
 function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.Element {
   const [copied, setCopied] = useState(false)
 
+  // 코드 블록 내용을 클립보드에 복사하고 1.5초 후 버튼 상태를 원래대로 복원
   function handleCopy(): void {
     navigator.clipboard.writeText(code)
     setCopied(true)
