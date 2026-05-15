@@ -6,8 +6,8 @@ out
 *.log*
 
 # 멀티 에이전트 생성 파일 (에이전트 메모리, 분석 리포트)
-src/main/claude/stock-claude/.claude/agent-memory/
-src/main/claude/stock-claude/.claude/settings.local.json
-src/main/claude/stock-claude/reports/
+src/main/claude/.claude/agent-memory/
+src/main/claude/.claude/settings.local.json
+src/main/claude/reports/
 src/main/gpt/reports/*.md
 src/main/gpt/reports/.artifacts/

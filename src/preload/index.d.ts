@@ -10,15 +10,17 @@ declare global {
       onInstallComplete: (callback: (result: { success: boolean; error?: string }) => void) => void
 
       /* API 키 관리 */
-      validateApiKey: (params: {
-        model: string
-        apiKey: string
-      }) => Promise<{ valid: boolean; error?: string }>
-      saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
-      loadApiKey: (model: string) => Promise<string | null>
+      // validateApiKey: (params: {
+      //   model: string
+      //   apiKey: string
+      // }) => Promise<{ valid: boolean; error?: string }>
+      // saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
+      // loadApiKey: (model: string) => Promise<string | null>
+
+      // GPT 리포트 파일 목록 조회
       listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string }>>
 
-      /* Claude CLI 로그인 */
+      /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void
       onCliLoginProgress: (callback: (data: string) => void) => void

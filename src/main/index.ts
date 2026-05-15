@@ -14,8 +14,8 @@ const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 // 멀티 에이전트 주식 분석 프로젝트 경로
 // 개발: 프로젝트 루트 기준, 프로덕션: extraResources 기준
 const STOCK_CLAUDE_DIR = is.dev
-  ? join(app.getAppPath(), 'src', 'main', 'claude', 'stock-claude')
-  : join(process.resourcesPath, 'claude', 'stock-claude')
+  ? join(app.getAppPath(), 'src', 'main', 'claude')
+  : join(process.resourcesPath, 'claude')
 const STOCK_GPT_DIR = is.dev
   ? join(app.getAppPath(), 'src', 'main', 'gpt')
   : join(process.resourcesPath, 'gpt')
@@ -274,7 +274,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
   // ── 프롬프트 실행 ──
   ipcMain.on(
     'run-prompt',
-    (_event, { model, prompt, apiKey }: { model: string; prompt: string; apiKey: string }) => {
+    (_event, { model, prompt}: { model: string; prompt: string;}) => {
       let cmd: string
       let args: string[]
 
@@ -288,8 +288,8 @@ function registerIpcHandlers(win: BrowserWindow): void {
       }
 
       const env: NodeJS.ProcessEnv = { ...process.env }
-      if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
-      if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
+      // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
+      // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
       const child = spawn(cmd, args, {
         env,
@@ -352,10 +352,10 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
   ipcMain.on(
     'run-stock-analysis',
-    (_event, { model, prompt, apiKey }: { model: string; prompt: string; apiKey: string }) => {
+    (_event, { model, prompt }: { model: string; prompt: string; apiKey: string }) => {
     const env: NodeJS.ProcessEnv = { ...process.env }
-      if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
-      if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
+      // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
+      // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
       if (model === 'gpt') {
         const resolvedCodex = resolveCliCommand('codex')

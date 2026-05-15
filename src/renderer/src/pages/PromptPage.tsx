@@ -99,7 +99,7 @@ export default function PromptPage(): React.JSX.Element {
           {/* 헤더 */}
           <div style={{ textAlign: 'center', paddingTop: 32, paddingBottom: 24 }}>
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
-              투자 분석 리포트 생성
+              투자 리포트 생성
             </h1>
           </div>
 

@@ -6,8 +6,8 @@ type Model = 'gpt' | 'claude' | null
 interface AppContextValue {
   selectedModel: Model
   setSelectedModel: (model: Model) => void
-  apiKey: string
-  setApiKey: (key: string) => void
+  // apiKey: string
+  // setApiKey: (key: string) => void
   currentPrompt: string
   setCurrentPrompt: (prompt: string) => void
   lastResponse: string
@@ -19,7 +19,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [selectedModel, setSelectedModel] = useState<Model>(null)
-  const [apiKey, setApiKey] = useState('')
+  // const [apiKey, setApiKey] = useState('')
   const [currentPrompt, setCurrentPrompt] = useState('')
   const [lastResponse, setLastResponse] = useState('')
 
@@ -28,8 +28,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       value={{
         selectedModel,
         setSelectedModel,
-        apiKey,
-        setApiKey,
+        // apiKey,
+        // setApiKey,
         currentPrompt,
         setCurrentPrompt,
         lastResponse,

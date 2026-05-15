@@ -47,16 +47,16 @@ if (process.contextIsolated) {
       },
 
       /* API 키 관리 */
-      validateApiKey: (params: { model: string; apiKey: string }) =>
-        ipcRenderer.invoke('validate-api-key', params),
-      saveApiKey: (params: { model: string; apiKey: string }) =>
-        ipcRenderer.invoke('save-api-key', params),
-      loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
+      // validateApiKey: (params: { model: string; apiKey: string }) =>
+      //   ipcRenderer.invoke('validate-api-key', params),
+      // saveApiKey: (params: { model: string; apiKey: string }) =>
+      //   ipcRenderer.invoke('save-api-key', params),
+      // loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
 
       /// 보고서 파일 목록 조회
       listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
 
-      /* Claude CLI 로그인 */
+      /* CLI 로그인 */
       runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
       runGptLogin: () => ipcRenderer.send('run-gpt-login'),
       onCliLoginProgress: (cb: (data: string) => void) => {
@@ -67,7 +67,7 @@ if (process.contextIsolated) {
       },
 
       /* 프롬프트 실행 */
-      runPrompt: (params: { model: string; prompt: string; apiKey: string }) =>
+      runPrompt: (params: { model: string; prompt: string; }) =>
         ipcRenderer.send('run-prompt', params),
       onResponseChunk: (cb: (chunk: string) => void) => {
         responseChunkCb = cb
@@ -77,15 +77,22 @@ if (process.contextIsolated) {
       },
 
       /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis: (params: { model: string; prompt: string; apiKey: string }) =>
-        ipcRenderer.send('run-stock-analysis', params),
+      runStockAnalysis: (params: { model: string; prompt: string; }) => ipcRenderer.send('run-stock-analysis', params),
+
+      // 분석 취소
       cancelStockAnalysis: () => ipcRenderer.send('cancel-stock-analysis'),
+      
+      // 분석 에이전트 이벤트
       onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {
         stockAnalysisAgentCb = cb
       },
+
+      // 분석 결과 청크
       onStockAnalysisChunk: (cb: (chunk: string) => void) => {
         stockAnalysisChunkCb = cb
       },
+
+      // 분석 완료
       onStockAnalysisDone: (cb: (result: { success: boolean; error?: string }) => void) => {
         stockAnalysisDoneCb = cb
       }
