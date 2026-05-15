@@ -21,6 +21,14 @@ const ROLE_FILES = {
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
 }
 
+function spawnCommand(command, args, options) {
+  if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
+    return spawn(process.env.COMSPEC || 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
+  }
+
+  return spawn(command, args, options)
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2))
 
@@ -150,7 +158,7 @@ function execCodex({ prompt, outputPath, model }) {
 
     args.push(prompt)
 
-    const child = spawn(codexCommand, args, {
+    const child = spawnCommand(codexCommand, args, {
       cwd: projectRoot,
       stdio: ['ignore', 'pipe', 'pipe']
     })

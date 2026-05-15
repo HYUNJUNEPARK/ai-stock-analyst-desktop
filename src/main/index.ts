@@ -5,6 +5,7 @@ import { spawn, spawnSync, type ChildProcessByStdio, type SpawnOptions } from 'c
 import { readFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import type { Readable } from 'stream'
+import iconv from 'iconv-lite'
 import icon from '../../resources/icon.png?asset'
 
 // CLI를 설치·실행할 앱 전용 경로 (~/.ai-cli-launcher)
@@ -36,6 +37,21 @@ function spawnCommand(
   }
 
   return spawn(command, args, options)
+}
+
+function writeTerminalLine(message: string, isError = false): void {
+  if (process.platform === 'win32') {
+    const stream = isError ? process.stderr : process.stdout
+    stream.write(iconv.encode(`${message}\n`, 'cp949'))
+    return
+  }
+
+  if (isError) {
+    console.error(message)
+    return
+  }
+
+  console.log(message)
 }
 
 function createWindow(): void {
@@ -356,6 +372,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
   }
 
   function sendStockAnalysisLog(message: string): void {
+    writeTerminalLine(`[stock-analysis] ${message}`)
     win.webContents.send('stock-analysis-log', message)
   }
 
@@ -416,6 +433,24 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
         let buf = ''
         let finalReportPath = ''
+        let analysisCompleted = false
+
+        function finishStockAnalysisSuccess(reportPath: string): void {
+          if (analysisCompleted) return
+          analysisCompleted = true
+
+          try {
+            const report = readFileSync(reportPath, 'utf-8')
+            win.webContents.send('stock-analysis-chunk', report)
+            win.webContents.send('stock-analysis-done', { success: true })
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            win.webContents.send('stock-analysis-done', {
+              success: false,
+              error: `리포트 읽기 실패: ${message}`
+            })
+          }
+        }
 
         child.stdout.on('data', (data: Buffer) => {
           buf += data.toString()
@@ -425,6 +460,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
           for (const rawLine of lines) {
             const line = rawLine.trim()
             if (!line) continue
+            writeTerminalLine(`[stock-analysis:gpt:stdout] ${line}`)
 
             if (resolvedCodex.source === 'path' && line === '[bootstrap] codex-fallback:path') {
               win.webContents.send(
@@ -458,6 +494,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
             if (reportMatch) {
               finalReportPath = reportMatch[1]
               sendStockAnalysisLog('최종 투자 리포트를 저장했습니다.')
+              finishStockAnalysisSuccess(finalReportPath)
             }
           }
         })
@@ -465,7 +502,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
         child.stderr.on('data', (data: Buffer) => {
           const text = data.toString().trim()
           if (text) {
-            console.error('[stock-analysis:gpt]', text)
+            writeTerminalLine(`[stock-analysis:gpt] ${text}`, true)
             sendStockAnalysisLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
           }
         })
@@ -473,6 +510,10 @@ function registerIpcHandlers(win: BrowserWindow): void {
         child.on('close', (code) => {
           const wasCancelled = activeAnalysisChild === null
           activeAnalysisChild = null
+
+          if (analysisCompleted) {
+            return
+          }
 
           if (code === 0) {
             if (!finalReportPath) {
@@ -593,7 +634,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       child.stderr.on('data', (data: Buffer) => {
         const text = data.toString()
         if (text.toLowerCase().includes('error')) {
-          console.error('[stock-analysis:claude]', text.trim())
+          writeTerminalLine(`[stock-analysis:claude] ${text.trim()}`, true)
           sendStockAnalysisLog(`Claude CLI: ${text.trim().split(/\r?\n/).at(-1) ?? text.trim()}`)
         }
       })
