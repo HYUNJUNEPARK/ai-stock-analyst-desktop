@@ -49,21 +49,6 @@ export default function CliDownloadPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      {/* 내비게이션 바 */}
-      <nav className="nav-bar">
-        <button
-          className="nav-back"
-          onClick={() => navigate('/')}
-          disabled={status === 'installing'}
-          aria-label="뒤로"
-        >
-          <svg viewBox="0 0 18 18">
-            <polyline points="12,3 6,9 12,15" />
-          </svg>
-          뒤로
-        </button>
-      </nav>
-
       {/* 콘텐츠 */}
       <div
         className="page-content"
