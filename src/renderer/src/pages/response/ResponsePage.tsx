@@ -4,9 +4,9 @@ import claudeImg from '../../assets/claude.png'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
 import { useApp } from '../../context/AppContext'
-import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import PromptBubble from './components/PromptBubble'
 import ResponseCard from './components/ResponseCard'
+import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
 
 export default function ResponsePage(): React.JSX.Element {
@@ -95,11 +95,6 @@ export default function ResponsePage(): React.JSX.Element {
     setTimeout(() => setCopied(false), 1500)
   }
 
-  // function handleNewQuestion(): void {
-  //   setCurrentPrompt('')
-  //   navigate('/prompt')
-  // }
-
   function handleCancel(): void {
     if (!isPreviewOnly) {
       window.api.cancelStockAnalysis()
@@ -152,16 +147,6 @@ export default function ResponsePage(): React.JSX.Element {
           </svg>
           뒤로
         </button>
-        {/* <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          <div className="model-badge">
-            <img
-              src={modelImg}
-              alt={modelLabel}
-              style={{ width: 16, height: 16, borderRadius: 4, objectFit: 'cover' }}
-            />
-            {modelLabel}
-          </div>
-        </div> */}
       </nav>
 
       <div className="page-content">
@@ -175,6 +160,7 @@ export default function ResponsePage(): React.JSX.Element {
             model={effectiveModel}
             modelImg={modelImg}
             modelLabel={modelLabel}
+            onCancel={handleCancel}
             onCopy={handleCopy}
             response={response}
             status={status}
@@ -206,14 +192,6 @@ export default function ResponsePage(): React.JSX.Element {
           )}
         </div>
       </div>
-
-      {status === 'streaming' && isStockAnalysisModel(effectiveModel) && (
-        <PageFooter>
-          <button className="btn-ghost" onClick={handleCancel} aria-label="분석 취소">
-            분석 취소
-          </button>
-        </PageFooter>
-      )}
 
       {(status === 'done' || status === 'error' || status === 'cancelled') && (
         <PageFooter>

@@ -8,14 +8,14 @@ type AgentStatusBarProps = {
 export default function AgentStatusBar({ agentStatuses }: AgentStatusBarProps): React.JSX.Element {
   const firstRowAgents = AGENT_CONFIG.slice(0, 3)
   const strategyAgent = AGENT_CONFIG[3]
+  const firstRowDone = firstRowAgents.every((agent) => agentStatuses[agent.key] === 'done')
 
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
-        marginBottom: 14
+        gap: 8
       }}
     >
       <div
@@ -32,6 +32,42 @@ export default function AgentStatusBar({ agentStatuses }: AgentStatusBarProps): 
             status={agentStatuses[agent.key] ?? 'idle'}
           />
         ))}
+      </div>
+      <div
+        aria-hidden="true"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          columnGap: 8,
+          color: firstRowDone ? 'var(--accent)' : 'var(--text-tertiary)'
+        }}
+      >
+        <div
+          style={{
+            height: 1,
+            background: firstRowDone ? 'var(--accent)' : 'var(--border)'
+          }}
+        />
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 3v10" />
+          <polyline points="5,9 9,13 13,9" />
+        </svg>
+        <div
+          style={{
+            height: 1,
+            background: firstRowDone ? 'var(--accent)' : 'var(--border)'
+          }}
+        />
       </div>
       {strategyAgent && (
         <div>

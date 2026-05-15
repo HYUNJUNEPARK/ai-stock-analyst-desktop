@@ -1,29 +1,29 @@
 /* ── iOS Design System Variables ── */
 :root {
   /* Background */
-  --bg-primary: #F2F2F7;
-  --bg-secondary: #FFFFFF;
-  --bg-tertiary: #E5E5EA;
+  --bg-primary: #f2f2f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e5e5ea;
 
   /* Text */
-  --text-primary: #1C1C1E;
-  --text-secondary: #6C6C70;
-  --text-tertiary: #AEAEB2;
+  --text-primary: #1c1c1e;
+  --text-secondary: #6c6c70;
+  --text-tertiary: #aeaeb2;
 
   /* Accent */
-  --accent: #007AFF;
-  --accent-hover: #0062CC;
+  --accent: #007aff;
+  --accent-hover: #0062cc;
   --accent-light: rgba(0, 122, 255, 0.12);
 
   /* Semantic */
-  --success: #34C759;
-  --danger: #FF3B30;
-  --warning: #FF9500;
+  --success: #34c759;
+  --danger: #ff3b30;
+  --warning: #ff9500;
 
   /* Border */
   --border: rgba(0, 0, 0, 0.08);
   --border-strong: rgba(0, 0, 0, 0.15);
-  --border-focused: #007AFF;
+  --border-focused: #007aff;
 
   /* Spacing */
   --space-1: 4px;
@@ -61,8 +61,9 @@ body {
   min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-               'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial,
+    sans-serif;
   font-size: var(--text-base);
   line-height: 1.5;
   text-rendering: optimizeLegibility;
@@ -74,7 +75,9 @@ body {
 
 /* ── 공통 애니메이션 ── */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeSlideUp {
@@ -89,11 +92,22 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-3px); }
-  40%       { transform: translateX(3px); }
-  60%       { transform: translateX(-3px); }
-  80%       { transform: translateX(3px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(3px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
 }
 
 @keyframes scaleIn {
@@ -108,6 +122,20 @@ body {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
 }

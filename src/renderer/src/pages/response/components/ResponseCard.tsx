@@ -1,6 +1,6 @@
 import type { AgentStatus, PreviewModel, Status } from '../types'
-import AgentStatusBar from './AgentStatusBar'
 import MarkdownRenderer from './MarkdownRenderer'
+import StreamingResponseView from './StreamingResponseView'
 
 type ResponseCardProps = {
   agentStatuses: Record<string, AgentStatus>
@@ -9,6 +9,7 @@ type ResponseCardProps = {
   model: PreviewModel | null
   modelImg: string
   modelLabel: string
+  onCancel: () => void
   onCopy: () => void
   response: string
   status: Status
@@ -21,10 +22,13 @@ export default function ResponseCard({
   model,
   modelImg,
   modelLabel,
+  onCancel,
   onCopy,
   response,
   status
 }: ResponseCardProps): React.JSX.Element {
+  const isStreamingEmpty = status === 'streaming' && !response
+
   return (
     <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
       <div
@@ -53,14 +57,22 @@ export default function ResponseCard({
           {modelLabel}
         </span>
 
-        {/* {status === 'streaming' && (
+        {status === 'streaming' && (
           <div className="spinner" style={{ marginLeft: 'auto' }} aria-label="응답 생성 중" />
-        )} */}
+        )}
       </div>
 
-      <div style={{ padding: 16 }} role="article" aria-label="AI 응답">
-        {status === 'streaming' && (model === 'claude' || model === 'gpt') && (
-          <AgentStatusBar agentStatuses={agentStatuses} />
+      <div
+        style={{ padding: 16, minHeight: isStreamingEmpty ? 260 : undefined }}
+        role="article"
+        aria-label="AI 응답"
+      >
+        {isStreamingEmpty && (
+          <StreamingResponseView
+            agentStatuses={agentStatuses}
+            onCancel={onCancel}
+            showAgentFlow={model === 'claude' || model === 'gpt'}
+          />
         )}
 
         {(response || status !== 'streaming') && (
