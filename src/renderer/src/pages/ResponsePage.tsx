@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageFooter from '../components/PageFooter'
 import claudeImg from '../assets/claude.png'
@@ -7,6 +7,12 @@ import gptImg from '../assets/gpt.jpg'
 
 type Status = 'streaming' | 'done' | 'error' | 'cancelled'
 type AgentStatus = 'idle' | 'running' | 'done'
+type PreviewModel = 'gpt' | 'claude'
+type ResponseLocationState = {
+  previewOnly?: boolean
+  model?: PreviewModel
+  prompt?: string
+} | null
 
 const AGENT_CONFIG: { key: string; label: string }[] = [
   { key: 'financial-analyst-kr', label: '재무 분석' },
@@ -15,9 +21,27 @@ const AGENT_CONFIG: { key: string; label: string }[] = [
   { key: 'aggressive-investment-strategist', label: '투자 전략' }
 ]
 
+const DEV_PREVIEW_RESPONSE = `# 개발 미리보기 리포트
+## 요약
+이 화면은 개발 환경에서 UI 확인만 하기 위한 샘플 응답입니다.
+
+### 핵심 포인트
+- 실제 CLI 또는 API 호출은 실행하지 않습니다.
+- 스트리밍 완료 상태와 레이아웃을 확인할 수 있습니다.
+- 복사 버튼과 새 질문 버튼의 배치를 확인할 수 있습니다.
+
+> 프롬프트 입력 화면의 개발 전용 버튼으로 진입한 경우에만 표시됩니다.
+`
+
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { selectedModel, apiKey, currentPrompt, setCurrentPrompt, setLastResponse } = useApp()
+  const location = useLocation()
+  const { selectedModel, currentPrompt, setCurrentPrompt, setLastResponse } = useApp()
+  const previewState = import.meta.env.DEV ? (location.state as ResponseLocationState) : null
+  const isPreviewOnly = previewState?.previewOnly === true
+  const effectiveModel = isPreviewOnly ? (previewState?.model ?? selectedModel ?? 'gpt') : selectedModel
+  const effectivePrompt = isPreviewOnly ? (previewState?.prompt ?? currentPrompt) : currentPrompt
+  const apiKey = ''
   const [response, setResponse] = useState('')
   const [status, setStatus] = useState<Status>('streaming')
   const [errorMsg, setErrorMsg] = useState('')
@@ -28,14 +52,21 @@ export default function ResponsePage(): React.JSX.Element {
   const responseRef = useRef('')
 
   useEffect(() => {
-    // 필수 상태 없이 직접 접근하면 홈으로 리다이렉트
-    if (!selectedModel || !currentPrompt) {
+    if (isPreviewOnly) {
+      responseRef.current = DEV_PREVIEW_RESPONSE
+      setResponse(DEV_PREVIEW_RESPONSE)
+      setStatus('done')
+      setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'done'])))
+      setLastResponse(DEV_PREVIEW_RESPONSE)
+      return
+    }
+
+    if (!effectiveModel || !effectivePrompt) {
       navigate('/')
       return
     }
 
-    if (selectedModel === 'claude' || selectedModel === 'gpt') {
-      // 멀티 에이전트 주식 분석 흐름
+    if (effectiveModel === 'claude' || effectiveModel === 'gpt') {
       window.api.onStockAnalysisAgent(({ name, status: agentStatus }) => {
         setAgentStatuses((prev) => ({ ...prev, [name]: agentStatus }))
       })
@@ -55,9 +86,8 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api.runStockAnalysis({ model: selectedModel, prompt: currentPrompt, apiKey })
+      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt, apiKey })
     } else {
-      // GPT 단순 프롬프트 흐름
       window.api.onResponseChunk((chunk: string) => {
         responseRef.current += chunk
         setResponse(responseRef.current)
@@ -73,18 +103,16 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api.runPrompt({ model: selectedModel, prompt: currentPrompt, apiKey })
+      window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt, apiKey })
     }
   }, [])
 
-  // 응답 전체를 클립보드에 복사하고 1.5초 후 버튼 상태를 원래대로 복원
   function handleCopy(): void {
     navigator.clipboard.writeText(responseRef.current)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
 
-  // 현재 프롬프트를 초기화하고 질문 입력 화면으로 돌아간다
   function handleNewQuestion(): void {
     setCurrentPrompt('')
     navigate('/prompt')
@@ -102,19 +130,26 @@ export default function ResponsePage(): React.JSX.Element {
     setErrorMsg('')
     setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'idle'])))
 
-    if (selectedModel === 'claude' || selectedModel === 'gpt') {
-      window.api.runStockAnalysis({ model: selectedModel!, prompt: currentPrompt, apiKey })
+    if (isPreviewOnly) {
+      responseRef.current = DEV_PREVIEW_RESPONSE
+      setResponse(DEV_PREVIEW_RESPONSE)
+      setStatus('done')
+      setAgentStatuses(Object.fromEntries(AGENT_CONFIG.map((a) => [a.key, 'done'])))
+      return
+    }
+
+    if (effectiveModel === 'claude' || effectiveModel === 'gpt') {
+      window.api.runStockAnalysis({ model: effectiveModel!, prompt: effectivePrompt, apiKey })
     } else {
-      window.api.runPrompt({ model: selectedModel!, prompt: currentPrompt, apiKey })
+      window.api.runPrompt({ model: effectiveModel!, prompt: effectivePrompt, apiKey })
     }
   }
 
-  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
-  const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
+  const modelLabel = effectiveModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
+  const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
   return (
     <div className="page">
-      {/* 내비게이션 바 */}
       <nav className="nav-bar">
         <button
           className="nav-back"
@@ -135,11 +170,9 @@ export default function ResponsePage(): React.JSX.Element {
         </div>
       </nav>
 
-      {/* 콘텐츠 */}
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
-          {/* 멀티 에이전트 진행 상태 */}
-          {(selectedModel === 'claude' || selectedModel === 'gpt') && (
+          {(effectiveModel === 'claude' || effectiveModel === 'gpt') && (
             <div
               style={{
                 display: 'flex',
@@ -192,7 +225,6 @@ export default function ResponsePage(): React.JSX.Element {
             </div>
           )}
 
-          {/* 내 질문 버블 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
             <div
               style={{
@@ -207,13 +239,11 @@ export default function ResponsePage(): React.JSX.Element {
                 userSelect: 'text'
               }}
             >
-              {currentPrompt}
+              {effectivePrompt}
             </div>
           </div>
 
-          {/* AI 응답 카드 */}
           <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
-            {/* 카드 헤더 */}
             <div
               style={{
                 display: 'flex',
@@ -245,7 +275,6 @@ export default function ResponsePage(): React.JSX.Element {
               )}
             </div>
 
-            {/* 응답 본문 */}
             <div style={{ padding: 16 }} role="article" aria-label="AI 응답">
               {status === 'streaming' && !response && (
                 <div
@@ -255,13 +284,13 @@ export default function ResponsePage(): React.JSX.Element {
                     fontStyle: 'italic'
                   }}
                 >
-                  {selectedModel === 'claude' || selectedModel === 'gpt'
+                  {effectiveModel === 'claude' || effectiveModel === 'gpt'
                     ? (() => {
                         const running = AGENT_CONFIG.find((a) => agentStatuses[a.key] === 'running')
                         const doneCount = AGENT_CONFIG.filter((a) => agentStatuses[a.key] === 'done').length
                         if (running) return `${running.label} 진행 중...`
                         if (doneCount === 3) return '투자 전략 종합 중...'
-                        if (doneCount > 0) return `분석 완료 ${doneCount}/3 — 다음 에이전트 대기 중...`
+                        if (doneCount > 0) return `분석 완료 ${doneCount}/3, 다음 에이전트 대기 중...`
                         return '에이전트 초기화 중...'
                       })()
                     : '응답을 생성 중입니다...'}
@@ -274,12 +303,11 @@ export default function ResponsePage(): React.JSX.Element {
 
               {status === 'error' && (
                 <div className="error-banner" style={{ marginTop: response ? 16 : 0 }}>
-                  ⚠ {errorMsg}
+                  {errorMsg}
                 </div>
               )}
             </div>
 
-            {/* 카드 하단 액션 바 (완료 시) */}
             {status === 'done' && (
               <div
                 style={{
@@ -309,13 +337,12 @@ export default function ResponsePage(): React.JSX.Element {
                   }}
                   aria-label="응답 복사"
                 >
-                  {copied ? '✓ 복사됨' : '📋 복사'}
+                  {copied ? '복사됨' : '복사'}
                 </button>
               </div>
             )}
           </div>
 
-          {/* 오류 시 재시도 */}
           {status === 'error' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
               <button className="btn-primary danger" onClick={handleRetry}>
@@ -343,8 +370,7 @@ export default function ResponsePage(): React.JSX.Element {
         </div>
       </div>
 
-      {/* 하단 버튼 */}
-      {status === 'streaming' && (selectedModel === 'claude' || selectedModel === 'gpt') && (
+      {status === 'streaming' && (effectiveModel === 'claude' || effectiveModel === 'gpt') && (
         <PageFooter>
           <button className="btn-ghost" onClick={handleCancel} aria-label="분석 취소">
             분석 취소
@@ -368,8 +394,6 @@ export default function ResponsePage(): React.JSX.Element {
   )
 }
 
-/* ── 간단한 마크다운 렌더러 ── */
-// 마크다운 텍스트를 줄 단위로 파싱하여 React 엘리먼트 배열로 변환
 function MarkdownRenderer({
   text,
   isStreaming
@@ -387,7 +411,6 @@ function MarkdownRenderer({
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    // ``` 펜스를 만나면 코드 블록 진입/탈출 토글
     if (line.startsWith('```')) {
       if (!inCode) {
         inCode = true
@@ -404,7 +427,6 @@ function MarkdownRenderer({
       continue
     }
 
-    // 코드 블록 내부 줄은 그대로 누적
     if (inCode) {
       codeBlock.push(line)
       continue
@@ -466,7 +488,6 @@ function MarkdownRenderer({
     }
   }
 
-  // 미완성 코드 블록 (스트리밍 중)
   if (inCode && codeBlock.length > 0) {
     elements.push(
       <CodeBlock key={key++} lang={codeLang} code={codeBlock.join('\n')} />
@@ -481,9 +502,7 @@ function MarkdownRenderer({
   )
 }
 
-// **bold**와 `code` 인라인 마크다운을 React 엘리먼트로 변환
 function renderInline(text: string): React.ReactNode {
-  // **text** → <strong>, `text` → <code> 패턴 분리
   const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -514,7 +533,6 @@ function renderInline(text: string): React.ReactNode {
 function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.Element {
   const [copied, setCopied] = useState(false)
 
-  // 코드 블록 내용을 클립보드에 복사하고 1.5초 후 버튼 상태를 원래대로 복원
   function handleCopy(): void {
     navigator.clipboard.writeText(code)
     setCopied(true)
@@ -526,7 +544,7 @@ function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.El
       <div className="code-block-header">
         <span className="code-lang">{lang || 'code'}</span>
         <button className="code-copy-btn" onClick={handleCopy}>
-          {copied ? '✓ 복사됨' : '복사'}
+          {copied ? '복사됨' : '복사'}
         </button>
       </div>
       <div className="code-body">{code}</div>
