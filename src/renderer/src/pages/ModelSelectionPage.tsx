@@ -53,7 +53,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
           </div>
 
           {/* 모델 카드 목록 */}
-          <div style={{ marginTop: 48, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ marginTop: 48, display: 'flex', gap: 12 }}>
             {models.map((model) => (
               <ModelCard key={model.id} model={model} onSelect={handleSelect} />
             ))}
@@ -62,7 +62,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
           <button
             className="btn-ghost"
             onClick={() => navigate('/reports/latest')}
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 48 }}
           >
             이전 보고서
           </button>
@@ -100,6 +100,7 @@ function ModelCard({
         alignItems: 'center',
         gap: 16,
         width: '100%',
+        height: 120,
         background: 'var(--bg-secondary)',
         border: '1.5px solid var(--border)',
         borderRadius: 16,

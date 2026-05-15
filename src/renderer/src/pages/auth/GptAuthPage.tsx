@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../../context/AppContext'
+// import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
 
 export default function GptAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { setApiKey: saveApiKey } = useApp()
+  // const { setApiKey: saveApiKey } = useApp()
   const [cliStatus, setCliStatus] = useState<'idle' | 'running' | 'done'>('idle')
   const [cliError, setCliError] = useState('')
   const [cliLogs, setCliLogs] = useState<string[]>([])
@@ -29,7 +29,7 @@ export default function GptAuthPage(): React.JSX.Element {
     window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setCliStatus('done')
-        saveApiKey('')
+        // saveApiKey('')
         setTimeout(() => navigate('/prompt'), 800)
         return
       }
