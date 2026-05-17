@@ -1,9 +1,11 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
-import { spawn, spawnSync } from 'child_process'
+import { spawn, spawnSync, type ChildProcessByStdio, type SpawnOptions } from 'child_process'
 import { readFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import type { Readable } from 'stream'
+import iconv from 'iconv-lite'
 import icon from '../../resources/icon.png?asset'
 
 // CLI를 설치·실행할 앱 전용 경로 (~/.ai-cli-launcher)
@@ -21,11 +23,42 @@ const STOCK_GPT_DIR = is.dev
   : join(process.resourcesPath, 'gpt')
 const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')
 
+type PipedSpawnOptions = SpawnOptions & { stdio: ['ignore', 'pipe', 'pipe'] }
+type PipedChildProcess = ChildProcessByStdio<null, Readable, Readable>
+
+// Windows/Electron에서 .cmd/.bat 파일을 직접 실행하면 spawn EINVAL/ENVAL 오류가 날 수 있어서 추가한 코드.
+function spawnCommand(
+  command: string,
+  args: string[],
+  options: PipedSpawnOptions
+): PipedChildProcess {
+  if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
+    return spawn(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
+  }
+
+  return spawn(command, args, options)
+}
+
+function writeTerminalLine(message: string, isError = false): void {
+  if (process.platform === 'win32') {
+    const stream = isError ? process.stderr : process.stdout
+    stream.write(iconv.encode(`${message}\n`, 'cp949'))
+    return
+  }
+
+  if (isError) {
+    console.error(message)
+    return
+  }
+
+  console.log(message)
+}
+
 function createWindow(): void {
   // 메인 창 생성(프로그램 시작 시 기본 창 크기 설정)
   const mainWindow = new BrowserWindow({
-    width: 756,
-    height: 563,
+    width: 1040,
+    height: 780,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -125,7 +158,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       )
     }
 
-    const child = spawn(resolved.command, args, {
+    const child = spawnCommand(resolved.command, args, {
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe']
     })
@@ -164,7 +197,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
     const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
     // -g 대신 --prefix로 사용자 홈 하위 경로에 설치 → EACCES(exit 243) 방지
     mkdirSync(CLI_PREFIX, { recursive: true })
-    const child = spawn(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
+    const child = spawnCommand(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe']
     })
@@ -292,7 +325,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
       // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
       // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
-      const child = spawn(cmd, args, {
+      const child = spawnCommand(cmd, args, {
         env,
         stdio: ['ignore', 'pipe', 'pipe']
       })
@@ -331,6 +364,21 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
   // ── 주식 멀티 에이전트 분석 ──
   let activeAnalysisChild: ReturnType<typeof spawn> | null = null
+  const stockAgentLabels: Record<string, string> = {
+    'financial-analyst-kr': '재무 분석',
+    'news-sentiment-analyst': '뉴스 분석',
+    'sector-researcher': '섹터 분석',
+    'aggressive-investment-strategist': '투자 전략'
+  }
+
+  function sendStockAnalysisLog(message: string): void {
+    writeTerminalLine(`[stock-analysis] ${message}`)
+    win.webContents.send('stock-analysis-log', message)
+  }
+
+  function getStockAgentLabel(name: string): string {
+    return stockAgentLabels[name] ?? name
+  }
 
   ipcMain.on('cancel-stock-analysis', () => {
     if (activeAnalysisChild) {
@@ -381,9 +429,28 @@ function registerIpcHandlers(win: BrowserWindow): void {
           }
         )
         activeAnalysisChild = child
+        sendStockAnalysisLog('투자 리포트 생성을 시작했습니다.')
 
         let buf = ''
         let finalReportPath = ''
+        let analysisCompleted = false
+
+        function finishStockAnalysisSuccess(reportPath: string): void {
+          if (analysisCompleted) return
+          analysisCompleted = true
+
+          try {
+            const report = readFileSync(reportPath, 'utf-8')
+            win.webContents.send('stock-analysis-chunk', report)
+            win.webContents.send('stock-analysis-done', { success: true })
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            win.webContents.send('stock-analysis-done', {
+              success: false,
+              error: `리포트 읽기 실패: ${message}`
+            })
+          }
+        }
 
         child.stdout.on('data', (data: Buffer) => {
           buf += data.toString()
@@ -393,6 +460,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
           for (const rawLine of lines) {
             const line = rawLine.trim()
             if (!line) continue
+            writeTerminalLine(`[stock-analysis:gpt:stdout] ${line}`)
 
             if (resolvedCodex.source === 'path' && line === '[bootstrap] codex-fallback:path') {
               win.webContents.send(
@@ -404,6 +472,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             const startMatch = line.match(/^\[start\]\s+(.+)$/)
             if (startMatch) {
+              sendStockAnalysisLog(`${getStockAgentLabel(startMatch[1])}을 시작했습니다.`)
               win.webContents.send('stock-analysis-agent', {
                 name: startMatch[1],
                 status: 'running'
@@ -413,6 +482,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             const doneMatch = line.match(/^\[done\]\s+(.+)$/)
             if (doneMatch) {
+              sendStockAnalysisLog(`${getStockAgentLabel(doneMatch[1])}을 완료했습니다.`)
               win.webContents.send('stock-analysis-agent', {
                 name: doneMatch[1],
                 status: 'done'
@@ -423,6 +493,8 @@ function registerIpcHandlers(win: BrowserWindow): void {
             const reportMatch = line.match(/^최종 리포트 저장 완료:\s+(.+)$/)
             if (reportMatch) {
               finalReportPath = reportMatch[1]
+              sendStockAnalysisLog('최종 투자 리포트를 저장했습니다.')
+              finishStockAnalysisSuccess(finalReportPath)
             }
           }
         })
@@ -430,13 +502,18 @@ function registerIpcHandlers(win: BrowserWindow): void {
         child.stderr.on('data', (data: Buffer) => {
           const text = data.toString().trim()
           if (text) {
-            console.error('[stock-analysis:gpt]', text)
+            writeTerminalLine(`[stock-analysis:gpt] ${text}`, true)
+            sendStockAnalysisLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
           }
         })
 
         child.on('close', (code) => {
           const wasCancelled = activeAnalysisChild === null
           activeAnalysisChild = null
+
+          if (analysisCompleted) {
+            return
+          }
 
           if (code === 0) {
             if (!finalReportPath) {
@@ -483,13 +560,14 @@ function registerIpcHandlers(win: BrowserWindow): void {
       const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
 
       // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
-      const child = spawn(claudeCmd, args, {
+      const child = spawnCommand(claudeCmd, args, {
         env,
         cwd: STOCK_CLAUDE_DIR,
         stdio: ['ignore', 'pipe', 'pipe'],
         detached: process.platform !== 'win32'
       })
       activeAnalysisChild = child
+      sendStockAnalysisLog('투자 리포트 생성을 시작했습니다.')
 
       let buf = ''
       const agentToolMap = new Map<string, string>()
@@ -513,6 +591,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
                   const agentType = input?.subagent_type as string | undefined
                   if (agentType) {
                     agentToolMap.set(b.id as string, agentType)
+                    sendStockAnalysisLog(`${getStockAgentLabel(agentType)}을 시작했습니다.`)
                     win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
                   }
                 }
@@ -526,6 +605,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
                 if (b.type === 'tool_result') {
                   const agentType = agentToolMap.get(b.tool_use_id as string)
                   if (agentType) {
+                    sendStockAnalysisLog(`${getStockAgentLabel(agentType)}을 완료했습니다.`)
                     win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
                     agentToolMap.delete(b.tool_use_id as string)
                   }
@@ -535,6 +615,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
 
             if (ev.type === 'result') {
               if (ev.subtype === 'success') {
+                sendStockAnalysisLog('최종 투자 리포트를 생성했습니다.')
                 win.webContents.send('stock-analysis-chunk', ev.result ?? '')
                 win.webContents.send('stock-analysis-done', { success: true })
               } else {
@@ -553,7 +634,8 @@ function registerIpcHandlers(win: BrowserWindow): void {
       child.stderr.on('data', (data: Buffer) => {
         const text = data.toString()
         if (text.toLowerCase().includes('error')) {
-          console.error('[stock-analysis:claude]', text.trim())
+          writeTerminalLine(`[stock-analysis:claude] ${text.trim()}`, true)
+          sendStockAnalysisLog(`Claude CLI: ${text.trim().split(/\r?\n/).at(-1) ?? text.trim()}`)
         }
       })
 

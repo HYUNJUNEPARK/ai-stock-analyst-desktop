@@ -35,6 +35,7 @@ declare global {
       runStockAnalysis: (params: { model: string; prompt: string; apiKey: string }) => void
       cancelStockAnalysis: () => void
       onStockAnalysisAgent: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
+      onStockAnalysisLog: (callback: (message: string) => void) => void
       onStockAnalysisChunk: (callback: (chunk: string) => void) => void
       onStockAnalysisDone: (callback: (result: { success: boolean; error?: string }) => void) => void
     }

@@ -9,6 +9,7 @@ let cliLoginCompleteCb: ((result: { success: boolean; error?: string }) => void)
 let responseChunkCb: ((chunk: string) => void) | null = null
 let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
 let stockAnalysisAgentCb: ((event: { name: string; status: 'running' | 'done' }) => void) | null = null
+let stockAnalysisLogCb: ((message: string) => void) | null = null
 let stockAnalysisChunkCb: ((chunk: string) => void) | null = null
 let stockAnalysisDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
 
@@ -27,6 +28,7 @@ ipcRenderer.on('prompt-response-done', (_e, result: { success: boolean; error?: 
 ipcRenderer.on('stock-analysis-agent', (_e, event: { name: string; status: 'running' | 'done' }) =>
   stockAnalysisAgentCb?.(event)
 )
+ipcRenderer.on('stock-analysis-log', (_e, message: string) => stockAnalysisLogCb?.(message))
 ipcRenderer.on('stock-analysis-chunk', (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
 ipcRenderer.on('stock-analysis-done', (_e, result: { success: boolean; error?: string }) =>
   stockAnalysisDoneCb?.(result)
@@ -88,6 +90,10 @@ if (process.contextIsolated) {
       },
 
       // 분석 결과 청크
+      onStockAnalysisLog: (cb: (message: string) => void) => {
+        stockAnalysisLogCb = cb
+      },
+
       onStockAnalysisChunk: (cb: (chunk: string) => void) => {
         stockAnalysisChunkCb = cb
       },
