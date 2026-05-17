@@ -99,7 +99,7 @@
 /* ── 하단 고정 영역 ── */
 .page-footer {
   padding: var(--space-3) var(--space-6) var(--space-8);
-  border-top: 0.5px solid var(--border);
+  /* border-top: 0.5px solid var(--border); */
   background: rgba(242, 242, 247, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
