@@ -271,6 +271,85 @@ function registerIpcHandlers(win: BrowserWindow): void {
   //   }
   // })
 
+  // ── 이번 주 월요일 날짜 계산 (로컬 시간 기준) ──
+  function getWeekRange(): { weekStart: string; weekEnd: string; mondayTs: number } {
+    const today = new Date()
+    const dow = today.getDay()
+    const daysFromMon = dow === 0 ? 6 : dow - 1
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - daysFromMon)
+    monday.setHours(0, 0, 0, 0)
+
+    function fmt(d: Date): string {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+    return { weekStart: fmt(monday), weekEnd: fmt(today), mondayTs: Math.floor(monday.getTime() / 1000) }
+  }
+
+  ipcMain.handle('check-cli-stats', (_event, model: string) => {
+    const { weekStart, weekEnd, mondayTs } = getWeekRange()
+
+    // ── Claude: stats-cache.json ──
+    if (model === 'claude') {
+      try {
+        interface DailyActivity { date: string; messageCount: number; sessionCount: number; toolCallCount: number }
+        interface DailyModelTokens { date: string; tokensByModel: Record<string, number> }
+        interface StatsCache { dailyActivity: DailyActivity[]; dailyModelTokens: DailyModelTokens[] }
+
+        const raw = readFileSync(join(homedir(), '.claude', 'stats-cache.json'), 'utf-8')
+        const stats: StatsCache = JSON.parse(raw)
+        const inWeek = (d: string): boolean => d >= weekStart && d <= weekEnd
+
+        let messages = 0, sessions = 0, toolCalls = 0
+        const tokensByModel: Record<string, number> = {}
+
+        for (const d of stats.dailyActivity) {
+          if (inWeek(d.date)) {
+            messages += d.messageCount
+            sessions += d.sessionCount
+            toolCalls += d.toolCallCount
+          }
+        }
+        for (const d of stats.dailyModelTokens) {
+          if (inWeek(d.date)) {
+            for (const [m, t] of Object.entries(d.tokensByModel)) {
+              tokensByModel[m] = (tokensByModel[m] ?? 0) + t
+            }
+          }
+        }
+        return { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
+      } catch (err) {
+        return { success: false, error: `stats-cache.json 읽기 실패: ${(err as Error).message}` }
+      }
+    }
+
+    // ── GPT: ~/.codex/state_5.sqlite ──
+    if (model === 'gpt') {
+      try {
+        const dbPath = join(homedir(), '.codex', 'state_5.sqlite')
+        const query = `SELECT COALESCE(model,'unknown') as model, COUNT(*) as sessions, SUM(tokens_used) as tokens FROM threads WHERE created_at >= ${mondayTs} GROUP BY model;`
+        const result = spawnSync('sqlite3', [dbPath, '-separator', '|', query], { encoding: 'utf-8' })
+
+        if (result.error) throw result.error
+        if (result.status !== 0) throw new Error(result.stderr || 'sqlite3 실행 실패')
+
+        const tokensByModel: Record<string, number> = {}
+        let sessions = 0
+
+        for (const line of result.stdout.trim().split('\n').filter(Boolean)) {
+          const [modelName, sessionCount, tokenCount] = line.split('|')
+          if (modelName) tokensByModel[modelName] = (tokensByModel[modelName] ?? 0) + Number(tokenCount ?? 0)
+          sessions += Number(sessionCount ?? 0)
+        }
+        return { success: true, weekStart, weekEnd, weekly: { sessions, tokensByModel } }
+      } catch (err) {
+        return { success: false, error: `state_5.sqlite 읽기 실패: ${(err as Error).message}` }
+      }
+    }
+
+    return { success: false, error: '지원하지 않는 모델입니다.' }
+  })
+
   // GPT 보고서 파일 목록 조회
   ipcMain.handle('list-gpt-report-files', () => {
     try {

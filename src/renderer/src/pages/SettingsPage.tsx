@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import gptImg from '../assets/gpt.jpg'
@@ -6,14 +6,15 @@ import claudeImg from '../assets/claude.png'
 
 export default function SettingsPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const {
-    selectedModel,
-    currentPrompt,
-    lastResponse,
-    setCurrentPrompt,
-    setLastResponse,
-    setSelectedModel
-  } = useApp()
+  const { selectedModel, setSelectedModel } = useApp()
+
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsError, setStatsError] = useState<string | null>(null)
+  const [statsData, setStatsData] = useState<{
+    weekStart: string
+    weekEnd: string
+    weekly: { sessions: number; tokensByModel: Record<string, number>; messages?: number; toolCalls?: number }
+  } | null>(null)
 
   useEffect(() => {
     if (!selectedModel) {
@@ -23,6 +24,19 @@ export default function SettingsPage(): React.JSX.Element {
 
   if (!selectedModel) return <></>
 
+  async function handleCheckStats(): Promise<void> {
+    setStatsLoading(true)
+    setStatsData(null)
+    setStatsError(null)
+    const res = await window.api.checkCliStats(selectedModel!)
+    setStatsLoading(false)
+    if (res.success) {
+      setStatsData({ weekStart: res.weekStart, weekEnd: res.weekEnd, weekly: res.weekly })
+    } else {
+      setStatsError(res.error)
+    }
+  }
+
   const isGpt = selectedModel === 'gpt'
   const modelLabel = isGpt ? 'OpenAI Codex' : 'Claude Code'
   const modelDescription = isGpt
@@ -30,19 +44,8 @@ export default function SettingsPage(): React.JSX.Element {
     : 'Claude Code CLI 기반으로 분석을 실행합니다.'
   const modelImage = isGpt ? gptImg : claudeImg
 
-  function handleResetDraft(): void {
-    setCurrentPrompt('')
-    navigate('/prompt')
-  }
-
-  function handleClearResponse(): void {
-    setLastResponse('')
-  }
-
   function handleChangeModel(): void {
     setSelectedModel(null)
-    setCurrentPrompt('')
-    setLastResponse('')
     navigate('/')
   }
 
@@ -115,11 +118,47 @@ export default function SettingsPage(): React.JSX.Element {
 
           <section className="card" style={{ padding: 18, marginBottom: 14 }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
-              작업 상태
+              사용량 / 잔여 토큰
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-              <StatusRow label="현재 입력" value={currentPrompt ? `${currentPrompt.length.toLocaleString()}자` : '비어 있음'} />
-              <StatusRow label="마지막 응답" value={lastResponse ? `${lastResponse.length.toLocaleString()}자` : '없음'} />
+              <button
+                onClick={handleCheckStats}
+                disabled={statsLoading}
+                style={queryButtonStyle(statsLoading)}
+              >
+                {statsLoading ? '조회 중...' : `${modelLabel} stats 조회`}
+              </button>
+              {statsError && (
+                <div style={statsResultBoxStyle}>
+                  <span style={{ color: 'var(--color-error, #e53e3e)', fontSize: 'var(--text-sm)' }}>
+                    {statsError}
+                  </span>
+                </div>
+              )}
+              {statsData && (
+                <div style={statsResultBoxStyle}>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 10 }}>
+                    이번 주 ({statsData.weekStart} ~ {statsData.weekEnd})
+                  </div>
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <StatsRow label="세션 수" value={statsData.weekly.sessions.toLocaleString()} />
+                    {statsData.weekly.messages !== undefined && (
+                      <StatsRow label="메시지 수" value={statsData.weekly.messages.toLocaleString()} />
+                    )}
+                    {statsData.weekly.toolCalls !== undefined && (
+                      <StatsRow label="툴 호출 수" value={statsData.weekly.toolCalls.toLocaleString()} />
+                    )}
+                    {Object.entries(statsData.weekly.tokensByModel).map(([model, tokens]) => (
+                      <StatsRow
+                        key={model}
+                        label={`토큰 (${model})`}
+                        value={tokens.toLocaleString()}
+                        highlight
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -128,21 +167,6 @@ export default function SettingsPage(): React.JSX.Element {
               빠른 작업
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-              <button onClick={handleResetDraft} style={settingsRowButtonStyle}>
-                <div>
-                  <div style={settingsRowTitleStyle}>입력 초기화</div>
-                  <div style={settingsRowDescStyle}>프롬프트 입력 내용을 비우고 다시 작성합니다.</div>
-                </div>
-                <ChevronRightIcon />
-              </button>
-
-              <button onClick={handleClearResponse} style={settingsRowButtonStyle}>
-                <div>
-                  <div style={settingsRowTitleStyle}>이전 응답 지우기</div>
-                  <div style={settingsRowDescStyle}>저장된 마지막 응답 상태를 초기화합니다.</div>
-                </div>
-                <ChevronRightIcon />
-              </button>
 
               <button onClick={handleChangeModel} style={settingsRowButtonStyle}>
                 <div>
@@ -155,28 +179,6 @@ export default function SettingsPage(): React.JSX.Element {
           </section>
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatusRow({ label, value }: { label: string; value: string }): React.JSX.Element {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '12px 14px',
-        background: 'var(--bg-primary)',
-        borderRadius: 12,
-        border: '1px solid var(--border)'
-      }}
-    >
-      <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>{label}</span>
-      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
-        {value}
-      </span>
     </div>
   )
 }
@@ -221,4 +223,48 @@ const settingsRowDescStyle: React.CSSProperties = {
   fontSize: 'var(--text-sm)',
   color: 'var(--text-secondary)',
   lineHeight: 1.5
+}
+
+function queryButtonStyle(disabled: boolean): React.CSSProperties {
+  return {
+    padding: '12px 16px',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 600,
+    color: disabled ? 'var(--text-tertiary)' : 'var(--text-primary)',
+    background: disabled ? 'var(--bg-primary)' : 'var(--bg-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: 12,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit'
+  }
+}
+
+const statsResultBoxStyle: React.CSSProperties = {
+  padding: '14px 16px',
+  background: 'var(--bg-primary)',
+  border: '1px solid var(--border)',
+  borderRadius: 12
+}
+
+function StatsRow({
+  label,
+  value,
+  highlight
+}: {
+  label: string
+  value: string
+  highlight?: boolean
+}): React.JSX.Element {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>{label}</span>
+      <span style={{
+        fontSize: 'var(--text-sm)',
+        fontWeight: 700,
+        color: highlight ? 'var(--color-accent, #4f8ef7)' : 'var(--text-primary)'
+      }}>
+        {value}
+      </span>
+    </div>
+  )
 }

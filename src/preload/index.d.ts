@@ -17,6 +17,22 @@ declare global {
       // saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
       // loadApiKey: (model: string) => Promise<string | null>
 
+      /* CLI stats 조회 */
+      checkCliStats: (model: string) => Promise<
+        | {
+            success: true
+            weekStart: string
+            weekEnd: string
+            weekly: {
+              sessions: number
+              tokensByModel: Record<string, number>
+              messages?: number
+              toolCalls?: number
+            }
+          }
+        | { success: false; error: string }
+      >
+
       // GPT 리포트 파일 목록 조회
       listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string; model: string }>>
 

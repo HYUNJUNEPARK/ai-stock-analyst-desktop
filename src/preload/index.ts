@@ -55,6 +55,9 @@ if (process.contextIsolated) {
       //   ipcRenderer.invoke('save-api-key', params),
       // loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
 
+      /* CLI stats 조회 */
+      checkCliStats: (model: string) => ipcRenderer.invoke('check-cli-stats', model),
+
       /// 보고서 파일 목록 조회
       listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
 
