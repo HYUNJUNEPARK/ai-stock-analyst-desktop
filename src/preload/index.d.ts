@@ -17,6 +17,9 @@ declare global {
       // saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
       // loadApiKey: (model: string) => Promise<string | null>
 
+      /* CLI 설치/인증 상태 확인 */
+      checkCliStatus: (model: string) => Promise<{ cliInstalled: boolean; authenticated: boolean }>
+
       /* CLI stats 조회 */
       checkCliStats: (model: string) => Promise<
         | {

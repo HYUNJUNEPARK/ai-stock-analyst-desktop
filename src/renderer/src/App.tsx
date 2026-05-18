@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ModelSelectionPage from './pages/ModelSelectionPage'
+import LandingPage from './pages/LandingPage'
 import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/PromptPage'
@@ -11,6 +12,7 @@ function App(): React.JSX.Element {
   return (
     <Routes>
       <Route path="/" element={<ModelSelectionPage />} />
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/download" element={<CliDownloadPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/settings" element={<SettingsPage />} />

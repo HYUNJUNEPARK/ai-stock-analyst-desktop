@@ -55,6 +55,9 @@ if (process.contextIsolated) {
       //   ipcRenderer.invoke('save-api-key', params),
       // loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
 
+      /* CLI 설치/인증 상태 확인 */
+      checkCliStatus: (model: string) => ipcRenderer.invoke('check-cli-status', model),
+
       /* CLI stats 조회 */
       checkCliStats: (model: string) => ipcRenderer.invoke('check-cli-stats', model),
 

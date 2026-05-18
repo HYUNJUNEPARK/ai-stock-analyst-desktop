@@ -182,6 +182,46 @@ function registerIpcHandlers(win: BrowserWindow): void {
     })
   }
 
+  // ── CLI 설치 여부 + 인증 상태 확인 ──
+  ipcMain.handle('check-cli-status', (_event, model: string) => {
+    const cliName = model === 'claude' ? 'claude' : 'codex'
+    const resolved = resolveCliCommand(cliName)
+
+    if (!resolved.command) {
+      return { cliInstalled: false, authenticated: false }
+    }
+
+    try {
+      if (model === 'claude') {
+        const credPath = join(homedir(), '.claude', '.credentials.json')
+        if (!existsSync(credPath)) return { cliInstalled: true, authenticated: false }
+
+        const creds = JSON.parse(readFileSync(credPath, 'utf-8'))
+        const account = creds?.claudeAiOauthAccount
+        if (!account) return { cliInstalled: true, authenticated: false }
+
+        if (account.expiresAt && Date.now() >= new Date(account.expiresAt).getTime()) {
+          return { cliInstalled: true, authenticated: false }
+        }
+
+        return { cliInstalled: true, authenticated: true }
+      }
+
+      if (model === 'gpt') {
+        const authPath = join(homedir(), '.codex', 'auth.json')
+        if (!existsSync(authPath)) return { cliInstalled: true, authenticated: false }
+
+        const auth = JSON.parse(readFileSync(authPath, 'utf-8'))
+        const hasToken = Boolean(auth?.accessToken || auth?.oauthToken || auth?.apiKey)
+        return { cliInstalled: true, authenticated: hasToken }
+      }
+    } catch {
+      return { cliInstalled: true, authenticated: false }
+    }
+
+    return { cliInstalled: true, authenticated: false }
+  })
+
   // ── CLI 설치 ──
   ipcMain.on('start-cli-install', (_event, model: string) => {
     const pkg = CLI_PACKAGES[model]
