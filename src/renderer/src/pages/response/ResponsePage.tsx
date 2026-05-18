@@ -128,7 +128,7 @@ export default function ResponsePage(): React.JSX.Element {
     }
   }
 
-  const modelLabel = effectiveModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
+  const modelLabel = effectiveModel === 'gpt' ? 'GPT' : 'Claude'
   const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
   return (

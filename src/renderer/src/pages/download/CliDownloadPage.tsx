@@ -48,7 +48,7 @@ export default function CliDownloadPage(): React.JSX.Element {
     window.api.startCliInstall(selectedModel)
   }, [])
 
-  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
+  const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const command =
     selectedModel === 'claude'
       ? 'npm install -g @anthropic-ai/claude-code'

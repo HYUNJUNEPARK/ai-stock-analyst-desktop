@@ -55,7 +55,7 @@ export default function PromptPage(): React.JSX.Element {
     })
   }
 
-  const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
+  const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
   return (

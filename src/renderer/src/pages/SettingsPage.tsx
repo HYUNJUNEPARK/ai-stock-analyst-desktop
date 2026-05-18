@@ -38,7 +38,7 @@ export default function SettingsPage(): React.JSX.Element {
   }
 
   const isGpt = selectedModel === 'gpt'
-  const modelLabel = isGpt ? 'OpenAI Codex' : 'Claude Code'
+  const modelLabel = isGpt ? 'GPT' : 'Claude'
   const modelDescription = isGpt
     ? 'Codex CLI 기반으로 분석을 실행합니다.'
     : 'Claude Code CLI 기반으로 분석을 실행합니다.'
