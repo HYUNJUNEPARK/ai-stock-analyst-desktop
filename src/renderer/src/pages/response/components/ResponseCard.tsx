@@ -68,34 +68,31 @@ export default function ResponseCard({
         aria-label="AI 응답"
       >
         {isCancelled && (
-          <>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 'inherit'
+            }}
+          >
             <div
               style={{
-                position: 'absolute',
-                inset: 16,
+                flex: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--text-secondary)',
-                fontSize: 'var(--text-sm)',
-                textAlign: 'center'
+                fontSize: 'var(--text-sm)'
               }}
             >
               분석을 취소했습니다.
             </div>
-            <button
-              className="btn-ghost"
-              onClick={onRetry}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                bottom: 16,
-                transform: 'translateX(-50%)'
-              }}
-            >
-              다시 시도
-            </button>
-          </>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+              <button className="btn-ghost" onClick={onRetry}>
+                다시 시도
+              </button>
+            </div>
+          </div>
         )}
 
         {isError && <ErrorResponseView errorMsg={errorMsg} onRetry={onRetry} />}
