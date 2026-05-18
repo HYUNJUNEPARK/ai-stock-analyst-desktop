@@ -1,12 +1,10 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-// import { useApp } from '../../context/AppContext'
 import claudeImg from '../../assets/claude.png'
 import PageFooter from '../../components/PageFooter'
 
 export default function ClaudeAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
-  // const { setApiKey: saveApiKey } = useApp()
   const [cliStatus, setCliStatus] = useState<'idle' | 'running' | 'done'>('idle')
   const [cliError, setCliError] = useState('')
   const [cliLogs, setCliLogs] = useState<string[]>([])
@@ -29,7 +27,6 @@ export default function ClaudeAuthPage(): React.JSX.Element {
     window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setCliStatus('done')
-        // saveApiKey('')
         setTimeout(() => navigate('/prompt'), 800)
         return
       }
@@ -77,19 +74,6 @@ export default function ClaudeAuthPage(): React.JSX.Element {
 
             {cliStatus === 'running' && (
               <div>
-                {/* <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    color: 'var(--accent)',
-                    fontSize: 'var(--text-sm)',
-                    marginBottom: 12
-                  }}
-                >
-                  <div className="spinner" />
-                  브라우저에서 로그인을 완료해 주세요...
-                </div> */}
                 <div
                   ref={logRef}
                   className="terminal"

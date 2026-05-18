@@ -48,13 +48,6 @@ if (process.contextIsolated) {
         installCompleteCb = cb
       },
 
-      /* API 키 관리 */
-      // validateApiKey: (params: { model: string; apiKey: string }) =>
-      //   ipcRenderer.invoke('validate-api-key', params),
-      // saveApiKey: (params: { model: string; apiKey: string }) =>
-      //   ipcRenderer.invoke('save-api-key', params),
-      // loadApiKey: (model: string) => ipcRenderer.invoke('load-api-key', model),
-
       /* CLI 설치/인증 상태 확인 */
       checkCliStatus: (model: string) => ipcRenderer.invoke('check-cli-status', model),
 

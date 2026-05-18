@@ -264,53 +264,6 @@ function registerIpcHandlers(win: BrowserWindow): void {
     })
   })
 
-  // ── API 키 저장 경로 ──
-  // function getKeyFilePath(): string {
-  //   const dir = join(app.getPath('userData'), 'config')
-  //   mkdirSync(dir, { recursive: true })
-  //   return join(dir, 'apikey.json')
-  // }
-
-  // ── API 키 검증 ──
-  // ipcMain.handle('validate-api-key', (_event, { model, apiKey }: { model: string; apiKey: string }) => {
-  //   if (!apiKey || apiKey.trim().length < 8) {
-  //     return { valid: false, error: '유효하지 않은 API 키입니다. 키를 다시 확인해 주세요.' }
-  //   }
-  //   if (model === 'gpt' && !apiKey.startsWith('sk-')) {
-  //     return { valid: false, error: 'OpenAI API 키는 sk- 로 시작해야 합니다.' }
-  //   }
-  //   if (model === 'claude' && !apiKey.startsWith('sk-ant-')) {
-  //     return { valid: false, error: 'Anthropic API 키는 sk-ant- 로 시작해야 합니다.' }
-  //   }
-  //   return { valid: true }
-  // })
-
-  // ── API 키 저장 ──
-  // ipcMain.handle('save-api-key', (_event, { model, apiKey }: { model: string; apiKey: string }) => {
-  //   try {
-  //     let stored: Record<string, string> = {}
-  //     try {
-  //       stored = JSON.parse(readFileSync(getKeyFilePath(), 'utf-8'))
-  //     } catch {
-  //       // 파일 없음 — 빈 객체로 시작
-  //     }
-  //     stored[model] = apiKey
-  //     writeFileSync(getKeyFilePath(), JSON.stringify(stored), 'utf-8')
-  //   } catch (err) {
-  //     console.error('API 키 저장 실패:', err)
-  //   }
-  // })
-
-  // ── API 키 로드 ──
-  // ipcMain.handle('load-api-key', (_event, model: string) => {
-  //   try {
-  //     const stored: Record<string, string> = JSON.parse(readFileSync(getKeyFilePath(), 'utf-8'))
-  //     return stored[model] ?? null
-  //   } catch {
-  //     return null
-  //   }
-  // })
-
   // ── 이번 주 월요일 날짜 계산 (로컬 시간 기준) ──
   function getWeekRange(): { weekStart: string; weekEnd: string; mondayTs: number } {
     const today = new Date()
@@ -441,8 +394,6 @@ function registerIpcHandlers(win: BrowserWindow): void {
       }
 
       const env: NodeJS.ProcessEnv = { ...process.env }
-      // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
-      // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
       const child = spawnCommand(cmd, args, {
         env,
@@ -522,8 +473,6 @@ function registerIpcHandlers(win: BrowserWindow): void {
     'run-stock-analysis',
     (_event, { model, prompt }: { model: string; prompt: string; apiKey: string }) => {
     const env: NodeJS.ProcessEnv = { ...process.env }
-      // if (model === 'gpt' && apiKey) env['OPENAI_API_KEY'] = apiKey
-      // if (model === 'claude' && apiKey) env['ANTHROPIC_API_KEY'] = apiKey
 
       if (model === 'gpt') {
         const resolvedCodex = resolveCliCommand('codex')

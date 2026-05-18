@@ -9,14 +9,6 @@ declare global {
       onInstallProgress: (callback: (data: string) => void) => void
       onInstallComplete: (callback: (result: { success: boolean; error?: string }) => void) => void
 
-      /* API 키 관리 */
-      // validateApiKey: (params: {
-      //   model: string
-      //   apiKey: string
-      // }) => Promise<{ valid: boolean; error?: string }>
-      // saveApiKey: (params: { model: string; apiKey: string }) => Promise<void>
-      // loadApiKey: (model: string) => Promise<string | null>
-
       /* CLI 설치/인증 상태 확인 */
       checkCliStatus: (model: string) => Promise<{ cliInstalled: boolean; authenticated: boolean }>
 
