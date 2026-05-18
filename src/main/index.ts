@@ -689,7 +689,23 @@ function registerIpcHandlers(win: BrowserWindow): void {
       sendStockAnalysisLog('투자 리포트 생성을 시작했습니다.')
 
       let buf = ''
+      let claudeAnalysisCompleted = false
       const agentToolMap = new Map<string, string>()
+
+      function handleClaudeResultEvent(ev: Record<string, unknown>): void {
+        if (claudeAnalysisCompleted) return
+        claudeAnalysisCompleted = true
+        if (ev.subtype === 'success') {
+          sendStockAnalysisLog('최종 투자 리포트를 생성했습니다.')
+          win.webContents.send('stock-analysis-chunk', ev.result ?? '')
+          win.webContents.send('stock-analysis-done', { success: true })
+        } else {
+          win.webContents.send('stock-analysis-done', {
+            success: false,
+            error: (ev.error as string) ?? '분석 실패'
+          })
+        }
+      }
 
       child.stdout.on('data', (data: Buffer) => {
         buf += data.toString()
@@ -733,16 +749,7 @@ function registerIpcHandlers(win: BrowserWindow): void {
             }
 
             if (ev.type === 'result') {
-              if (ev.subtype === 'success') {
-                sendStockAnalysisLog('최종 투자 리포트를 생성했습니다.')
-                win.webContents.send('stock-analysis-chunk', ev.result ?? '')
-                win.webContents.send('stock-analysis-done', { success: true })
-              } else {
-                win.webContents.send('stock-analysis-done', {
-                  success: false,
-                  error: (ev.error as string) ?? '분석 실패'
-                })
-              }
+              handleClaudeResultEvent(ev)
             }
           } catch {
             // JSON이 아닌 출력은 무시
@@ -761,12 +768,28 @@ function registerIpcHandlers(win: BrowserWindow): void {
       child.on('close', (code) => {
         const wasCancelled = activeAnalysisChild === null
         activeAnalysisChild = null
-        if (code !== 0 && !wasCancelled) {
-          win.webContents.send('stock-analysis-done', {
-            success: false,
-            error: `분석 실패 (exit code: ${code})`
-          })
+
+        // 마지막 줄이 \n 없이 끝나면 buf에 남아있을 수 있음 — 여기서 처리
+        if (!claudeAnalysisCompleted && buf.trim()) {
+          try {
+            const ev = JSON.parse(buf.trim()) as Record<string, unknown>
+            if (ev.type === 'result') {
+              handleClaudeResultEvent(ev)
+              return
+            }
+          } catch {
+            // JSON이 아닌 경우 무시
+          }
         }
+
+        if (claudeAnalysisCompleted || wasCancelled) return
+
+        win.webContents.send('stock-analysis-done', {
+          success: false,
+          error: code === 0
+            ? '분석이 완료되었지만 결과를 가져오지 못했습니다.'
+            : `분석 실패 (exit code: ${code})`
+        })
       })
 
       child.on('error', (err) => {

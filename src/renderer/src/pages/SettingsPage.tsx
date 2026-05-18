@@ -168,6 +168,14 @@ export default function SettingsPage(): React.JSX.Element {
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
 
+              <button onClick={() => navigate('/reports/latest')} style={settingsRowButtonStyle}>
+                <div>
+                  <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
+                  <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>
+                </div>
+                <ChevronRightIcon />
+              </button>
+
               <button onClick={handleChangeModel} style={settingsRowButtonStyle}>
                 <div>
                   <div style={settingsRowTitleStyle}>모델 다시 선택</div>

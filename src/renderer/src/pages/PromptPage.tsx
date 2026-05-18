@@ -1,45 +1,28 @@
 ﻿import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import PageFooter from '../components/PageFooter'
 import gptImg from '../assets/gpt.jpg'
 import claudeImg from '../assets/claude.png'
 
-const MAX_CHARS = 5000
-const WARN_CHARS = 4000
-const DEV_PREVIEW_PROMPT = '삼성전자 투자 리포트 화면 미리보기'
+const MAX_CHARS = 100
+const DEV_PREVIEW_PROMPT = '삼성전자'
 
 export default function PromptPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [text, setText] = useState(currentPrompt)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const isMac = navigator.platform.toUpperCase().includes('MAC')
-
-  // textarea 내용 길이에 맞게 높이를 자동 조절 (최대 320px)
-  function autoResize(): void {
-    const el = textareaRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = Math.min(el.scrollHeight, 320) + 'px'
-  }
-
-  // 최대 글자 수 초과 입력을 막고, 변경 시마다 높이를 재조정
-  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const val = e.target.value
     if (val.length > MAX_CHARS) return
     setText(val)
-    autoResize()
   }
 
-  // OS별 단축키(Mac: ⌘↩ / Windows: Ctrl+↩)로 제출 트리거
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>): void {
-    const submit = isMac ? e.metaKey && e.key === 'Enter' : e.ctrlKey && e.key === 'Enter'
-    if (submit && text.trim()) handleSubmit()
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
+    if (e.key === 'Enter' && text.trim()) handleSubmit()
   }
 
-  // 프롬프트를 전역 상태에 저장하고 응답 화면으로 이동
   function handleSubmit(): void {
     if (!text.trim()) return
     setCurrentPrompt(text.trim())
@@ -72,16 +55,7 @@ export default function PromptPage(): React.JSX.Element {
     })
   }
 
-  // 글자 수에 따라 카운터 색상을 동적으로 변경 (경고 → 위험)
-  const charColor =
-    text.length > MAX_CHARS
-      ? 'var(--danger)'
-      : text.length > WARN_CHARS
-        ? 'var(--warning)'
-        : 'var(--text-tertiary)'
-
   const modelLabel = selectedModel === 'gpt' ? 'OpenAI Codex' : 'Claude Code'
-  // const dotColor = selectedModel === 'gpt' ? '#000' : '#D4A853'
   const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
   return (
@@ -94,7 +68,6 @@ export default function PromptPage(): React.JSX.Element {
             alt={modelLabel}
             style={{ width: 16, height: 16, borderRadius: 5, objectFit: 'cover', flexShrink: 0 }}
           />
-          {/* <div className="model-badge-dot" style={{ background: dotColor }} /> */}
           {modelLabel}
         </div>
         <div className="nav-right">
@@ -164,122 +137,94 @@ export default function PromptPage(): React.JSX.Element {
         </div>
       </nav>
 
-      {/* 콘텐츠 */}
-      <div className="page-content">
-        <div className="content-container">
-          {/* 헤더 */}
-          <div style={{ textAlign: 'center', paddingTop: 32, paddingBottom: 24 }}>
-            <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
-              투자 리포트 생성
-            </h1>
-          </div>
-
-          {/* 입력 카드 */}
+      {/* 콘텐츠 — 수직 중앙 정렬 */}
+      <div
+        className="page-content"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <div style={{ width: '100%', maxWidth: 400, padding: '0 8px' }}>
+          {/* 검색 입력 */}
           <div
-            className="card"
             style={{
-              border: '1.5px solid transparent',
-              borderRadius: 20,
-              boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--bg-secondary)',
+              border: '1.5px solid var(--border)',
+              borderRadius: 28,
+              padding: '0 16px',
+              height: 52,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
               transition: 'border-color 0.15s, box-shadow 0.15s'
             }}
-            onFocusCapture={(e) => {
-              const el = e.currentTarget
-              el.style.borderColor = 'var(--accent)'
-              el.style.boxShadow = '0 0 0 3px var(--accent-light), 0 2px 12px rgba(0,0,0,0.08)'
-            }}
-            onBlurCapture={(e) => {
-              if (!e.currentTarget.contains(e.relatedTarget)) {
-                const el = e.currentTarget
-                el.style.borderColor = 'transparent'
-                el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'
-              }
-            }}
+            onFocus={() => {}}
           >
-            <textarea
-              ref={textareaRef}
+            <SearchIcon />
+            <input
+              ref={inputRef}
+              type="text"
               value={text}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
-              placeholder="예: 삼성전자 분석해줘"
-              aria-label="주식 분석 요청 입력"
+              placeholder="종목명 입력  예) 삼성전자"
+              aria-label="종목명 입력"
+              autoFocus
               style={{
-                width: '100%',
-                minHeight: 200,
-                maxHeight: 320,
+                flex: 1,
                 border: 'none',
                 outline: 'none',
-                resize: 'none',
+                background: 'transparent',
                 fontFamily: 'inherit',
                 fontSize: 'var(--text-base)',
-                lineHeight: 1.6,
                 color: 'var(--text-primary)',
-                background: 'transparent',
-                padding: '16px 16px 0',
-                overflowY: 'auto'
+                marginLeft: 10
               }}
             />
-
-            {/* 툴바 */}
-            <div
+            {text && (
+              <button
+                onClick={() => setText('')}
+                aria-label="입력 지우기"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-tertiary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 4,
+                  borderRadius: '50%',
+                  transition: 'color 0.15s'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+              >
+                <ClearIcon />
+              </button>
+            )}
+            <button
+              onClick={handleSubmit}
+              disabled={!text.trim()}
+              aria-label="분석 시작"
               style={{
+                background: text.trim() ? 'var(--accent)' : 'var(--bg-tertiary)',
+                border: 'none',
+                cursor: text.trim() ? 'pointer' : 'not-allowed',
+                color: text.trim() ? '#fff' : 'var(--text-tertiary)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 14px',
-                borderTop: '1px solid var(--border)'
+                justifyContent: 'center',
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                marginLeft: 6,
+                flexShrink: 0,
+                transition: 'background 0.15s, color 0.15s'
               }}
             >
-              {/* <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-                <kbd
-                  style={{
-                    background: 'var(--bg-tertiary)',
-                    borderRadius: 4,
-                    padding: '1px 5px',
-                    fontFamily: 'monospace',
-                    fontSize: 10
-                  }}
-                >
-                  {shortcutLabel}
-                </kbd>{' '}
-                로 제출
-              </span> */}
-              <span
-                style={{ fontSize: 'var(--text-xs)', color: charColor }}
-                aria-label={`글자 수: ${text.length}`}
-                aria-live="polite"
-              >
-                {text.length.toLocaleString()}
-              </span>
-            </div>
+              <SubmitIcon />
+            </button>
           </div>
         </div>
       </div>
-
-      {/* 하단 버튼 */}
-      <PageFooter>
-        <button
-          className="btn-primary"
-          onClick={handleSubmit}
-          disabled={!text.trim()}
-          aria-disabled={!text.trim()}
-        >
-          분석 시작
-          {/* <svg
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="9" y1="14" x2="9" y2="4" />
-            <polyline points="4,9 9,4 14,9" />
-          </svg> */}
-        </button>
-      </PageFooter>
     </div>
   )
 }
@@ -322,6 +267,61 @@ function ProcessingPreviewIcon(): React.JSX.Element {
       <path d="M18 12h4" />
       <path d="m4.93 19.07 2.83-2.83" />
       <path d="m16.24 7.76 2.83-2.83" />
+    </svg>
+  )
+}
+
+function SubmitIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
+    </svg>
+  )
+}
+
+function SearchIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function ClearIcon(): React.JSX.Element {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   )
 }
