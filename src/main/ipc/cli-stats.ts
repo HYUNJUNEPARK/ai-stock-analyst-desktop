@@ -176,4 +176,21 @@ export function registerCliStatsHandlers(): void {
       return []
     }
   })
+
+  /**
+   * IPC 채널: 'read-gpt-report-file'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 특정 보고서 파일의 JSON 내용을 읽어 반환
+   */
+  ipcMain.handle('read-gpt-report-file', (_event, name: string) => {
+    console.log(`GPT 보고서 파일 읽기: ${name}`)
+    try {
+      const filePath = join(STOCK_GPT_REPORTS_DIR, name)
+      const content = readFileSync(filePath, 'utf-8')
+      return { success: true, data: JSON.parse(content) }
+    } catch (error) {
+      console.error('GPT 보고서 파일 읽기 실패:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
 }

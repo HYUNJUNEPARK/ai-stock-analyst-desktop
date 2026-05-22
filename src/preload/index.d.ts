@@ -38,6 +38,9 @@ declare global {
         updatedAt: string
       }>>
 
+      // GPT 리포트 파일 내용 읽기
+      readGptReportFile: (name: string) => Promise<{ success: true; data: unknown } | { success: false; error: string }>
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void

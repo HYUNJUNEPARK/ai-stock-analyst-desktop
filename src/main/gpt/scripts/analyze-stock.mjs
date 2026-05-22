@@ -48,8 +48,8 @@ async function main() {
     return
   }
 
-  const company = options.company ?? extractCompany(options.request) ?? '미지정 종목'
-  const ticker = options.ticker ?? extractTicker(options.request) ?? 'unknown'
+  const company = options.company || extractCompany(options.request) || '미지정 종목'
+  const ticker = options.ticker || extractTicker(options.request) || 'unknown'
   const asOfDateFile = formatDate(new Date())
   const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company)

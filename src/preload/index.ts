@@ -56,6 +56,9 @@ if (process.contextIsolated) {
       /// 보고서 파일 목록 조회
       listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
 
+      /// 보고서 파일 내용 읽기
+      readGptReportFile: (name: string) => ipcRenderer.invoke('read-gpt-report-file', name),
+
       /* CLI 로그인 */
       runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
       runGptLogin: () => ipcRenderer.send('run-gpt-login'),

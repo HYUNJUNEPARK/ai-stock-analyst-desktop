@@ -17,6 +17,10 @@ export default function RecentReportPage(): React.JSX.Element {
   const [reports, setReports] = useState<ReportFile[]>([])
   const [loading, setLoading] = useState(true)
 
+  const handleReportClick = (name: string): void => {
+    navigate(`/reports/${encodeURIComponent(name)}`)
+  }
+
   useEffect(() => {
     let cancelled = false
 
@@ -79,7 +83,7 @@ export default function RecentReportPage(): React.JSX.Element {
           {!loading && reports.length > 0 && (
             <div style={{ display: 'grid', gap: 12 }}>
               {reports.map((report) => (
-                reportCard(report)
+                reportCard(report, handleReportClick)
               ))}
             </div>
           )}
@@ -89,7 +93,7 @@ export default function RecentReportPage(): React.JSX.Element {
   )
 }
 
-function reportCard(report: ReportFile): React.JSX.Element {
+function reportCard(report: ReportFile, onClick: (name: string) => void): React.JSX.Element {
   const displayName = report.company || report.name.replace(/\.json$/, '')
   const subtitle = [report.ticker, report.asOfDate].filter(Boolean).join(' · ')
 
@@ -97,11 +101,13 @@ function reportCard(report: ReportFile): React.JSX.Element {
     <div
       key={report.name}
       className="card"
+      onClick={() => onClick(report.name)}
       style={{
         padding: 18,
         display: 'flex',
         alignItems: 'center',
         gap: 12,
+        cursor: 'pointer',
       }}
     >
       <img
