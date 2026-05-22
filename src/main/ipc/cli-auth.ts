@@ -12,8 +12,6 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import { spawnCommand } from '../utils/spawn'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
-// ── 로그인 공통 헬퍼 ──────────────────────────────────────────────
-
 /**
  * Claude 또는 Codex CLI의 로그인 명령을 실행한다.
  *
@@ -78,8 +76,6 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
   })
 }
 
-// ── 핸들러 등록 ───────────────────────────────────────────────────
-
 /**
  * CLI 로그인 IPC 핸들러를 등록한다.
  *
@@ -87,7 +83,6 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
  */
 export function registerCliAuthHandlers(win: BrowserWindow): void {
 
-  // ── [on] Claude CLI 로그인 ────────────────────────────────────
   /**
    * IPC 채널: 'run-claude-login'
    * 방향: renderer → main (on = 단방향)
@@ -100,7 +95,6 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
     runCliLogin(win, 'claude', ['login'])
   })
 
-  // ── [on] Codex CLI 로그인 ─────────────────────────────────────
   /**
    * IPC 채널: 'run-gpt-login'
    * 방향: renderer → main (on = 단방향)

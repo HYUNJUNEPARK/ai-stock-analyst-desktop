@@ -25,8 +25,6 @@ export const CLI_PREFIX = join(homedir(), '.ai-cli-launcher')
  */
 export const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 
-// ── 주식 분석 프로젝트 경로 ────────────────────────────────────────
-
 /**
  * Claude 멀티 에이전트 주식 분석 프로젝트 루트 경로
  *

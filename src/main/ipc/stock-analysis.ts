@@ -7,7 +7,7 @@
  *
  * 모델별 실행 방식이 완전히 다르므로 GPT/Claude 분기로 나뉜다.
  *
- * ── GPT 분석 흐름 ──
+ * GPT 분석 흐름:
  *   analyze-stock.mjs 스크립트를 Node.js(process.execPath)로 직접 실행한다.
  *   스크립트 내부에서 Codex CLI를 순차적으로 호출해 4개 에이전트를 실행한다.
  *   스크립트는 stdout에 구조화된 텍스트 라인을 출력한다:
@@ -16,7 +16,7 @@
  *     최종 리포트 저장 완료: <파일경로> → 분석 완료, 파일 경로 알림
  *   최종 보고서는 파일로 저장되며, 경로를 받아 readFileSync로 읽어 renderer에 전달한다.
  *
- * ── Claude 분석 흐름 ──
+ * Claude 분석 흐름:
  *   claude CLI를 --output-format stream-json --verbose 옵션으로 실행한다.
  *   Claude가 stdout에 JSON Lines(줄마다 JSON 1개) 형식으로 이벤트를 출력한다.
  *   각 JSON 이벤트 타입:
@@ -34,8 +34,6 @@ import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import { spawnCommand, writeTerminalLine } from '../utils/spawn'
 import { getCliCommand, resolveCliCommand } from '../utils/cli'
 
-// ── 에이전트 레이블 ───────────────────────────────────────────────
-
 /**
  * 에이전트 내부 식별자 → UI 표시용 한글 레이블 매핑
  * 분석 진행 상황을 사용자에게 알릴 때 사용한다.
@@ -51,8 +49,6 @@ const STOCK_AGENT_LABELS: Record<string, string> = {
 function getStockAgentLabel(name: string): string {
   return STOCK_AGENT_LABELS[name] ?? name
 }
-
-// ── 핸들러 등록 ───────────────────────────────────────────────────
 
 /**
  * 주식 분석 IPC 핸들러를 등록한다.
@@ -78,7 +74,6 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
     win.webContents.send('stock-analysis-log', message)
   }
 
-  // ── [on] 주식 분석 취소 ──────────────────────────────────────
   /**
    * IPC 채널: 'cancel-stock-analysis'
    * 방향: renderer → main (on = 단방향)
@@ -114,7 +109,6 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
     }
   })
 
-  // ── [on] 주식 분석 실행 ──────────────────────────────────────
   /**
    * IPC 채널: 'run-stock-analysis'
    * 방향: renderer → main (on = 단방향)
@@ -134,8 +128,6 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
     }
   )
 }
-
-// ── GPT 분석 실행 ─────────────────────────────────────────────────
 
 interface AnalysisContext {
   win: BrowserWindow
@@ -283,8 +275,6 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     win.webContents.send('stock-analysis-done', { success: false, error: `CLI 실행 오류: ${err.message}` })
   })
 }
-
-// ── Claude 분석 실행 ──────────────────────────────────────────────
 
 /**
  * Claude 기반 주식 분석을 실행한다.

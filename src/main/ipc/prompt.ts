@@ -16,7 +16,6 @@ import { getCliCommand } from '../utils/cli'
  */
 export function registerPromptHandlers(win: BrowserWindow): void {
 
-  // ── [on] 단발 프롬프트 실행 ────────────────────────────────────
   /**
    * IPC 채널: 'run-prompt'
    * 방향: renderer → main (on = 단방향)

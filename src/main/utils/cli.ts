@@ -15,8 +15,6 @@ import { spawn, spawnSync } from 'child_process'
 import type { BrowserWindow } from 'electron'
 import { CLI_BIN } from '../constants'
 
-// ── CLI 경로 탐색 ─────────────────────────────────────────────────
-
 /**
  * 앱 전용 설치 경로에서 CLI 실행 파일 경로를 반환한다.
  *
@@ -69,8 +67,6 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   console.log(`CLI 탐색 완료: ${name} → 설치되지 않음`)
   return { command: null, source: 'missing' }
 }
-
-// ── 스트림 중계 ───────────────────────────────────────────────────
 
 /**
  * child_process의 stdout 또는 stderr를 줄 단위로 읽어 IPC 채널로 전송한다.

@@ -8,15 +8,11 @@
 import { spawn, type ChildProcessByStdio, type SpawnOptions } from 'child_process'
 import iconv from 'iconv-lite'
 
-// ── 타입 ──────────────────────────────────────────────────────────
-
 /** spawn 옵션 중 stdio가 ['ignore', 'pipe', 'pipe']로 고정된 타입 */
 export type PipedSpawnOptions = SpawnOptions & { stdio: ['ignore', 'pipe', 'pipe'] }
 
 /** stdout/stderr가 Readable 스트림인 child_process 타입 */
 export type PipedChildProcess = ChildProcessByStdio<null, import('stream').Readable, import('stream').Readable>
-
-// ── 함수 ──────────────────────────────────────────────────────────
 
 /**
  * 플랫폼을 고려한 child_process.spawn 래퍼

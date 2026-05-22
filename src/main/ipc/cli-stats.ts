@@ -13,8 +13,6 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { spawnSync } from 'child_process'
 import { STOCK_GPT_REPORTS_DIR } from '../constants'
 
-// ── 날짜 유틸 ─────────────────────────────────────────────────────
-
 /**
  * 이번 주 월요일 ~ 오늘 날짜 범위를 계산한다.
  *
@@ -40,15 +38,12 @@ function getWeekRange(): { weekStart: string; weekEnd: string; mondayTs: number 
   return { weekStart: fmt(monday), weekEnd: fmt(today), mondayTs: Math.floor(monday.getTime() / 1000) }
 }
 
-// ── 핸들러 등록 ───────────────────────────────────────────────────
-
 /**
  * CLI 통계 및 보고서 목록 IPC 핸들러를 등록한다.
  * win을 사용하지 않지만 다른 핸들러와 등록 패턴을 통일하기 위해 인자를 받는다.
  */
 export function registerCliStatsHandlers(): void {
 
-  // ── [handle] CLI 사용 통계 조회 ─────────────────────────────────
   /**
    * IPC 채널: 'check-cli-stats'
    * 방향: renderer → main → renderer (handle = 양방향)
@@ -66,7 +61,6 @@ export function registerCliStatsHandlers(): void {
     console.log(`CLI 사용 통계 조회: 모델=${model}`)
     const { weekStart, weekEnd, mondayTs } = getWeekRange()
 
-    // ── Claude: stats-cache.json ──
     if (model === 'claude') {
       try {
         interface DailyActivity { date: string; messageCount: number; sessionCount: number; toolCallCount: number }
@@ -102,7 +96,6 @@ export function registerCliStatsHandlers(): void {
       }
     }
 
-    // ── GPT: ~/.codex/state_5.sqlite ──
     if (model === 'gpt') {
       try {
         const dbPath = join(homedir(), '.codex', 'state_5.sqlite')
@@ -133,7 +126,6 @@ export function registerCliStatsHandlers(): void {
     return { success: false, error: '지원하지 않는 모델입니다.' }
   })
 
-  // ── [handle] GPT 보고서 파일 목록 조회 ──────────────────────────
   /**
    * IPC 채널: 'list-gpt-report-files'
    * 방향: renderer → main → renderer (handle = 양방향)

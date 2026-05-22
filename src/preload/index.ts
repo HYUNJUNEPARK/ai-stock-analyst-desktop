@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// ── IPC 이벤트 → 콜백 라우팅 ──
 let installProgressCb: ((data: string) => void) | null = null
 let installCompleteCb: ((result: { success: boolean; error?: string }) => void) | null = null
 let cliLoginProgressCb: ((data: string) => void) | null = null

@@ -26,8 +26,6 @@
 import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp } from './window'
 
-// ── 앱 생명주기 ────────────────────────────────────────────────────
-
 app.whenReady().then(() => {
   setupApp()    // 앱 ID 설정, 단축키 최적화 등 초기 설정
   createWindow()

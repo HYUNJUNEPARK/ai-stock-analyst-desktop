@@ -85,7 +85,6 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     })
   })
 
-  // ── [handle] CLI 설치 여부 + 인증 상태 확인 ──────────────────────
   /**
    * IPC 채널: 'check-cli-status'
    * 방향: renderer → main → renderer (handle = 양방향)
