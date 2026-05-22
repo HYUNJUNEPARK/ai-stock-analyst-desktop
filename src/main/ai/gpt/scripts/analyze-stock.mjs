@@ -56,6 +56,7 @@ async function main() {
   const baseName = `${identifier}_${asOfDateFile}`
   const artifactDir = path.join(reportsDir, '.artifacts', baseName)
   const finalReportPath = resolveUniqueReportPath(reportsDir, baseName)
+  const aiInfo = buildAiInfo(options.model)
 
   await mkdir(artifactDir, { recursive: true })
 
@@ -63,7 +64,8 @@ async function main() {
     COMPANY: company,
     TICKER: ticker,
     REQUEST: options.request,
-    AS_OF_DATE: asOfDate
+    AS_OF_DATE: asOfDate,
+    AI_MODEL: aiInfo.model
   }
 
   if (options.dryRun) {
@@ -107,6 +109,8 @@ async function main() {
     asOfDate,
     generatedAt: new Date().toISOString(),
     ...parsedReport,
+    'ai-model': parsedReport['ai-model'] || aiInfo.model,
+    aiInfo,
     company: parsedReport.company || company,
     ticker: parsedReport.ticker || ticker
   }
@@ -289,6 +293,14 @@ function parseJsonReport(raw) {
     return JSON.parse(match?.[0] ?? stripped)
   } catch {
     return { content: raw }
+  }
+}
+
+function buildAiInfo(model) {
+  return {
+    provider: 'OpenAI Codex CLI',
+    model: model || 'gpt-5.4',
+    engine: 'gpt'
   }
 }
 

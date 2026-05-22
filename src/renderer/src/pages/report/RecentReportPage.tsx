@@ -58,8 +58,6 @@ export default function RecentReportPage(): React.JSX.Element {
       <div className="page-content">
         <div className="content-container content-container-compact">
           <section className="report-summary">
-            <div className="report-summary-kicker">Saved Reports</div>
-            <div className="report-summary-title">이전 분석 보고서</div>
             <p className="report-summary-copy">
               최근에 저장한 보고서를 빠르게 다시 열어볼 수 있습니다.
             </p>

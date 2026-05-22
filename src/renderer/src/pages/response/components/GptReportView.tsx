@@ -2,6 +2,12 @@ type GptReport = {
   company: string
   ticker: string
   asOfDate: string
+  'ai-model'?: string
+  aiInfo?: {
+    provider?: string
+    model?: string
+    engine?: string
+  }
   verdict: string
   verdictEmoji: string
   summary: string
@@ -36,6 +42,8 @@ const VERDICT_COLORS: Record<string, string> = {
 
 export default function GptReportView({ data }: { data: GptReport }): React.JSX.Element {
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
+  const aiModel = data['ai-model'] || data.aiInfo?.model
+  const aiProvider = data.aiInfo?.provider
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -48,6 +56,11 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 3 }}>
             {[data.ticker, data.asOfDate].filter(Boolean).join(' · ')}
           </div>
+          {(aiModel || aiProvider) && (
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>
+              {['AI', aiProvider, aiModel].filter(Boolean).join(' · ')}
+            </div>
+          )}
         </div>
         <div
           style={{

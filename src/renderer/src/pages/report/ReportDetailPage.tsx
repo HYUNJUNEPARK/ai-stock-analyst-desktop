@@ -40,7 +40,7 @@ export default function ReportDetailPage(): React.JSX.Element {
   const isGpt = name?.endsWith('.json') ?? false
   const modelImg = isGpt ? gptIcon : claudeIcon
   const modelLabel = isGpt ? 'GPT' : 'Claude'
-  const contentWidth = isStandaloneWindow ? 1120 : 820
+  const contentWidth = isStandaloneWindow ? 800 : 550
 
   function handleCloseOrBack(): void {
     if (isStandaloneWindow) {
