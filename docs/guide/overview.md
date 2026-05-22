@@ -186,7 +186,6 @@ Main (Node.js)
 | `run-stock-analysis` | render → main | 멀티에이전트 주식 분석 시작 |
 | `cancel-stock-analysis` | render → main | 분석 프로세스 중단 |
 | `stock-analysis-agent` | main → render | 에이전트 상태 변경 이벤트 |
-| `stock-analysis-log` | main → render | 분석 로그 메시지 |
 | `stock-analysis-chunk` | main → render | 결과 청크 스트리밍 |
 | `stock-analysis-done` | main → render | 분석 완료/실패 |
 

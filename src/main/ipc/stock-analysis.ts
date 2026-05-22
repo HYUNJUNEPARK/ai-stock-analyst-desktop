@@ -64,14 +64,9 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    */
   let activeAnalysisChild: ChildProcess | null = null
 
-  /**
-   * 주식 분석 로그를 터미널과 renderer 양쪽에 동시에 전송하는 헬퍼
-   * 터미널: Electron 실행 콘솔 (개발자 디버깅용)
-   * renderer: 'stock-analysis-log' IPC 채널 → UI 로그 패널에 표시
-   */
+  /** 주식 분석 상태 메시지를 Electron 실행 콘솔에 기록하는 헬퍼 */
   function sendLog(message: string): void {
     writeTerminalLine(`[stock-analysis] ${message}`)
-    win.webContents.send('stock-analysis-log', message)
   }
 
   /**

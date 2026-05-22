@@ -5,14 +5,12 @@ import AgentStatusBar from './AgentStatusBar'
 
 type StreamingResponseViewProps = {
   agentStatuses: Record<string, AgentStatus>
-  analysisLog: string
   onCancel: () => void
   showAgentFlow: boolean
 }
 
 export default function StreamingResponseView({
   agentStatuses,
-  analysisLog,
   onCancel,
   showAgentFlow
 }: StreamingResponseViewProps): React.JSX.Element {
@@ -32,7 +30,7 @@ export default function StreamingResponseView({
             fontSize: 'var(--text-base)',
             fontWeight: 700,
             color: 'var(--text-primary)',
-            marginBottom: 4
+            marginBottom: 2
           }}
         >
           투자 리포트 생성 중
@@ -41,14 +39,11 @@ export default function StreamingResponseView({
           style={{
             fontSize: 'var(--text-sm)',
             color: 'var(--text-tertiary)',
-            lineHeight: 1.5,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            lineHeight: 1.5
           }}
-          title={analysisLog}
         >
-          {analysisLog}
+          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다.
+          (최대 8분)
         </div>
       </div>
 

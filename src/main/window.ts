@@ -25,8 +25,8 @@ export function createWindow(): void {
   console.log('[createWindow] 메인 윈도우 생성 시작')
 
   const mainWindow = new BrowserWindow({
-    width: 1040,
-    height: 780,
+    width: 600,
+    height: 800,
     show: false,          // 창이 준비되기 전에 빈 화면이 보이는 것을 방지
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
