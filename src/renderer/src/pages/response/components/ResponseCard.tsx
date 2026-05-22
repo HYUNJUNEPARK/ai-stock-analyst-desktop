@@ -1,6 +1,7 @@
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus, PreviewModel, Status } from '../types'
 import ErrorResponseView from './ErrorResponseView'
+import GptReportView from './GptReportView'
 import MarkdownRenderer from './MarkdownRenderer'
 import StreamingResponseView from './StreamingResponseView'
 
@@ -35,10 +36,21 @@ export default function ResponseCard({
   const isError = status === 'error'
 
   const isStockModel = model === 'claude' || model === 'gpt'
-  const showProgress = status === 'streaming' && isStockModel
   const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
   const totalCount = AGENT_CONFIG.length
   const progressPct = Math.round((doneCount / totalCount) * 100)
+  const showProgress = status === 'streaming' && isStockModel && progressPct < 100
+
+  const circleSize = 28
+  const radius = 10
+  const progressColor =
+    doneCount === 0
+      ? 'var(--text-tertiary)'
+      : doneCount === 1
+        ? '#4A90E2'
+        : doneCount === 2
+          ? '#9B59B6'
+          : '#E67E22'
 
   return (
     <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
@@ -70,37 +82,32 @@ export default function ResponseCard({
         </span>
 
         {showProgress && (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 4 }}>
-            <div
-              style={{
-                flex: 1,
-                height: 4,
-                background: 'var(--border)',
-                borderRadius: 2,
-                overflow: 'hidden'
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+            <svg
+              width={circleSize}
+              height={circleSize}
+              style={{ animation: 'spin 1s linear infinite', display: 'block' }}
             >
-              <div
-                style={{
-                  width: `${progressPct}%`,
-                  height: '100%',
-                  background: 'var(--accent)',
-                  borderRadius: 2,
-                  transition: 'width 0.4s ease'
-                }}
+              <circle
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
+                fill="none"
+                stroke="var(--border)"
+                strokeWidth={3}
               />
-            </div>
-            <span
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                flexShrink: 0,
-                minWidth: 28,
-                textAlign: 'right'
-              }}
-            >
-              {progressPct}%
-            </span>
+              <circle
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
+                fill="none"
+                stroke={progressColor}
+                strokeWidth={3}
+                strokeDasharray={`${2 * Math.PI * radius * 0.25} ${2 * Math.PI * radius * 0.75}`}
+                strokeLinecap="round"
+                style={{ transition: 'stroke 0.4s ease' }}
+              />
+            </svg>
           </div>
         )}
       </div>
@@ -149,9 +156,16 @@ export default function ResponseCard({
           />
         )}
 
-        {!isCancelled && !isError && (response || status !== 'streaming') && (
-          <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
-        )}
+        {!isCancelled && !isError && (response || status !== 'streaming') && (() => {
+          if (model === 'gpt' && status === 'done' && response) {
+            try {
+              return <GptReportView data={JSON.parse(response)} />
+            } catch {
+              // JSON 파싱 실패 시 마크다운으로 폴백
+            }
+          }
+          return <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
+        })()}
       </div>
     </div>
   )

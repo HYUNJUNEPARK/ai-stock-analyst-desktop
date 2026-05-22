@@ -29,7 +29,14 @@ declare global {
       >
 
       // GPT 리포트 파일 목록 조회
-      listGptReportFiles: () => Promise<Array<{ name: string; updatedAt: string; model: string }>>
+      listGptReportFiles: () => Promise<Array<{
+        name: string
+        company: string
+        ticker: string
+        asOfDate: string
+        model: string
+        updatedAt: string
+      }>>
 
       /* CLI 로그인 */
       runClaudeLogin: () => void

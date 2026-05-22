@@ -131,11 +131,11 @@ export function registerCliStatsHandlers(): void {
    * 방향: renderer → main → renderer (handle = 양방향)
    * 용도: GPT 분석으로 생성된 마크다운 보고서 목록을 UI에 표시
    *
-   * STOCK_GPT_REPORTS_DIR 내 .md 파일을 스캔하고,
+   * STOCK_GPT_REPORTS_DIR 내 .json 파일을 스캔하고,
    * 파일 수정 시각(mtime) 기준으로 최신 순으로 정렬해 반환한다.
    *
    * 반환값 예시:
-   *   [{ name: '삼성전자_20260101.md', model: 'gpt', updatedAt: '2026-01-01T...' }, ...]
+   *   [{ name: '삼성전자_260101.json', model: 'gpt', updatedAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle('list-gpt-report-files', () => {
     console.log('GPT 보고서 목록 조회')
@@ -143,12 +143,26 @@ export function registerCliStatsHandlers(): void {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
       const files = readdirSync(STOCK_GPT_REPORTS_DIR)
-        .filter((name) => name.endsWith('.md'))
+        .filter((name) => name.endsWith('.json'))
         .map((name) => {
-          const path = join(STOCK_GPT_REPORTS_DIR, name)
-          const stats = statSync(path)
+          const filePath = join(STOCK_GPT_REPORTS_DIR, name)
+          const stats = statSync(filePath)
+          let company = ''
+          let ticker = ''
+          let asOfDate = ''
+          try {
+            const json = JSON.parse(readFileSync(filePath, 'utf-8'))
+            company = json.company ?? ''
+            ticker = json.ticker ?? ''
+            asOfDate = json.asOfDate ?? ''
+          } catch {
+            // JSON 파싱 실패 시 빈 값 유지
+          }
           return {
             name,
+            company,
+            ticker,
+            asOfDate,
             model: 'gpt',
             updatedAt: stats.mtime.toISOString()
           }

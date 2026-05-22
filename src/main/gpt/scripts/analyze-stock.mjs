@@ -52,9 +52,10 @@ async function main() {
   const ticker = options.ticker ?? extractTicker(options.request) ?? 'unknown'
   const asOfDateFile = formatDate(new Date())
   const asOfDate = formatDateDisplay(new Date())
-  const identifier = buildIdentifier(company, ticker)
-  const artifactDir = path.join(reportsDir, '.artifacts', `${identifier}_${asOfDateFile}`)
-  const finalReportPath = path.join(reportsDir, `${identifier}_${asOfDateFile}.md`)
+  const identifier = buildIdentifier(company)
+  const baseName = `${identifier}_${asOfDateFile}`
+  const artifactDir = path.join(reportsDir, '.artifacts', baseName)
+  const finalReportPath = resolveUniqueReportPath(reportsDir, baseName)
 
   await mkdir(artifactDir, { recursive: true })
 
@@ -101,7 +102,15 @@ async function main() {
     model: options.model
   })
 
-  await writeFile(finalReportPath, finalReport.content, 'utf8')
+  const parsedReport = parseJsonReport(finalReport.content)
+  const reportJson = {
+    asOfDate,
+    generatedAt: new Date().toISOString(),
+    ...parsedReport,
+    company: parsedReport.company || company,
+    ticker: parsedReport.ticker || ticker
+  }
+  await writeFile(finalReportPath, JSON.stringify(reportJson, null, 2), 'utf8')
 
   console.log(`최종 리포트 저장 완료: ${finalReportPath}`)
 }
@@ -236,7 +245,7 @@ function parseArgs(argv) {
 }
 
 function formatDate(date) {
-  const year = date.getFullYear()
+  const year = String(date.getFullYear()).slice(2)
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}${month}${day}`
@@ -264,26 +273,33 @@ function extractCompany(text) {
   return cleaned || null
 }
 
-function buildIdentifier(company, ticker) {
+function buildIdentifier(company) {
   const safeCompany = company
     .trim()
     .replace(/\s+/g, '_')
     .replace(/[^\p{L}\p{N}_-]/gu, '')
-  const safeTicker = ticker
-    .trim()
-    .replace(/\s+/g, '_')
-    .replace(/[^\p{L}\p{N}_-]/gu, '')
+  return safeCompany || 'analysis'
+}
 
-  if (safeCompany && safeTicker && safeTicker !== 'unknown') {
-    return `${safeCompany}_${safeTicker}`
+function parseJsonReport(raw) {
+  // 마크다운 코드 블록 제거 후 JSON 추출
+  const stripped = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '')
+  const match = stripped.match(/\{[\s\S]*\}/)
+  try {
+    return JSON.parse(match?.[0] ?? stripped)
+  } catch {
+    return { content: raw }
   }
-  if (safeTicker && safeTicker !== 'unknown') {
-    return safeTicker
+}
+
+function resolveUniqueReportPath(dir, baseName) {
+  const candidate = path.join(dir, `${baseName}.json`)
+  if (!existsSync(candidate)) return candidate
+  let i = 1
+  while (existsSync(path.join(dir, `${baseName}_${i}.json`))) {
+    i++
   }
-  if (safeCompany) {
-    return safeCompany
-  }
-  return 'analysis'
+  return path.join(dir, `${baseName}_${i}.json`)
 }
 
 function printHelp() {

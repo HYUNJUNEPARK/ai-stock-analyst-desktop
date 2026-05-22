@@ -182,8 +182,8 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     if (analysisCompleted) return
     analysisCompleted = true
     try {
-      const report = readFileSync(reportPath, 'utf-8')
-      win.webContents.send('stock-analysis-chunk', report)
+      const reportJson = JSON.parse(readFileSync(reportPath, 'utf-8'))
+      win.webContents.send('stock-analysis-chunk', JSON.stringify(reportJson))
       win.webContents.send('stock-analysis-done', { success: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

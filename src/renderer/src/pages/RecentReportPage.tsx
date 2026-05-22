@@ -5,8 +5,11 @@ import claudeIcon from '../assets/claude.png'
 
 type ReportFile = {
   name: string
-  updatedAt: string
+  company: string
+  ticker: string
+  asOfDate: string
   model: string
+  updatedAt: string
 }
 
 export default function RecentReportPage(): React.JSX.Element {
@@ -68,7 +71,7 @@ export default function RecentReportPage(): React.JSX.Element {
                 저장된 보고서가 없습니다
               </div>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                GPT 분석을 먼저 실행하면 이 목록에 `.md` 보고서 파일이 표시됩니다.
+                GPT 분석을 먼저 실행하면 이 목록에 보고서가 표시됩니다.
               </p>
             </div>
           )}
@@ -87,6 +90,9 @@ export default function RecentReportPage(): React.JSX.Element {
 }
 
 function reportCard(report: ReportFile): React.JSX.Element {
+  const displayName = report.company || report.name.replace(/\.json$/, '')
+  const subtitle = [report.ticker, report.asOfDate].filter(Boolean).join(' · ')
+
   return (
     <div
       key={report.name}
@@ -100,7 +106,7 @@ function reportCard(report: ReportFile): React.JSX.Element {
     >
       <img
         src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}
-        alt={report.name}
+        alt={displayName}
         style={{
           width: 48,
           height: 48,
@@ -109,16 +115,15 @@ function reportCard(report: ReportFile): React.JSX.Element {
           flexShrink: 0,
         }}
       />
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 8 }}>
-          {report.name}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ fontSize: 'var(--text-md)', fontWeight: 600 }}>
+          {displayName}
         </div>
-
+        {subtitle && (
+          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+            {subtitle}
+          </div>
+        )}
         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
           {formatDate(report.updatedAt)}
         </div>
