@@ -204,8 +204,8 @@ Main (Node.js)
 | `src/renderer/src/pages/LandingPage.tsx` | CLI 상태 체크 후 적절한 화면으로 리다이렉트 |
 | `src/renderer/src/pages/response/ResponsePage.tsx` | 멀티에이전트 분석 실행 및 스트리밍 처리 |
 | `src/renderer/src/pages/response/constants.ts` | 에이전트 설정 (`AGENT_CONFIG`) |
-| `src/main/claude/` | Claude 에이전트 프로젝트 (설정·리포트) |
-| `src/main/gpt/` | GPT 에이전트 프로젝트 (프롬프트·스크립트·리포트) |
+| `src/main/ai/claude/` | Claude 에이전트 프로젝트 (설정·리포트) |
+| `src/main/ai/gpt/` | GPT 에이전트 프로젝트 (프롬프트·스크립트·리포트) |
 
 ---
 
@@ -221,8 +221,8 @@ Main (Node.js)
 
 ```typescript
 // 개발
-src/main/claude/    (앱 소스 트리 내)
-src/main/gpt/
+src/main/ai/claude/    (앱 소스 트리 내)
+src/main/ai/gpt/
 
 // 프로덕션
 {process.resourcesPath}/claude/

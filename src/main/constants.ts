@@ -28,23 +28,23 @@ export const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 /**
  * Claude 멀티 에이전트 주식 분석 프로젝트 루트 경로
  *
- * 개발 환경(is.dev): 프로젝트 소스 기준 src/main/claude
+ * 개발 환경(is.dev): 프로젝트 소스 기준 src/main/ai/claude
  * 프로덕션 빌드  : electron-builder의 extraResources로 패키징된 경로
  *
  * 이 디렉토리를 cwd로 설정해 Claude CLI를 실행하면,
  * Claude가 해당 디렉토리의 CLAUDE.md와 .claude/agents/ 설정을 자동으로 읽는다.
  */
 export const STOCK_CLAUDE_DIR = is.dev
-  ? join(app.getAppPath(), 'src', 'main', 'claude')
-  : join(process.resourcesPath, 'claude')
+  ? join(app.getAppPath(), 'src', 'main', 'ai', 'claude')
+  : join(process.resourcesPath, 'ai', 'claude')
 
 /**
  * GPT(Codex) 멀티 에이전트 주식 분석 프로젝트 루트 경로
  * Claude와 동일한 방식으로 개발/프로덕션을 분기한다.
  */
 export const STOCK_GPT_DIR = is.dev
-  ? join(app.getAppPath(), 'src', 'main', 'gpt')
-  : join(process.resourcesPath, 'gpt')
+  ? join(app.getAppPath(), 'src', 'main', 'ai', 'gpt')
+  : join(process.resourcesPath, 'ai', 'gpt')
 
 /** GPT 분석 결과 마크다운 보고서가 저장되는 디렉토리 */
 export const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')

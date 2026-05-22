@@ -75,7 +75,7 @@
 - `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` 환경변수로 API 키 전달
 - stdout 청크 → `prompt-response-chunk` 이벤트로 스트리밍
 - 종료 코드 → `prompt-response-done` 이벤트 전송
-- `run-stock-analysis` 핸들러: Claude는 기존 멀티 에이전트 JSON 스트림, GPT는 `src/main/gpt/scripts/analyze-stock.mjs` 실행
+- `run-stock-analysis` 핸들러: Claude는 기존 멀티 에이전트 JSON 스트림, GPT는 `src/main/ai/gpt/scripts/analyze-stock.mjs` 실행
 
 **`src/preload/index.ts`**
 - `runPrompt`, `onResponseChunk`, `onResponseDone` 노출

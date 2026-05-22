@@ -22,7 +22,7 @@ CLI 실행 로직과 응답 출력 화면을 구현해 주세요.
 
    - GPT인 경우:
      - 간단한 단일 응답은 `codex exec` 또는 별도 CLI 경로를 사용할 수 있음
-     - 주식 분석 화면에서는 `run-stock-analysis`로 `src/main/gpt/scripts/analyze-stock.mjs`를 실행
+     - 주식 분석 화면에서는 `run-stock-analysis`로 `src/main/ai/gpt/scripts/analyze-stock.mjs`를 실행
      - API 키가 있으면 `OPENAI_API_KEY` 환경변수로 전달하고, 없으면 `codex login` 세션을 사용
 
    - stdout 데이터를 `event.sender.send('prompt-response-chunk', chunk)` 로 스트리밍 전송
