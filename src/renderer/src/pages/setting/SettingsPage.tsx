@@ -4,9 +4,11 @@ import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
 
+const DEV_PREVIEW_PROMPT = '삼성전자'
+
 export default function SettingsPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { selectedModel } = useApp()
+  const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
 
   useEffect(() => {
     if (!selectedModel) {
@@ -16,6 +18,31 @@ export default function SettingsPage(): React.JSX.Element {
 
   if (!selectedModel) return <></>
 
+  function handleDevPreview(): void {
+    const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
+    setCurrentPrompt(previewPrompt)
+    navigate('/response', {
+      state: {
+        previewOnly: true,
+        previewStatus: 'done',
+        model: selectedModel,
+        prompt: previewPrompt
+      }
+    })
+  }
+
+  function handleDevProcessingPreview(): void {
+    const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
+    setCurrentPrompt(previewPrompt)
+    navigate('/response', {
+      state: {
+        previewOnly: true,
+        previewStatus: 'streaming',
+        model: selectedModel,
+        prompt: previewPrompt
+      }
+    })
+  }
 
   const isGpt = selectedModel === 'gpt'
   const modelLabel = isGpt ? 'GPT' : 'Claude'
@@ -65,7 +92,6 @@ export default function SettingsPage(): React.JSX.Element {
               빠른 작업
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-
               <button onClick={() => navigate('/reports/latest')} style={settingsRowButtonStyle}>
                 <div>
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
@@ -75,6 +101,36 @@ export default function SettingsPage(): React.JSX.Element {
               </button>
             </div>
           </section>
+
+          {import.meta.env.DEV && (
+            <section className="card" style={{ padding: 18, marginTop: 14 }}>
+              <div
+                style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}
+              >
+                개발용 미리보기
+              </div>
+              <div style={{ display: 'grid', gap: 10 }}>
+                <button onClick={handleDevPreview} style={settingsRowButtonStyle}>
+                  <div>
+                    <div style={settingsRowTitleStyle}>응답 화면 미리보기</div>
+                    <div style={settingsRowDescStyle}>
+                      응답 완료 상태의 화면을 개발용 데이터로 바로 확인합니다.
+                    </div>
+                  </div>
+                  <ChevronRightIcon />
+                </button>
+                <button onClick={handleDevProcessingPreview} style={settingsRowButtonStyle}>
+                  <div>
+                    <div style={settingsRowTitleStyle}>처리 중 화면 미리보기</div>
+                    <div style={settingsRowDescStyle}>
+                      스트리밍 진행 중 상태의 응답 화면을 개발용으로 확인합니다.
+                    </div>
+                  </div>
+                  <ChevronRightIcon />
+                </button>
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

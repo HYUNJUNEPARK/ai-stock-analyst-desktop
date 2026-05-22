@@ -5,7 +5,6 @@ import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
 
 const MAX_CHARS = 100
-const DEV_PREVIEW_PROMPT = '삼성전자'
 
 export default function PromptPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -29,32 +28,6 @@ export default function PromptPage(): React.JSX.Element {
     navigate('/response')
   }
 
-  function handleDevPreview(): void {
-    const previewPrompt = text.trim() || DEV_PREVIEW_PROMPT
-    setCurrentPrompt(previewPrompt)
-    navigate('/response', {
-      state: {
-        previewOnly: true,
-        previewStatus: 'done',
-        model: selectedModel ?? 'gpt',
-        prompt: previewPrompt
-      }
-    })
-  }
-
-  function handleDevProcessingPreview(): void {
-    const previewPrompt = text.trim() || DEV_PREVIEW_PROMPT
-    setCurrentPrompt(previewPrompt)
-    navigate('/response', {
-      state: {
-        previewOnly: true,
-        previewStatus: 'streaming',
-        model: selectedModel ?? 'gpt',
-        prompt: previewPrompt
-      }
-    })
-  }
-
   const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const modelImg = selectedModel === 'gpt' ? gptImg : claudeImg
 
@@ -71,50 +44,6 @@ export default function PromptPage(): React.JSX.Element {
           {modelLabel}
         </div>
         <div className="nav-right">
-          {import.meta.env.DEV && (
-            <>
-              <button
-                onClick={handleDevPreview}
-                aria-label="응답 화면 미리보기"
-                title="응답 화면 미리보기"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: 4,
-                  borderRadius: 8,
-                  transition: 'color 0.15s'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                <PreviewIcon />
-              </button>
-              <button
-                onClick={handleDevProcessingPreview}
-                aria-label="응답 처리 중 화면 미리보기"
-                title="응답 처리 중 화면 미리보기"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: 4,
-                  borderRadius: 8,
-                  transition: 'color 0.15s'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-              >
-                <ProcessingPreviewIcon />
-              </button>
-            </>
-          )}
           <button
             onClick={() => navigate('/settings')}
             aria-label="설정"
@@ -226,48 +155,6 @@ export default function PromptPage(): React.JSX.Element {
         </div>
       </div>
     </div>
-  )
-}
-
-function PreviewIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  )
-}
-
-function ProcessingPreviewIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 2v4" />
-      <path d="M12 18v4" />
-      <path d="m4.93 4.93 2.83 2.83" />
-      <path d="m16.24 16.24 2.83 2.83" />
-      <path d="M2 12h4" />
-      <path d="M18 12h4" />
-      <path d="m4.93 19.07 2.83-2.83" />
-      <path d="m16.24 7.76 2.83-2.83" />
-    </svg>
   )
 }
 
