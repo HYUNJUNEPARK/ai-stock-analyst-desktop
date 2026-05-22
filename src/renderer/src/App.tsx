@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import ModelSelectionPage from './pages/ModelSelectionPage'
-import LandingPage from './pages/LandingPage'
+import ModelSelectionPage from './pages/ai-model/ModelSelectionPage'
+import LandingPage from './pages/landing/LandingPage'
 import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
-import PromptPage from './pages/PromptPage'
+import PromptPage from './pages/prompt/PromptPage'
 import ResponsePage from './pages/response/ResponsePage'
-import SettingsPage from './pages/SettingsPage'
-import RecentReportPage from './pages/RecentReportPage'
-import ReportDetailPage from './pages/ReportDetailPage'
+import SettingsPage from './pages/setting/SettingsPage'
+import RecentReportPage from './pages/report/RecentReportPage'
+import ReportDetailPage from './pages/report/ReportDetailPage'
 
 function App(): React.JSX.Element {
   return (

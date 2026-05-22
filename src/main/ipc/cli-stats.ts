@@ -58,7 +58,7 @@ export function registerCliStatsHandlers(): void {
    *   { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
    */
   ipcMain.handle('check-cli-stats', (_event, model: string) => {
-    console.log(`CLI 사용 통계 조회: 모델=${model}`)
+    console.log(`[check-cli-stats] CLI 사용 통계 조회: 모델=${model}`)
     const { weekStart, weekEnd, mondayTs } = getWeekRange()
 
     if (model === 'claude') {
@@ -88,10 +88,10 @@ export function registerCliStatsHandlers(): void {
             }
           }
         }
-        console.log(`CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions} 메시지=${messages}`)
+        console.log(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions} 메시지=${messages}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
       } catch (err) {
-        console.error(`CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
+        console.error(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `stats-cache.json 읽기 실패: ${(err as Error).message}` }
       }
     }
@@ -115,10 +115,10 @@ export function registerCliStatsHandlers(): void {
           if (modelName) tokensByModel[modelName] = (tokensByModel[modelName] ?? 0) + Number(tokenCount ?? 0)
           sessions += Number(sessionCount ?? 0)
         }
-        console.log(`CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions}`)
+        console.log(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, tokensByModel } }
       } catch (err) {
-        console.error(`CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
+        console.error(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `state_5.sqlite 읽기 실패: ${(err as Error).message}` }
       }
     }
@@ -138,7 +138,7 @@ export function registerCliStatsHandlers(): void {
    *   [{ name: '삼성전자_260101.json', model: 'gpt', updatedAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle('list-gpt-report-files', () => {
-    console.log('GPT 보고서 목록 조회')
+    console.log('[list-gpt-report-files] GPT 보고서 목록 조회')
     try {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
@@ -169,10 +169,10 @@ export function registerCliStatsHandlers(): void {
         })
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 
-      console.log(`GPT 보고서 목록 조회 완료: ${files.length}개`)
+      console.log(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
       return files
     } catch (error) {
-      console.error('GPT 보고서 목록 조회 실패:', error)
+      console.error('[list-gpt-report-files] GPT 보고서 목록 조회 실패:', error)
       return []
     }
   })
@@ -183,13 +183,13 @@ export function registerCliStatsHandlers(): void {
    * 용도: 특정 보고서 파일의 JSON 내용을 읽어 반환
    */
   ipcMain.handle('read-gpt-report-file', (_event, name: string) => {
-    console.log(`GPT 보고서 파일 읽기: ${name}`)
+    console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
       const filePath = join(STOCK_GPT_REPORTS_DIR, name)
       const content = readFileSync(filePath, 'utf-8')
       return { success: true, data: JSON.parse(content) }
     } catch (error) {
-      console.error('GPT 보고서 파일 읽기 실패:', error)
+      console.error('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })

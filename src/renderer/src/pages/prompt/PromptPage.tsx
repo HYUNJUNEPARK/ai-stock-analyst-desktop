@@ -1,8 +1,8 @@
 ﻿import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import gptImg from '../assets/gpt.jpg'
-import claudeImg from '../assets/claude.png'
+import { useApp } from '../../context/AppContext'
+import gptImg from '../../assets/gpt.jpg'
+import claudeImg from '../../assets/claude.png'
 
 const MAX_CHARS = 100
 const DEV_PREVIEW_PROMPT = '삼성전자'

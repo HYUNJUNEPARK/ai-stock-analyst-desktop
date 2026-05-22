@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import gptImg from '../assets/gpt.jpg'
-import claudeImg from '../assets/claude.png'
+import { useApp } from '../../context/AppContext'
+import gptImg from '../../assets/gpt.jpg'
+import claudeImg from '../../assets/claude.png'
 
 export default function SettingsPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { selectedModel, setSelectedModel } = useApp()
+  const { selectedModel } = useApp()
 
   const [statsLoading, setStatsLoading] = useState(false)
   const [statsError, setStatsError] = useState<string | null>(null)
@@ -44,10 +44,10 @@ export default function SettingsPage(): React.JSX.Element {
     : 'Claude Code CLI 기반으로 분석을 실행합니다.'
   const modelImage = isGpt ? gptImg : claudeImg
 
-  function handleChangeModel(): void {
-    setSelectedModel(null)
-    navigate('/')
-  }
+  // function handleChangeModel(): void {
+  //   setSelectedModel(null)
+  //   navigate('/')
+  // }
 
   return (
     <div className="page">
@@ -63,21 +63,6 @@ export default function SettingsPage(): React.JSX.Element {
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 24, paddingBottom: 24 }}>
-          <div style={{ marginBottom: 16 }}>
-            <h1
-              style={{
-                fontSize: 'var(--text-xl)',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                marginBottom: 8
-              }}
-            >
-              분석 환경 설정
-            </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              현재 선택한 모델과 작업 상태를 확인하고, 인증 화면이나 모델 선택 화면으로 이동할 수 있습니다.
-            </p>
-          </div>
 
           <section className="card" style={{ padding: 18, marginBottom: 14 }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
@@ -172,14 +157,6 @@ export default function SettingsPage(): React.JSX.Element {
                 <div>
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
                   <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>
-                </div>
-                <ChevronRightIcon />
-              </button>
-
-              <button onClick={handleChangeModel} style={settingsRowButtonStyle}>
-                <div>
-                  <div style={settingsRowTitleStyle}>모델 다시 선택</div>
-                  <div style={settingsRowDescStyle}>홈으로 돌아가 분석 모델을 다시 선택합니다.</div>
                 </div>
                 <ChevronRightIcon />
               </button>

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import gptIcon from '../assets/gpt.jpg'
-import claudeIcon from '../assets/claude.png'
+import { useApp } from '../../context/AppContext'
+import gptIcon from '../../assets/gpt.jpg'
+import claudeIcon from '../../assets/claude.png'
 
 const models = [
   {

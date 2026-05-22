@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import gptIcon from '../assets/gpt.jpg'
-import claudeIcon from '../assets/claude.png'
+import gptIcon from '../../assets/gpt.jpg'
+import claudeIcon from '../../assets/claude.png'
 
 type ReportFile = {
   name: string

@@ -27,7 +27,8 @@ import { resolveCliCommand, streamLines } from '../utils/cli'
  * @param args - CLI에 전달할 추가 인수 (예: ['login'])
  */
 function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[] = []): void {
-  console.log(`CLI 로그인 시작: ${name}`)
+  const channel = name === 'claude' ? 'run-claude-login' : 'run-gpt-login'
+  console.log(`[${channel}] CLI 로그인 시작: ${name}`)
   const resolved = resolveCliCommand(name)
 
   if (!resolved.command) {
@@ -57,9 +58,9 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
 
   child.on('close', (code) => {
     if (code === 0) {
-      console.log(`CLI 로그인 완료: ${name}`)
+      console.log(`[${channel}] CLI 로그인 완료: ${name}`)
     } else {
-      console.error(`CLI 로그인 실패: ${name} (exit code: ${code})`)
+      console.error(`[${channel}] CLI 로그인 실패: ${name} (exit code: ${code})`)
     }
     win.webContents.send('cli-login-complete', {
       success: code === 0,
@@ -91,7 +92,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
   ipcMain.on('run-claude-login', () => {
-    console.log('Claude CLI 로그인 요청')
+    console.log('[run-claude-login] Claude CLI 로그인 요청')
     runCliLogin(win, 'claude', ['login'])
   })
 
@@ -103,7 +104,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
   ipcMain.on('run-gpt-login', () => {
-    console.log('GPT CLI 로그인 요청')
+    console.log('[run-gpt-login] GPT CLI 로그인 요청')
     runCliLogin(win, 'codex', ['login'])
   })
 }

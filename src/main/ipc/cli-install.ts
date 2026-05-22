@@ -43,7 +43,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    * Windows에서는 npm.cmd를 사용해야 실행 가능 (npm은 .cmd 래퍼로 제공됨)
    */
   ipcMain.on('start-cli-install', (_event, model: string) => {
-    console.log(`"${model}" 모델 설치 시작`)
+    console.log(`[start-cli-install] "${model}" 모델 설치 시작`)
     const pkg = CLI_PACKAGES[model]
     if (!pkg) {
       win.webContents.send('install-complete', {
@@ -66,10 +66,10 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
 
     child.on('close', (code) => {
       if (code === 0) {
-        console.log(`"${model}" 모델 설치 완료`)
+        console.log(`[start-cli-install] "${model}" 모델 설치 완료`)
         win.webContents.send('install-complete', { success: true })
       } else {
-        console.error(`"${model}" 모델 설치 실패 (exit code: ${code})`)
+        console.error(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
         win.webContents.send('install-complete', {
           success: false,
           error: `설치 중 오류가 발생했습니다. (exit code: ${code})`
@@ -97,7 +97,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    *   GPT   : ~/.codex/auth.json 파일의 accessToken / oauthToken / apiKey 존재 여부 검사
    */
   ipcMain.handle('check-cli-status', (_event, model: string) => {
-    console.log(`CLI 상태 확인: 모델=${model}`)
+    console.log(`[check-cli-status] CLI 상태 확인: 모델=${model}`)
     const cliName = model === 'claude' ? 'claude' : 'codex'
     const resolved = resolveCliCommand(cliName)
 

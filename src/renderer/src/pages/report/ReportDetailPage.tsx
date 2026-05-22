@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import gptIcon from '../assets/gpt.jpg'
-import claudeIcon from '../assets/claude.png'
-import GptReportView from './response/components/GptReportView'
+import gptIcon from '../../assets/gpt.jpg'
+import claudeIcon from '../../assets/claude.png'
+import GptReportView from '../response/components/GptReportView'
 import type { ComponentProps } from 'react'
-import MarkdownRenderer from './response/components/MarkdownRenderer'
+import MarkdownRenderer from '../response/components/MarkdownRenderer'
 
 type GptReport = ComponentProps<typeof GptReportView>['data']
 
