@@ -50,10 +50,11 @@ async function main() {
 
   const company = options.company ?? extractCompany(options.request) ?? '미지정 종목'
   const ticker = options.ticker ?? extractTicker(options.request) ?? 'unknown'
-  const asOfDate = formatDate(new Date())
+  const asOfDateFile = formatDate(new Date())
+  const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company, ticker)
-  const artifactDir = path.join(reportsDir, '.artifacts', `${identifier}_${asOfDate}`)
-  const finalReportPath = path.join(reportsDir, `${identifier}_${asOfDate}.md`)
+  const artifactDir = path.join(reportsDir, '.artifacts', `${identifier}_${asOfDateFile}`)
+  const finalReportPath = path.join(reportsDir, `${identifier}_${asOfDateFile}.md`)
 
   await mkdir(artifactDir, { recursive: true })
 
@@ -239,6 +240,13 @@ function formatDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}${month}${day}`
+}
+
+function formatDateDisplay(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 function extractTicker(text) {

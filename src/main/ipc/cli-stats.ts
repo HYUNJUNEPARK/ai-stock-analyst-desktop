@@ -63,7 +63,7 @@ export function registerCliStatsHandlers(): void {
    *   { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
    */
   ipcMain.handle('check-cli-stats', (_event, model: string) => {
-    console.log(`[IPC:handle] check-cli-stats model="${model}"`)
+    console.log(`CLI 사용 통계 조회: 모델=${model}`)
     const { weekStart, weekEnd, mondayTs } = getWeekRange()
 
     // ── Claude: stats-cache.json ──
@@ -94,8 +94,10 @@ export function registerCliStatsHandlers(): void {
             }
           }
         }
+        console.log(`CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions} 메시지=${messages}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
       } catch (err) {
+        console.error(`CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `stats-cache.json 읽기 실패: ${(err as Error).message}` }
       }
     }
@@ -120,8 +122,10 @@ export function registerCliStatsHandlers(): void {
           if (modelName) tokensByModel[modelName] = (tokensByModel[modelName] ?? 0) + Number(tokenCount ?? 0)
           sessions += Number(sessionCount ?? 0)
         }
+        console.log(`CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, tokensByModel } }
       } catch (err) {
+        console.error(`CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `state_5.sqlite 읽기 실패: ${(err as Error).message}` }
       }
     }
@@ -142,11 +146,11 @@ export function registerCliStatsHandlers(): void {
    *   [{ name: '삼성전자_20260101.md', model: 'gpt', updatedAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle('list-gpt-report-files', () => {
-    console.log('[IPC:handle] list-gpt-report-files')
+    console.log('GPT 보고서 목록 조회')
     try {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
-      return readdirSync(STOCK_GPT_REPORTS_DIR)
+      const files = readdirSync(STOCK_GPT_REPORTS_DIR)
         .filter((name) => name.endsWith('.md'))
         .map((name) => {
           const path = join(STOCK_GPT_REPORTS_DIR, name)
@@ -158,8 +162,11 @@ export function registerCliStatsHandlers(): void {
           }
         })
         .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+
+      console.log(`GPT 보고서 목록 조회 완료: ${files.length}개`)
+      return files
     } catch (error) {
-      console.error('GPT 리포트 목록 조회 실패:', error)
+      console.error('GPT 보고서 목록 조회 실패:', error)
       return []
     }
   })

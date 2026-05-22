@@ -25,7 +25,7 @@ import { CLI_BIN } from '../constants'
  *     Windows: ~/.ai-cli-launcher/node_modules/.bin/claude.cmd
  */
 export function getCliCommand(name: 'claude' | 'codex'): string {
-  console.log(`[getCliCommand] name="${name}"`)
+  console.log(`CLI 경로 조회: ${name}`)
   const ext = process.platform === 'win32' ? '.cmd' : ''
   return join(CLI_BIN, `${name}${ext}`)
 }
@@ -47,7 +47,7 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   command: string | null
   source: 'local' | 'path' | 'missing'
 } {
-  console.log(`[resolveCliCommand] name="${name}"`)
+  console.log(`CLI 탐색 시작: ${name}`)
   const localCommand = getCliCommand(name)
   if (existsSync(localCommand)) {
     return { command: localCommand, source: 'local' }
@@ -62,11 +62,11 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   })
 
   if (result.status === 0) {
-    console.log(`[resolveCliCommand] name="${name}" → source=path, command="${fallbackCommand}"`)
+    console.log(`CLI 탐색 완료: ${name} → 시스템 PATH 사용 (${fallbackCommand})`)
     return { command: fallbackCommand, source: 'path' }
   }
 
-  console.log(`[resolveCliCommand] name="${name}" → source=missing`)
+  console.log(`CLI 탐색 완료: ${name} → 설치되지 않음`)
   return { command: null, source: 'missing' }
 }
 

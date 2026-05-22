@@ -96,7 +96,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    *   null이면 취소에 의한 종료로 간주하고 에러 이벤트를 renderer에 보내지 않는다.
    */
   ipcMain.on('cancel-stock-analysis', () => {
-    console.log('[IPC:on] cancel-stock-analysis')
+    console.log('주식 분석 취소 요청')
     if (activeAnalysisChild) {
       const pid = activeAnalysisChild.pid
       activeAnalysisChild = null   // 먼저 null로 설정 → close 핸들러에서 취소 여부 판단
@@ -123,7 +123,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
   ipcMain.on(
     'run-stock-analysis',
     (_event, { model, prompt }: { model: string; prompt: string; apiKey: string }) => {
-      console.log(`[IPC:on] run-stock-analysis model="${model}"`)
+      console.log(`주식 분석 실행 시작: 모델=${model}`)
       const env: NodeJS.ProcessEnv = { ...process.env }
 
       if (model === 'gpt') {

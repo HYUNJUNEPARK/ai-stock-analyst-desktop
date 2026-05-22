@@ -35,7 +35,7 @@ export function spawnCommand(
   args: string[],
   options: PipedSpawnOptions
 ): PipedChildProcess {
-  console.log(`[spawnCommand] command="${command}" args=${JSON.stringify(args)}`)
+  console.log(`프로세스 실행: ${command} ${JSON.stringify(args)}`)
   if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
     return spawn(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
   }

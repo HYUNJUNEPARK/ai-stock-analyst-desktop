@@ -35,7 +35,7 @@ export function registerPromptHandlers(win: BrowserWindow): void {
   ipcMain.on(
     'run-prompt',
     (_event, { model, prompt }: { model: string; prompt: string }) => {
-      console.log(`[IPC:on] run-prompt model="${model}"`)
+      console.log(`프롬프트 실행 시작: 모델=${model}`)
 
       let cmd: string
       let args: string[]
@@ -68,8 +68,10 @@ export function registerPromptHandlers(win: BrowserWindow): void {
 
       child.on('close', (code) => {
         if (code === 0) {
+          console.log(`프롬프트 실행 완료: 모델=${model}`)
           win.webContents.send('prompt-response-done', { success: true })
         } else {
+          console.error(`프롬프트 실행 실패: 모델=${model} (exit code: ${code})`)
           win.webContents.send('prompt-response-done', {
             success: false,
             error: `CLI 실행 실패 (exit code: ${code})`
