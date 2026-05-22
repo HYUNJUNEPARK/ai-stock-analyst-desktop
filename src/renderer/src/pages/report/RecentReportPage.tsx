@@ -39,7 +39,7 @@ export default function RecentReportPage(): React.JSX.Element {
   return (
     <div className="page">
       <nav className="nav-bar">
-        <button className="nav-back" onClick={() => navigate('/')} aria-label="뒤로">
+        <button className="nav-back" onClick={() => navigate('/prompt')} aria-label="뒤로">
           <svg viewBox="0 0 18 18">
             <polyline points="12,3 6,9 12,15" />
           </svg>
