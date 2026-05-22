@@ -160,8 +160,9 @@ export default function ResponseCard({
           if (model === 'gpt' && status === 'done' && response) {
             try {
               return <GptReportView data={JSON.parse(response)} />
-            } catch {
+            } catch(error) {
               // JSON 파싱 실패 시 마크다운으로 폴백
+              console.error('Failed to parse GPT response as JSON:', error)
             }
           }
           return <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />

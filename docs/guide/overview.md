@@ -225,8 +225,8 @@ src/main/ai/claude/    (앱 소스 트리 내)
 src/main/ai/gpt/
 
 // 프로덕션
-{process.resourcesPath}/claude/
-{process.resourcesPath}/gpt/
+{process.resourcesPath}/ai/claude/
+{process.resourcesPath}/ai/gpt/
 ```
 
 ---

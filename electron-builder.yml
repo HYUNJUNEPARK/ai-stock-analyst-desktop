@@ -11,6 +11,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+extraResources:
+  - from: src/main/ai/claude
+    to: ai/claude
+  - from: src/main/ai/gpt
+    to: ai/gpt
 win:
   executableName: ai-stock-analytics
 nsis:

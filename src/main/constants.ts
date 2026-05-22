@@ -6,6 +6,7 @@
  */
 import { join } from 'path'
 import { homedir } from 'os'
+import { existsSync } from 'fs'
 import { app } from 'electron'
 import { is } from '@electron-toolkit/utils'
 
@@ -25,6 +26,13 @@ export const CLI_PREFIX = join(homedir(), '.ai-cli-launcher')
  */
 export const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
 
+function resolveExistingDir(candidates: string[]): string {
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate
+  }
+  return candidates[0]
+}
+
 /**
  * Claude 멀티 에이전트 주식 분석 프로젝트 루트 경로
  *
@@ -35,16 +43,28 @@ export const CLI_BIN = join(CLI_PREFIX, 'node_modules', '.bin')
  * Claude가 해당 디렉토리의 CLAUDE.md와 .claude/agents/ 설정을 자동으로 읽는다.
  */
 export const STOCK_CLAUDE_DIR = is.dev
-  ? join(app.getAppPath(), 'src', 'main', 'ai', 'claude')
-  : join(process.resourcesPath, 'ai', 'claude')
+  ? resolveExistingDir([
+      join(app.getAppPath(), 'src', 'main', 'ai', 'claude'),
+      join(app.getAppPath(), 'src', 'main', 'claude')
+    ])
+  : resolveExistingDir([
+      join(process.resourcesPath, 'ai', 'claude'),
+      join(process.resourcesPath, 'claude')
+    ])
 
 /**
  * GPT(Codex) 멀티 에이전트 주식 분석 프로젝트 루트 경로
  * Claude와 동일한 방식으로 개발/프로덕션을 분기한다.
  */
 export const STOCK_GPT_DIR = is.dev
-  ? join(app.getAppPath(), 'src', 'main', 'ai', 'gpt')
-  : join(process.resourcesPath, 'ai', 'gpt')
+  ? resolveExistingDir([
+      join(app.getAppPath(), 'src', 'main', 'ai', 'gpt'),
+      join(app.getAppPath(), 'src', 'main', 'gpt')
+    ])
+  : resolveExistingDir([
+      join(process.resourcesPath, 'ai', 'gpt'),
+      join(process.resourcesPath, 'gpt')
+    ])
 
 /** GPT 분석 결과 마크다운 보고서가 저장되는 디렉토리 */
 export const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')
