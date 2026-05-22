@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
@@ -7,22 +7,10 @@ export default function GptAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
   const [cliStatus, setCliStatus] = useState<'idle' | 'running' | 'done'>('idle')
   const [cliError, setCliError] = useState('')
-  const [cliLogs, setCliLogs] = useState<string[]>([])
-  const logRef = useRef<HTMLDivElement>(null)
 
   function handleCliLogin(): void {
     setCliStatus('running')
     setCliError('')
-    setCliLogs(['Codex CLI 설치 여부를 확인하는 중...'])
-
-    window.api.onCliLoginProgress((data: string) => {
-      setCliLogs((prev) => [...prev, data])
-      setTimeout(() => {
-        if (logRef.current) {
-          logRef.current.scrollTop = logRef.current.scrollHeight
-        }
-      }, 0)
-    })
 
     window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
@@ -72,7 +60,7 @@ export default function GptAuthPage(): React.JSX.Element {
 
             {cliError && <div className="error-banner">⚠ {cliError}</div>}
 
-            {cliStatus === 'running' && (
+            {/* {cliStatus === 'running' && (
               <div>
                 <div
                   ref={logRef}
@@ -86,7 +74,7 @@ export default function GptAuthPage(): React.JSX.Element {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             {cliStatus === 'done' && (
               <div
