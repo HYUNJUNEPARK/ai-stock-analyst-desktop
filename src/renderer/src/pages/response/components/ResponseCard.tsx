@@ -1,3 +1,4 @@
+import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus, PreviewModel, Status } from '../types'
 import ErrorResponseView from './ErrorResponseView'
 import MarkdownRenderer from './MarkdownRenderer'
@@ -33,6 +34,12 @@ export default function ResponseCard({
   const isCancelled = status === 'cancelled'
   const isError = status === 'error'
 
+  const isStockModel = model === 'claude' || model === 'gpt'
+  const showProgress = status === 'streaming' && isStockModel
+  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
+  const totalCount = AGENT_CONFIG.length
+  const progressPct = Math.round((doneCount / totalCount) * 100)
+
   return (
     <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
       <div
@@ -55,11 +62,47 @@ export default function ResponseCard({
           style={{
             fontSize: 'var(--text-sm)',
             fontWeight: 600,
-            color: 'var(--text-secondary)'
+            color: 'var(--text-secondary)',
+            flexShrink: 0
           }}
         >
           {modelLabel}
         </span>
+
+        {showProgress && (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 4 }}>
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                background: 'var(--border)',
+                borderRadius: 2,
+                overflow: 'hidden'
+              }}
+            >
+              <div
+                style={{
+                  width: `${progressPct}%`,
+                  height: '100%',
+                  background: 'var(--accent)',
+                  borderRadius: 2,
+                  transition: 'width 0.4s ease'
+                }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-tertiary)',
+                flexShrink: 0,
+                minWidth: 28,
+                textAlign: 'right'
+              }}
+            >
+              {progressPct}%
+            </span>
+          </div>
+        )}
       </div>
 
       <div
