@@ -35,11 +35,15 @@ declare global {
         ticker: string
         asOfDate: string
         model: string
+        createdAt: string
         updatedAt: string
       }>>
 
       // GPT 리포트 파일 내용 읽기
       readGptReportFile: (name: string) => Promise<{ success: true; data: unknown } | { success: false; error: string }>
+
+      // 보고서 상세 새 창 열기
+      openReportDetailWindow: (name: string) => Promise<{ success: true } | { success: false; error: string }>
 
       /* CLI 로그인 */
       runClaudeLogin: () => void

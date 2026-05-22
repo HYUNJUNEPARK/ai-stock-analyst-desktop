@@ -176,6 +176,7 @@ Main (Node.js)
 | `check-cli-status` | render → main | CLI 설치·인증 상태 확인 |
 | `check-cli-stats` | render → main | 주간 사용량 통계 조회 |
 | `list-gpt-report-files` | render → main | GPT 리포트 파일 목록 |
+| `open-report-detail-window` | render → main | 보고서 상세를 별도 창으로 열기 |
 | `run-claude-login` | render → main | `claude login` 실행 |
 | `run-gpt-login` | render → main | `codex login` 실행 |
 | `cli-login-progress` | main → render | 로그인 터미널 출력 스트리밍 |

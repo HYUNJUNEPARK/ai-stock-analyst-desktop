@@ -6,12 +6,43 @@
  *   - list-gpt-report-files: GPT 분석 보고서 파일 목록 조회 (양방향)
  */
 
-import { ipcMain } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { spawnSync } from 'child_process'
+import { is } from '@electron-toolkit/utils'
 import { STOCK_GPT_REPORTS_DIR } from '../constants'
+import icon from '../../../resources/icon.png?asset'
+
+function createReportDetailWindow(name: string): void {
+  const reportWindow = new BrowserWindow({
+    width: 1280,
+    height: 920,
+    minWidth: 960,
+    minHeight: 720,
+    show: false,
+    autoHideMenuBar: true,
+    title: '보고서',
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
+
+  reportWindow.on('ready-to-show', () => {
+    reportWindow.show()
+  })
+
+  const hash = `/reports/${encodeURIComponent(name)}?mode=window`
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    reportWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}#${hash}`)
+  } else {
+    reportWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash })
+  }
+}
 
 /**
  * 이번 주 월요일 ~ 오늘 날짜 범위를 계산한다.
@@ -132,10 +163,10 @@ export function registerCliStatsHandlers(): void {
    * 용도: GPT 분석으로 생성된 마크다운 보고서 목록을 UI에 표시
    *
    * STOCK_GPT_REPORTS_DIR 내 .json 파일을 스캔하고,
-   * 파일 수정 시각(mtime) 기준으로 최신 순으로 정렬해 반환한다.
+   * 파일 생성 시각(birthtime, 없으면 mtime) 기준으로 최신 순으로 정렬해 반환한다.
    *
    * 반환값 예시:
-   *   [{ name: '삼성전자_260101.json', model: 'gpt', updatedAt: '2026-01-01T...' }, ...]
+   *   [{ name: '삼성전자_260101.json', model: 'gpt', createdAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle('list-gpt-report-files', () => {
     console.log('[list-gpt-report-files] GPT 보고서 목록 조회')
@@ -147,6 +178,8 @@ export function registerCliStatsHandlers(): void {
         .map((name) => {
           const filePath = join(STOCK_GPT_REPORTS_DIR, name)
           const stats = statSync(filePath)
+          const createdAt =
+            stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : stats.mtime.toISOString()
           let company = ''
           let ticker = ''
           let asOfDate = ''
@@ -164,10 +197,11 @@ export function registerCliStatsHandlers(): void {
             ticker,
             asOfDate,
             model: 'gpt',
+            createdAt,
             updatedAt: stats.mtime.toISOString()
           }
         })
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
       console.log(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
       return files
@@ -190,6 +224,17 @@ export function registerCliStatsHandlers(): void {
       return { success: true, data: JSON.parse(content) }
     } catch (error) {
       console.error('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle('open-report-detail-window', (_event, name: string) => {
+    console.log(`[open-report-detail-window] 보고서 새 창 열기: ${name}`)
+    try {
+      createReportDetailWindow(name)
+      return { success: true }
+    } catch (error) {
+      console.error('[open-report-detail-window] 보고서 새 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
