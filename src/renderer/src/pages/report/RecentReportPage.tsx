@@ -73,7 +73,7 @@ export default function RecentReportPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate(ROUTES.SETTINGS)} title="이전 보고서" />
+      <NavBar onBack={() => navigate(ROUTES.INFO)} title="이전 보고서" />
 
       <div className="page-content">
         <div className="content-container content-container-compact">

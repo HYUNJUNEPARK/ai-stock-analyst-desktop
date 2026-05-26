@@ -18,10 +18,10 @@ import icon from '../../../resources/icon.png?asset'
 
 function createReportDetailWindow(name: string): void {
   const reportWindow = new BrowserWindow({
-    width: 1280,
-    height: 920,
-    minWidth: 960,
-    minHeight: 720,
+    width: 900,
+    height: 1080,
+    minWidth: 840,
+    minHeight: 800,
     show: false,
     autoHideMenuBar: true,
     title: '보고서',

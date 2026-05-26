@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiSettings } from 'react-icons/fi'
+import { FaCircleInfo } from 'react-icons/fa6'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
@@ -94,8 +94,8 @@ export default function PromptPage(): React.JSX.Element {
         </div>
         <div className="nav-right">
           <button
-            onClick={() => navigate(ROUTES.SETTINGS)}
-            aria-label="설정"
+            onClick={() => navigate(ROUTES.INFO)}
+            aria-label="정보"
             style={{
               background: 'none',
               border: 'none',
@@ -110,7 +110,7 @@ export default function PromptPage(): React.JSX.Element {
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
           >
-            <FiSettings size={22} />
+            <FaCircleInfo size={22} />
           </button>
         </div>
       </nav>

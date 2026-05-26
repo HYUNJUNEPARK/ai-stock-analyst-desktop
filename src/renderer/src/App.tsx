@@ -5,7 +5,7 @@ import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/prompt/PromptPage'
 import ResponsePage from './pages/response/ResponsePage'
-import SettingsPage from './pages/setting/SettingsPage'
+import InfoPage from './pages/info/InfoPage'
 import RecentReportPage from './pages/report/RecentReportPage'
 import ReportDetailPage from './pages/report/ReportDetailPage'
 import { ROUTES } from './routes'
@@ -17,7 +17,7 @@ function App(): React.JSX.Element {
       <Route path={ROUTES.LANDING} element={<LandingPage />} />
       <Route path={ROUTES.DOWNLOAD} element={<CliDownloadPage />} />
       <Route path={ROUTES.AUTH} element={<AuthPage />} />
-      <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+      <Route path={ROUTES.INFO} element={<InfoPage />} />
       <Route path={ROUTES.REPORTS_LATEST} element={<RecentReportPage />} />
       <Route path={ROUTES.REPORT_DETAIL(':name')} element={<ReportDetailPage />} />
       <Route path={ROUTES.PROMPT} element={<PromptPage />} />

@@ -5,7 +5,7 @@ export const ROUTES = {
   AUTH: '/auth',
   PROMPT: '/prompt',
   RESPONSE: '/response',
-  SETTINGS: '/settings',
+  INFO: '/info',
   REPORTS_LATEST: '/reports/latest',
   REPORT_DETAIL: (name: string) => `/reports/${name}`,
 } as const

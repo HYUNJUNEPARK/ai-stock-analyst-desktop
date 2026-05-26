@@ -85,7 +85,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
           paddingBottom: 24
         }}
       >
-        v1.0.0
+        v{__APP_VERSION__}
       </div>
 
       <ComingSoonDialog

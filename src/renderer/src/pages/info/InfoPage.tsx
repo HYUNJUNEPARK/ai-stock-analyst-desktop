@@ -9,7 +9,7 @@ import { ROUTES } from '../../routes'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
 
-export default function SettingsPage(): React.JSX.Element {
+export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
 
@@ -98,6 +98,18 @@ export default function SettingsPage(): React.JSX.Element {
                 </div>
                 <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
               </button>
+            </div>
+          </section>
+
+          <section className="card" style={{ padding: 18, marginTop: 14 }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+              앱 정보
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={settingsRowTitleStyle}>버전</div>
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+                v{__APP_VERSION__}
+              </div>
             </div>
           </section>
 
