@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import ComingSoonDialog from '../../components/ComingSoonDialog'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 
@@ -9,23 +11,30 @@ const models = [
     name: 'GPT',
     subtitle: 'OpenAI',
     dotColor: '#000000',
-    icon: gptIcon
+    icon: gptIcon,
+    comingSoon: false
   },
   {
     id: 'claude' as const,
     name: 'Claude',
     subtitle: 'Anthropic',
     dotColor: '#D4A853',
-    icon: claudeIcon
+    icon: claudeIcon,
+    comingSoon: true
   }
 ]
 
 export default function ModelSelectionPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { setSelectedModel } = useApp()
+  const [showComingSoonPopup, setShowComingSoonPopup] = useState(false)
 
   // 선택한 모델을 전역 상태에 저장하고 CLI 설치 화면으로 이동
   function handleSelect(id: 'gpt' | 'claude'): void {
+    if (id === 'claude') {
+      setShowComingSoonPopup(true)
+      return
+    }
     setSelectedModel(id)
     navigate('/landing')
   }
@@ -73,6 +82,12 @@ export default function ModelSelectionPage(): React.JSX.Element {
       >
         v1.0.0
       </div>
+
+      <ComingSoonDialog
+        visible={showComingSoonPopup}
+        message={'Claude 모델 지원은 현재 준비 중입니다.\n조금만 기다려 주세요!'}
+        onClose={() => setShowComingSoonPopup(false)}
+      />
     </div>
   )
 }
@@ -89,6 +104,7 @@ function ModelCard({
       onClick={() => onSelect(model.id)}
       aria-label={`${model.name} 선택`}
       style={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: 16,
@@ -102,7 +118,8 @@ function ModelCard({
         textAlign: 'left',
         transition: 'all 0.15s ease',
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        fontFamily: 'inherit'
+        fontFamily: 'inherit',
+        opacity: model.comingSoon ? 0.75 : 1
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget
@@ -124,6 +141,27 @@ function ModelCard({
         e.currentTarget.style.transform = 'translateY(-1px)'
       }}
     >
+      {/* Coming Soon 배지 */}
+      {model.comingSoon && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 12,
+            background: '#D4A853',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            padding: '2px 8px',
+            borderRadius: 20,
+            pointerEvents: 'none'
+          }}
+        >
+          Coming soon
+        </div>
+      )}
+
       {/* 모델 아이콘 */}
       <img
         src={model.icon}

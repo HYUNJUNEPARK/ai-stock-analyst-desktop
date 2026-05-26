@@ -1,11 +1,10 @@
+import { FiX } from 'react-icons/fi'
+
 export default function ErrorState({ errorMsg }: { errorMsg: string }): React.JSX.Element {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
       <div className="status-icon error" style={{ marginBottom: 20 }} aria-label="설치 실패">
-        <svg viewBox="0 0 28 28">
-          <line x1="8" y1="8" x2="20" y2="20" />
-          <line x1="20" y1="8" x2="8" y2="20" />
-        </svg>
+        <FiX />
       </div>
 
       <h2

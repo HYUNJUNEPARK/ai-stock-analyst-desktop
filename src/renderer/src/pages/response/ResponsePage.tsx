@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { FiChevronLeft } from 'react-icons/fi'
 import claudeImg from '../../assets/claude.png'
 import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
@@ -134,9 +135,7 @@ export default function ResponsePage(): React.JSX.Element {
           disabled={status === 'streaming'}
           aria-label="뒤로"
         >
-          <svg viewBox="0 0 18 18">
-            <polyline points="12,3 6,9 12,15" />
-          </svg>
+          <FiChevronLeft />
           뒤로
         </button>
       </nav>

@@ -1,9 +1,11 @@
-﻿import { useRef, useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FiSettings } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
 import RecentReportModal, { RecentReport } from './components/RecentReportModal'
+import PromptInput from './components/PromptInput'
 
 const MAX_CHARS = 100
 
@@ -12,16 +14,9 @@ export default function PromptPage(): React.JSX.Element {
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [text, setText] = useState(currentPrompt)
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    const val = e.target.value
-    if (val.length > MAX_CHARS) return
-    setText(val)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
-    if (e.key === 'Enter' && text.trim()) handleSubmit()
+  function handleChange(value: string): void {
+    if (value.length > MAX_CHARS) return
+    setText(value)
   }
 
   async function handleSubmit(): Promise<void> {
@@ -109,7 +104,7 @@ export default function PromptPage(): React.JSX.Element {
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
           >
-            <SettingsIcon />
+            <FiSettings size={22} />
           </button>
         </div>
       </nav>
@@ -120,161 +115,11 @@ export default function PromptPage(): React.JSX.Element {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         <div style={{ width: '100%', maxWidth: 400, padding: '0 8px' }}>
-          {/* 검색 입력 */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'var(--bg-secondary)',
-              border: '1.5px solid var(--border)',
-              borderRadius: 28,
-              padding: '0 16px',
-              height: 52,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              transition: 'border-color 0.15s, box-shadow 0.15s'
-            }}
-            onFocus={() => {}}
-          >
-            <SearchIcon />
-            <input
-              ref={inputRef}
-              type="text"
-              value={text}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="종목명 입력  예) 삼성전자"
-              aria-label="종목명 입력"
-              autoFocus
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                fontFamily: 'inherit',
-                fontSize: 'var(--text-base)',
-                color: 'var(--text-primary)',
-                marginLeft: 10
-              }}
-            />
-            {text && (
-              <button
-                onClick={() => setText('')}
-                aria-label="입력 지우기"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--text-tertiary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: 4,
-                  borderRadius: '50%',
-                  transition: 'color 0.15s'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-              >
-                <ClearIcon />
-              </button>
-            )}
-            <button
-              onClick={handleSubmit}
-              disabled={!text.trim()}
-              aria-label="분석 시작"
-              style={{
-                background: text.trim() ? 'var(--accent)' : 'var(--bg-tertiary)',
-                border: 'none',
-                cursor: text.trim() ? 'pointer' : 'not-allowed',
-                color: text.trim() ? '#fff' : 'var(--text-tertiary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 34,
-                height: 34,
-                borderRadius: '50%',
-                marginLeft: 6,
-                flexShrink: 0,
-                transition: 'background 0.15s, color 0.15s'
-              }}
-            >
-              <SubmitIcon />
-            </button>
-          </div>
+          <PromptInput value={text} onChange={handleChange} onSubmit={handleSubmit} />
         </div>
       </div>
     </div>
   )
 }
 
-function SubmitIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="12" y1="19" x2="12" y2="5" />
-      <polyline points="5 12 12 5 19 12" />
-    </svg>
-  )
-}
 
-function SearchIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-    >
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
-}
-
-function ClearIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function SettingsIcon(): React.JSX.Element {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  )
-}

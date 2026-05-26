@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 
@@ -47,9 +48,7 @@ export default function RecentReportPage(): React.JSX.Element {
     <div className="page">
       <nav className="nav-bar">
         <button className="nav-back" onClick={() => navigate('/settings')} aria-label="뒤로">
-          <svg viewBox="0 0 18 18">
-            <polyline points="12,3 6,9 12,15" />
-          </svg>
+          <FiChevronLeft />
           뒤로
         </button>
         <div className="nav-title">이전 보고서</div>
@@ -119,15 +118,7 @@ function reportCard(report: ReportFile, onClick: (name: string) => void): React.
       <div className="report-list-body report-list-body--center">
         <div className="report-list-title">{label}</div>
       </div>
-      <svg className="report-list-chevron" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-        <polyline
-          points="6,3 12,9 6,15"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <FiChevronRight className="report-list-chevron" aria-hidden="true" />
     </button>
   )
 }

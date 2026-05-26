@@ -1,3 +1,5 @@
+import { FiCheck } from 'react-icons/fi'
+
 export default function SuccessState({
   modelLabel,
   logs,
@@ -14,9 +16,7 @@ export default function SuccessState({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
       <div className="status-icon success" style={{ marginBottom: 20 }} aria-label="설치 완료">
-        <svg viewBox="0 0 28 28">
-          <polyline points="6,14 11,19 22,8" />
-        </svg>
+        <FiCheck />
       </div>
 
       <h2

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { FiChevronLeft } from 'react-icons/fi'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 import GptReportView from '../response/components/GptReportView'
@@ -59,9 +60,7 @@ export default function ReportDetailPage(): React.JSX.Element {
           onClick={handleCloseOrBack}
           aria-label={isStandaloneWindow ? '닫기' : '뒤로'}
         >
-          <svg viewBox="0 0 18 18">
-            <polyline points="12,3 6,9 12,15" />
-          </svg>
+          <FiChevronLeft />
           {isStandaloneWindow ? '닫기' : '뒤로'}
         </button>
         <div className="nav-title">보고서</div>

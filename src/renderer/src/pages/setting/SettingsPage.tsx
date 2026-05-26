@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
@@ -55,9 +56,7 @@ export default function SettingsPage(): React.JSX.Element {
     <div className="page">
       <nav className="nav-bar">
         <button className="nav-back" onClick={() => navigate('/prompt')} aria-label="뒤로">
-          <svg viewBox="0 0 18 18">
-            <polyline points="12,3 6,9 12,15" />
-          </svg>
+          <FiChevronLeft />
           뒤로
         </button>
         <div className="nav-title">설정</div>
@@ -97,7 +96,7 @@ export default function SettingsPage(): React.JSX.Element {
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
                   <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>
                 </div>
-                <ChevronRightIcon />
+                <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
               </button>
             </div>
           </section>
@@ -117,7 +116,7 @@ export default function SettingsPage(): React.JSX.Element {
                       응답 완료 상태의 화면을 개발용 데이터로 바로 확인합니다.
                     </div>
                   </div>
-                  <ChevronRightIcon />
+                  <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                 </button>
                 <button onClick={handleDevProcessingPreview} style={settingsRowButtonStyle}>
                   <div>
@@ -126,7 +125,7 @@ export default function SettingsPage(): React.JSX.Element {
                       스트리밍 진행 중 상태의 응답 화면을 개발용으로 확인합니다.
                     </div>
                   </div>
-                  <ChevronRightIcon />
+                  <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                 </button>
               </div>
             </section>
@@ -137,19 +136,6 @@ export default function SettingsPage(): React.JSX.Element {
   )
 }
 
-function ChevronRightIcon(): React.JSX.Element {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>
-      <polyline
-        points="6,3 12,9 6,15"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 const settingsRowButtonStyle: React.CSSProperties = {
   display: 'flex',

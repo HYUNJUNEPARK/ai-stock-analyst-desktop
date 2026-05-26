@@ -1,3 +1,4 @@
+import { FiArrowDown, FiCheck } from 'react-icons/fi'
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus } from '../types'
 
@@ -49,19 +50,7 @@ export default function AgentStatusBar({ agentStatuses }: AgentStatusBarProps): 
             background: firstRowDone ? 'var(--accent)' : 'var(--border)'
           }}
         />
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 18 18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M9 3v10" />
-          <polyline points="5,9 9,13 13,9" />
-        </svg>
+        <FiArrowDown size={18} />
         <div
           style={{
             height: 1,
@@ -118,20 +107,7 @@ function AgentStatusChip({
       }}
     >
       {status === 'running' && <div className="spinner" style={{ width: 10, height: 10 }} />}
-      {status === 'done' && (
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 10 10"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="1.5,5 4,7.5 8.5,2.5" />
-        </svg>
-      )}
+      {status === 'done' && <FiCheck size={10} />}
       {label}
     </div>
   )
