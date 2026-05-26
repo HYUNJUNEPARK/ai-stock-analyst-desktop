@@ -102,8 +102,7 @@ export default function RecentReportPage(): React.JSX.Element {
 
 function reportCard(report: ReportFile, onClick: (name: string) => void): React.JSX.Element {
   const displayName = report.company || report.name.replace(/\.json$/, '')
-  const subtitle = [report.ticker, report.asOfDate].filter(Boolean).join(' · ')
-  const modelLabel = report.model === 'gpt' ? 'GPT' : report.model === 'claude' ? 'Claude' : 'Report'
+  const subtitle = report.ticker
 
   return (
     <button
@@ -120,12 +119,10 @@ function reportCard(report: ReportFile, onClick: (name: string) => void): React.
       <div className="report-list-body">
         <div className="report-list-topline">
           <div className="report-list-title">{displayName}</div>
-          {/* <div className="report-list-time">{formatTime(report.createdAt)}</div> */}
         </div>
         {subtitle && (
           <div className="report-list-subtitle">{subtitle}</div>
         )}
-        <div className="report-list-model">{modelLabel}</div>
       </div>
       <ChevronRightIcon />
     </button>

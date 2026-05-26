@@ -225,8 +225,8 @@
 }
 
 .report-list-thumb {
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
