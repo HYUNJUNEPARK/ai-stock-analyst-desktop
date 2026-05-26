@@ -41,7 +41,7 @@ type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector'
 const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'summary', label: '종합 보고서' },
   { key: 'financial', label: '재무 분석' },
-  { key: 'news', label: '뉴스 감성' },
+  { key: 'news', label: '뉴스 분석' },
   { key: 'sector', label: '섹터 리서치' },
 ]
 
@@ -242,7 +242,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
         <SectionTitle>분석 근거</SectionTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
-          <AnalysisItem label="뉴스 감성" signal={data.analysis.news.signal} content={data.analysis.news.content} />
+          <AnalysisItem label="뉴스 분석" signal={data.analysis.news.signal} content={data.analysis.news.content} />
           <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
           <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
         </div>
