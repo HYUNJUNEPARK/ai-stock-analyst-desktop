@@ -30,6 +30,7 @@ export const IPC = {
 
   // 유틸리티
   OPEN_EXTERNAL_URL: 'open-external-url',
+  GET_MODEL_INFO: 'get-model-info',
 
   // 통계 / 리포트
   CHECK_CLI_STATS: 'check-cli-stats',

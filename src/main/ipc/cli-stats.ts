@@ -13,7 +13,7 @@ import { homedir } from 'os'
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
 import { spawnSync } from 'child_process'
 import { is } from '@electron-toolkit/utils'
-import { STOCK_GPT_REPORTS_DIR } from '../constants'
+import { STOCK_GPT_REPORTS_DIR, STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import icon from '../../../resources/icon.png?asset'
 
 function createReportDetailWindow(name: string): void {
@@ -75,6 +75,34 @@ function getWeekRange(): { weekStart: string; weekEnd: string; mondayTs: number 
  * win을 사용하지 않지만 다른 핸들러와 등록 패턴을 통일하기 위해 인자를 받는다.
  */
 export function registerCliStatsHandlers(): void {
+
+  /**
+   * IPC 채널: 'get-model-info'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 선택된 모델의 구체적인 모델명을 반환
+   *
+   * Claude: 에이전트 .md 파일의 frontmatter에서 model 필드 파싱
+   * GPT   : analyze-stock.mjs의 buildAiInfo 기본값에서 파싱
+   */
+  ipcMain.handle(IPC.GET_MODEL_INFO, (_event, model: string) => {
+    try {
+      if (model === 'claude') {
+        const agentMdPath = join(STOCK_CLAUDE_DIR, '.claude', 'agents', 'financial-analyst-kr.md')
+        const content = readFileSync(agentMdPath, 'utf-8')
+        const match = content.match(/^model:\s*(.+)$/m)
+        return { modelName: match?.[1]?.trim() ?? 'claude' }
+      }
+      if (model === 'gpt') {
+        const scriptPath = join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs')
+        const content = readFileSync(scriptPath, 'utf-8')
+        const match = content.match(/model:\s*model\s*\|\|\s*['"]([^'"]+)['"]/)
+        return { modelName: match?.[1]?.trim() ?? 'gpt' }
+      }
+      return { modelName: null }
+    } catch {
+      return { modelName: null }
+    }
+  })
 
   /**
    * IPC 채널: 'open-external-url'

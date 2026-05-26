@@ -35,4 +35,7 @@ export const cliStatsApi = {
 
   /** 지정한 URL을 시스템 기본 브라우저로 연다 (http/https만 허용) */
   openExternalUrl: (url: string) => ipcRenderer.invoke(IPC.OPEN_EXTERNAL_URL, url),
+
+  /** 선택된 모델의 구체적인 모델명을 반환한다 */
+  getModelInfo: (model: string) => ipcRenderer.invoke(IPC.GET_MODEL_INFO, model),
 }

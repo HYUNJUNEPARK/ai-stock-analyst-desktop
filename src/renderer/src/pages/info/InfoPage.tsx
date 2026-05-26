@@ -1,10 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import NavBar from '../../components/NavBar'
-import gptImg from '../../assets/gpt.jpg'
-import claudeImg from '../../assets/claude.png'
 import { ROUTES } from '../../routes'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
@@ -12,10 +10,18 @@ const DEV_PREVIEW_PROMPT = '삼성전자'
 export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
+  const [modelName, setModelName] = useState<string | null>(null)
 
   useEffect(() => {
     console.log('[Page] SettingsPage 렌더링')
   }, [])
+
+  useEffect(() => {
+    if (!selectedModel) return
+    window.api.getModelInfo(selectedModel).then((result) => {
+      setModelName(result.modelName)
+    })
+  }, [selectedModel])
 
   useEffect(() => {
     if (!selectedModel) {
@@ -52,15 +58,30 @@ export default function InfoPage(): React.JSX.Element {
   }
 
   const isGpt = selectedModel === 'gpt'
-  const modelLabel = isGpt ? 'GPT' : 'Claude'
-  const modelDescription = isGpt
-    ? 'Codex CLI 기반으로 분석을 실행합니다.'
-    : 'Claude Code CLI 기반으로 분석을 실행합니다.'
-  const modelImage = isGpt ? gptImg : claudeImg
+
+  const modelNameBadgeStyle: React.CSSProperties = {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-tertiary)',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border)',
+    borderRadius: 6,
+    padding: '2px 7px',
+    fontFamily: "'SF Mono', 'Menlo', monospace",
+    verticalAlign: 'middle'
+  }
+
+  const modelDescription = isGpt ? (
+    <span>
+      {modelName
+        ? <><span style={modelNameBadgeStyle}>{modelName}</span>{' 기반으로 분석을 실행합니다.'}</>
+        : 'GPT 기반으로 분석을 실행합니다.'
+      }
+    </span>
+  ) : 'Claude 기반으로 분석을 실행합니다.'
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate(ROUTES.PROMPT)} title="설정" />
+      <NavBar onBack={() => navigate(ROUTES.PROMPT)} />
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 24, paddingBottom: 24 }}>
@@ -70,15 +91,7 @@ export default function InfoPage(): React.JSX.Element {
               현재 모델
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <img
-                src={modelImage}
-                alt={modelLabel}
-                style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover' }}
-              />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>
-                  {modelLabel}
-                </div>
                 <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                   {modelDescription}
                 </div>

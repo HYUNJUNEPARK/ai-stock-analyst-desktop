@@ -56,6 +56,9 @@ declare global {
       // 외부 URL을 시스템 기본 브라우저로 열기
       openExternalUrl: (url: string) => Promise<void>
 
+      // 선택된 모델의 구체적인 모델명 조회
+      getModelInfo: (model: string) => Promise<{ modelName: string | null }>
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void
