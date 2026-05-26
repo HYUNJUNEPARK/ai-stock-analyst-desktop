@@ -116,6 +116,34 @@ export default function InfoPage(): React.JSX.Element {
 
           <section className="card" style={{ padding: 18, marginTop: 14 }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+              개발자 정보
+            </div>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={settingsRowTitleStyle}>이름</div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+                  PARK HYUNJUNE
+                </div>
+              </div>
+              <div style={{ height: 1, background: 'var(--border)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={settingsRowTitleStyle}>GitHub</div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', fontFamily: "'SF Mono', 'Menlo', monospace" }}>
+                  github.com/HYUNJUNEPARK
+                </div>
+              </div>
+              <div style={{ height: 1, background: 'var(--border)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={settingsRowTitleStyle}>이메일</div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+                  june2ac4dev@gmail.com
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="card" style={{ padding: 18, marginTop: 14 }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
               앱 정보
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -125,6 +153,7 @@ export default function InfoPage(): React.JSX.Element {
               </div>
             </div>
           </section>
+
 
           {import.meta.env.DEV && (
             <section className="card" style={{ padding: 18, marginTop: 14 }}>
