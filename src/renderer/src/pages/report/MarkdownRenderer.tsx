@@ -1,5 +1,5 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
-import CodeBlock from './CodeBlock'
 
 type MarkdownRendererProps = {
   text: string
@@ -137,6 +137,29 @@ export default function MarkdownRenderer({
     <div className="markdown-body" style={{ userSelect: 'text' }}>
       {elements}
       {isStreaming && <span className="streaming-cursor" aria-hidden="true" />}
+    </div>
+  )
+}
+
+// 코드 블록(```lang ... ```)을 렌더링하는 컴포넌트. 언어 레이블과 클립보드 복사 버튼을 포함한다.
+function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.Element {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy(): void {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  return (
+    <div className="code-block">
+      <div className="code-block-header">
+        <span className="code-lang">{lang || 'code'}</span>
+        <button className="code-copy-btn" onClick={handleCopy}>
+          {copied ? '복사됨' : '복사'}
+        </button>
+      </div>
+      <div className="code-body">{code}</div>
     </div>
   )
 }

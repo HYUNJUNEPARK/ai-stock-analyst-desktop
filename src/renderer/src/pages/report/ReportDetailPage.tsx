@@ -3,9 +3,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import gptIcon from '../../assets/gpt.jpg'
 import NavBar from '../../components/NavBar'
 import claudeIcon from '../../assets/claude.png'
-import GptReportView from '../response/components/GptReportView'
+import GptReportView from './GptReportView'
 import type { ComponentProps } from 'react'
-import MarkdownRenderer from '../response/components/MarkdownRenderer'
+import MarkdownRenderer from './MarkdownRenderer'
 import { ROUTES } from '../../routes'
 
 type GptReport = ComponentProps<typeof GptReportView>['data']

@@ -1,7 +1,6 @@
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus, PreviewModel, Status } from '../types'
 import ErrorResponseView from './ErrorResponseView'
-import MarkdownRenderer from './MarkdownRenderer'
 import StreamingResponseView from './StreamingResponseView'
 
 type ResponseCardProps = {
@@ -111,10 +110,10 @@ export default function ResponseCard({
         )}
       </div>
 
+      {/* 분석 취소 */}
       <div
         style={{ padding: 16, minHeight: contentMinHeight, position: 'relative' }}
         role="article"
-        aria-label="AI 응답"
       >
         {isCancelled && (
           <div
@@ -146,6 +145,7 @@ export default function ResponseCard({
 
         {isError && <ErrorResponseView errorMsg={errorMsg} onRetry={onRetry} />}
 
+        {/* 분석 중 */}
         {!isCancelled && !isError && isStreamingEmpty && (
           <StreamingResponseView
             agentStatuses={agentStatuses}
@@ -154,6 +154,7 @@ export default function ResponseCard({
           />
         )}
 
+        {/* 분석 완료 */}
         {!isCancelled && !isError && isStockModel && status === 'done' && (
           <div
             style={{
@@ -180,10 +181,6 @@ export default function ResponseCard({
               </button>
             </div>
           </div>
-        )}
-
-        {!isCancelled && !isError && !isStockModel && (response || status !== 'streaming') && (
-          <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
         )}
       </div>
     </div>

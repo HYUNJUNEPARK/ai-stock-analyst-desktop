@@ -4,7 +4,6 @@ import claudeImg from '../../assets/claude.png'
 import NavBar from '../../components/NavBar'
 import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
-import PromptBubble from './components/PromptBubble'
 import ResponseCard from './components/ResponseCard'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
@@ -136,7 +135,24 @@ export default function ResponsePage(): React.JSX.Element {
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
-          <PromptBubble prompt={effectivePrompt} />
+          {/* 사용자가 입력한 프롬프트를 말풍선 형태로 오른쪽에 표시 */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <div
+              style={{
+                maxWidth: '80%',
+                background: 'var(--accent)',
+                color: '#fff',
+                borderRadius: '18px 18px 4px 18px',
+                padding: '12px 16px',
+                fontSize: 'var(--text-base)',
+                lineHeight: 1.5,
+                wordBreak: 'break-word',
+                userSelect: 'text'
+              }}
+            >
+              {effectivePrompt}
+            </div>
+          </div>
 
           <ResponseCard
             agentStatuses={agentStatuses}
