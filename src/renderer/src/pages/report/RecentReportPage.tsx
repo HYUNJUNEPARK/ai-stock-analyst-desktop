@@ -120,7 +120,7 @@ function reportCard(report: ReportFile, onClick: (name: string) => void): React.
       <div className="report-list-body">
         <div className="report-list-topline">
           <div className="report-list-title">{displayName}</div>
-          <div className="report-list-time">{formatTime(report.createdAt)}</div>
+          {/* <div className="report-list-time">{formatTime(report.createdAt)}</div> */}
         </div>
         {subtitle && (
           <div className="report-list-subtitle">{subtitle}</div>
