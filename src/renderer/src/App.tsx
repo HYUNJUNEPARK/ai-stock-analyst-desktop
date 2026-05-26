@@ -8,20 +8,21 @@ import ResponsePage from './pages/response/ResponsePage'
 import SettingsPage from './pages/setting/SettingsPage'
 import RecentReportPage from './pages/report/RecentReportPage'
 import ReportDetailPage from './pages/report/ReportDetailPage'
+import { ROUTES } from './routes'
 
 function App(): React.JSX.Element {
   return (
     <Routes>
-      <Route path="/" element={<ModelSelectionPage />} />
-      <Route path="/landing" element={<LandingPage />} />
-      <Route path="/download" element={<CliDownloadPage />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/reports/latest" element={<RecentReportPage />} />
-      <Route path="/reports/:name" element={<ReportDetailPage />} />
-      <Route path="/prompt" element={<PromptPage />} />
-      <Route path="/response" element={<ResponsePage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path={ROUTES.ROOT} element={<ModelSelectionPage />} />
+      <Route path={ROUTES.LANDING} element={<LandingPage />} />
+      <Route path={ROUTES.DOWNLOAD} element={<CliDownloadPage />} />
+      <Route path={ROUTES.AUTH} element={<AuthPage />} />
+      <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+      <Route path={ROUTES.REPORTS_LATEST} element={<RecentReportPage />} />
+      <Route path={ROUTES.REPORT_DETAIL(':name')} element={<ReportDetailPage />} />
+      <Route path={ROUTES.PROMPT} element={<PromptPage />} />
+      <Route path={ROUTES.RESPONSE} element={<ResponsePage />} />
+      <Route path="*" element={<Navigate to={ROUTES.ROOT} replace />} />
     </Routes>
   )
 }

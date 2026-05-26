@@ -1,7 +1,6 @@
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus, PreviewModel, Status } from '../types'
 import ErrorResponseView from './ErrorResponseView'
-import GptReportView from './GptReportView'
 import MarkdownRenderer from './MarkdownRenderer'
 import StreamingResponseView from './StreamingResponseView'
 
@@ -13,6 +12,7 @@ type ResponseCardProps = {
   modelLabel: string
   onCancel: () => void
   onRetry: () => void
+  onViewReport: () => void
   response: string
   status: Status
 }
@@ -25,6 +25,7 @@ export default function ResponseCard({
   modelLabel,
   onCancel,
   onRetry,
+  onViewReport,
   response,
   status
 }: ResponseCardProps): React.JSX.Element {
@@ -153,17 +154,37 @@ export default function ResponseCard({
           />
         )}
 
-        {!isCancelled && !isError && (response || status !== 'streaming') && (() => {
-          if (model === 'gpt' && status === 'done' && response) {
-            try {
-              return <GptReportView data={JSON.parse(response)} />
-            } catch(error) {
-              // JSON 파싱 실패 시 마크다운으로 폴백
-              console.error('Failed to parse GPT response as JSON:', error)
-            }
-          }
-          return <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
-        })()}
+        {!isCancelled && !isError && isStockModel && status === 'done' && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 'inherit'
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-sm)'
+              }}
+            >
+              분석이 완료되었습니다.
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+              <button className="btn-ghost" onClick={onViewReport}>
+                보고서 보기
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!isCancelled && !isError && !isStockModel && (response || status !== 'streaming') && (
+          <MarkdownRenderer text={response} isStreaming={status === 'streaming'} />
+        )}
       </div>
     </div>
   )

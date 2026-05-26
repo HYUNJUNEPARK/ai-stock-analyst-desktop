@@ -6,6 +6,7 @@ import claudeIcon from '../../assets/claude.png'
 import GptReportView from '../response/components/GptReportView'
 import type { ComponentProps } from 'react'
 import MarkdownRenderer from '../response/components/MarkdownRenderer'
+import { ROUTES } from '../../routes'
 
 type GptReport = ComponentProps<typeof GptReportView>['data']
 
@@ -53,7 +54,7 @@ export default function ReportDetailPage(): React.JSX.Element {
       return
     }
 
-    navigate('/reports/latest')
+    navigate(ROUTES.REPORTS_LATEST)
   }
 
   return (

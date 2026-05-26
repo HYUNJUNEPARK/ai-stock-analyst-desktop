@@ -5,6 +5,7 @@ import PageFooter from '../../components/PageFooter'
 import InstallingState from './InstallingState'
 import SuccessState from './SuccessState'
 import ErrorState from './ErrorState'
+import { ROUTES } from '../../routes'
 
 type Status = 'installing' | 'success' | 'error'
 
@@ -24,7 +25,7 @@ export default function CliDownloadPage(): React.JSX.Element {
   useEffect(() => {
     // 모델이 선택되지 않은 상태로 직접 접근하면 홈으로 리다이렉트
     if (!selectedModel) {
-      navigate('/')
+      navigate(ROUTES.ROOT)
       return
     }
 
@@ -90,7 +91,7 @@ export default function CliDownloadPage(): React.JSX.Element {
 
       {status === 'success' && (
         <PageFooter>
-          <button className="btn-primary" onClick={() => navigate('/auth')}>
+          <button className="btn-primary" onClick={() => navigate(ROUTES.AUTH)}>
             로그인 하기
             <svg
               width="18"
@@ -113,7 +114,7 @@ export default function CliDownloadPage(): React.JSX.Element {
           <button className="btn-primary danger" onClick={handleRetry}>
             다시 시도
           </button>
-          <button className="btn-ghost btn-gap" onClick={() => navigate('/')}>
+          <button className="btn-ghost btn-gap" onClick={() => navigate(ROUTES.ROOT)}>
             모델 다시 선택
           </button>
         </PageFooter>

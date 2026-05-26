@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import claudeImg from '../../assets/claude.png'
 import PageFooter from '../../components/PageFooter'
 import NavBar from '../../components/NavBar'
+import { ROUTES } from '../../routes'
 
 export default function ClaudeAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -32,7 +33,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
     window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setCliStatus('done')
-        setTimeout(() => navigate('/prompt'), 800)
+        setTimeout(() => navigate(ROUTES.PROMPT), 800)
         return
       }
 
@@ -45,7 +46,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate('/')} />
+      <NavBar onBack={() => navigate(ROUTES.ROOT)} />
 
       <div className="page-content">
         <div className="content-container">

@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext'
 import NavBar from '../../components/NavBar'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
+import { ROUTES } from '../../routes'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
 
@@ -18,7 +19,7 @@ export default function SettingsPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!selectedModel) {
-      navigate('/')
+      navigate(ROUTES.ROOT)
     }
   }, [navigate, selectedModel])
 
@@ -27,7 +28,7 @@ export default function SettingsPage(): React.JSX.Element {
   function handleDevPreview(): void {
     const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
     setCurrentPrompt(previewPrompt)
-    navigate('/response', {
+    navigate(ROUTES.RESPONSE, {
       state: {
         previewOnly: true,
         previewStatus: 'done',
@@ -40,7 +41,7 @@ export default function SettingsPage(): React.JSX.Element {
   function handleDevProcessingPreview(): void {
     const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
     setCurrentPrompt(previewPrompt)
-    navigate('/response', {
+    navigate(ROUTES.RESPONSE, {
       state: {
         previewOnly: true,
         previewStatus: 'streaming',
@@ -59,7 +60,7 @@ export default function SettingsPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate('/prompt')} title="설정" />
+      <NavBar onBack={() => navigate(ROUTES.PROMPT)} title="설정" />
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 24, paddingBottom: 24 }}>
@@ -90,7 +91,7 @@ export default function SettingsPage(): React.JSX.Element {
               빠른 작업
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-              <button onClick={() => navigate('/reports/latest')} style={settingsRowButtonStyle}>
+              <button onClick={() => navigate(ROUTES.REPORTS_LATEST)} style={settingsRowButtonStyle}>
                 <div>
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
                   <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>

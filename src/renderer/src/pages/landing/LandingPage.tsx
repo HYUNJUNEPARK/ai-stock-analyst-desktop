@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
+import { ROUTES } from '../../routes'
 
 export default function LandingPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -12,17 +13,17 @@ export default function LandingPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!selectedModel) {
-      navigate('/')
+      navigate(ROUTES.ROOT)
       return
     }
 
     window.api.checkCliStatus(selectedModel).then((result) => {
       if (!result.cliInstalled) {
-        navigate('/download')
+        navigate(ROUTES.DOWNLOAD)
       } else if (result.authenticated) {
-        navigate('/prompt')
+        navigate(ROUTES.PROMPT)
       } else {
-        navigate('/auth')
+        navigate(ROUTES.AUTH)
       }
     })
   }, [])

@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext'
 import ComingSoonDialog from '../../components/ComingSoonDialog'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
+import { ROUTES } from '../../routes'
 
 const models = [
   {
@@ -40,7 +41,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
       return
     }
     setSelectedModel(id)
-    navigate('/landing')
+    navigate(ROUTES.LANDING)
   }
 
   return (

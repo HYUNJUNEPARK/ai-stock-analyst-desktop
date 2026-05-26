@@ -5,6 +5,7 @@ import NavBar from '../../components/NavBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
+import { ROUTES } from '../../routes'
 
 type ReportFile = {
   name: string
@@ -72,7 +73,7 @@ export default function RecentReportPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate('/settings')} title="이전 보고서" />
+      <NavBar onBack={() => navigate(ROUTES.SETTINGS)} title="이전 보고서" />
 
       <div className="page-content">
         <div className="content-container content-container-compact">

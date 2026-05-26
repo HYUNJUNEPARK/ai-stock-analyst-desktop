@@ -8,6 +8,7 @@ import PromptBubble from './components/PromptBubble'
 import ResponseCard from './components/ResponseCard'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
+import { ROUTES } from '../../routes'
 
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -46,7 +47,7 @@ export default function ResponsePage(): React.JSX.Element {
     }
 
     if (!effectiveModel || !effectivePrompt) {
-      navigate('/')
+      navigate(ROUTES.ROOT)
       return
     }
 
@@ -115,7 +116,7 @@ export default function ResponsePage(): React.JSX.Element {
     }
 
     if (!effectiveModel || !effectivePrompt) {
-      navigate('/')
+      navigate(ROUTES.ROOT)
       return
     }
 
@@ -131,7 +132,7 @@ export default function ResponsePage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate('/prompt')} disabled={status === 'streaming'} />
+      <NavBar onBack={() => navigate(ROUTES.PROMPT)} disabled={status === 'streaming'} />
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
@@ -145,6 +146,7 @@ export default function ResponsePage(): React.JSX.Element {
             modelLabel={modelLabel}
             onCancel={handleCancel}
             onRetry={handleRetry}
+            onViewReport={() => navigate(ROUTES.REPORTS_LATEST)}
             response={response}
             status={status}
           />

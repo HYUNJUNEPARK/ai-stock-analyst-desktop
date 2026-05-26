@@ -6,6 +6,7 @@ import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
 import RecentReportModal, { RecentReport } from './components/RecentReportModal'
 import PromptInput from './components/PromptInput'
+import { ROUTES } from '../../routes'
 
 const MAX_CHARS = 100
 
@@ -50,13 +51,13 @@ export default function PromptPage(): React.JSX.Element {
     }
 
     setCurrentPrompt(trimmed)
-    navigate('/response')
+    navigate(ROUTES.RESPONSE)
   }
 
   function handleConfirmAnalysis(): void {
     setRecentReport(null)
     setCurrentPrompt(text.trim())
-    navigate('/response')
+    navigate(ROUTES.RESPONSE)
   }
 
   function handleViewReport(): void {
@@ -93,7 +94,7 @@ export default function PromptPage(): React.JSX.Element {
         </div>
         <div className="nav-right">
           <button
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate(ROUTES.SETTINGS)}
             aria-label="설정"
             style={{
               background: 'none',
