@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiChevronRight } from 'react-icons/fi'
+import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 
@@ -24,10 +25,24 @@ export default function RecentReportPage(): React.JSX.Element {
   const navigate = useNavigate()
   const [reports, setReports] = useState<ReportFile[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState<ReportFile | null>(null)
   const sections = groupReportsByDate(reports)
 
   const handleReportClick = (name: string): void => {
     void window.api.openReportDetailWindow(name)
+  }
+
+  const handleDeleteRequest = (report: ReportFile): void => {
+    setDeleteTarget(report)
+  }
+
+  const handleDeleteCancel = (): void => {
+    setDeleteTarget(null)
+  }
+
+  const handleDeleteConfirm = (): void => {
+    // TODO: 삭제 로직 연결
+    setDeleteTarget(null)
   }
 
   useEffect(() => {
@@ -48,6 +63,12 @@ export default function RecentReportPage(): React.JSX.Element {
       cancelled = true
     }
   }, [])
+
+  const deleteTargetLabel = deleteTarget
+    ? deleteTarget.ticker
+      ? `${deleteTarget.company}(${deleteTarget.ticker})`
+      : deleteTarget.company || deleteTarget.name.replace(/\.json$/, '')
+    : ''
 
   return (
     <div className="page">
@@ -84,7 +105,7 @@ export default function RecentReportPage(): React.JSX.Element {
                   <div className="card report-list-card">
                     <div className="report-list">
                       {section.reports.map((report) => (
-                        reportCard(report, handleReportClick)
+                        reportCard(report, handleReportClick, handleDeleteRequest)
                       ))}
                     </div>
                   </div>
@@ -94,11 +115,26 @@ export default function RecentReportPage(): React.JSX.Element {
           )}
         </div>
       </div>
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="보고서 삭제"
+          message={`'${deleteTargetLabel}' 보고서를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
+          confirmLabel="삭제"
+          cancelLabel="취소"
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      )}
     </div>
   )
 }
 
-function reportCard(report: ReportFile, onClick: (name: string) => void): React.JSX.Element {
+function reportCard(
+  report: ReportFile,
+  onClick: (name: string) => void,
+  onDelete: (report: ReportFile) => void
+): React.JSX.Element {
   const displayName = report.company || report.name.replace(/\.json$/, '')
   const label = report.ticker ? `${displayName}(${report.ticker})` : displayName
 
@@ -117,6 +153,17 @@ function reportCard(report: ReportFile, onClick: (name: string) => void): React.
       <div className="report-list-body report-list-body--center">
         <div className="report-list-title">{label}</div>
       </div>
+      <button
+        type="button"
+        className="report-list-delete-btn"
+        aria-label="보고서 삭제"
+        onClick={(e) => {
+          e.stopPropagation()
+          onDelete(report)
+        }}
+      >
+        <FiTrash2 size={15} />
+      </button>
       <FiChevronRight className="report-list-chevron" aria-hidden="true" />
     </button>
   )

@@ -29,4 +29,7 @@ export const cliStatsApi = {
 
   /** 지정한 보고서를 별도 창(BrowserWindow)으로 열어 상세 보기를 제공한다 */
   openReportDetailWindow: (name: string) => ipcRenderer.invoke(IPC.OPEN_REPORT_DETAIL_WINDOW, name),
+
+  /** 분석 artifact 디렉토리에서 역할별 중간 분석 결과(MD)를 읽어 반환한다 */
+  readArtifactFiles: (artifactDir: string) => ipcRenderer.invoke(IPC.READ_ARTIFACT_FILES, artifactDir),
 }

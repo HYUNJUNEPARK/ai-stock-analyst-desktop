@@ -112,7 +112,8 @@ async function main() {
     'ai-model': parsedReport['ai-model'] || aiInfo.model,
     aiInfo,
     company: parsedReport.company || company,
-    ticker: parsedReport.ticker || ticker
+    ticker: parsedReport.ticker || ticker,
+    artifactDir
   }
   await writeFile(finalReportPath, JSON.stringify(reportJson, null, 2), 'utf8')
 

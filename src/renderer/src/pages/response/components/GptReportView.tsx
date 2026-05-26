@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react'
+import MarkdownRenderer from './MarkdownRenderer'
+
 type GptReport = {
   company: string
   ticker: string
@@ -8,6 +11,7 @@ type GptReport = {
     model?: string
     engine?: string
   }
+  artifactDir?: string
   verdict: string
   verdictEmoji: string
   summary: string
@@ -32,6 +36,15 @@ type GptReport = {
   monitoringPoints: string[]
 }
 
+type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector'
+
+const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
+  { key: 'summary', label: '종합 보고서' },
+  { key: 'financial', label: '재무 분석' },
+  { key: 'news', label: '뉴스 감성' },
+  { key: 'sector', label: '섹터 리서치' },
+]
+
 const VERDICT_COLORS: Record<string, string> = {
   '적극 매수': '#e53935',
   '분할 매수': '#f57c00',
@@ -44,6 +57,18 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
   const aiModel = data['ai-model'] || data.aiInfo?.model
   const aiProvider = data.aiInfo?.provider
+  const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
+  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string } | null>(null)
+  const [artifactLoading, setArtifactLoading] = useState(false)
+
+  useEffect(() => {
+    if (activeTab === 'summary' || !data.artifactDir || artifacts) return
+    setArtifactLoading(true)
+    window.api.readArtifactFiles(data.artifactDir).then((result) => {
+      setArtifacts(result)
+      setArtifactLoading(false)
+    })
+  }, [activeTab, data.artifactDir, artifacts])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -80,6 +105,62 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
           </span>
         </div>
       </div>
+
+      {/* 탭 바 */}
+      {data.artifactDir && (
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            background: 'var(--bg-secondary)',
+            borderRadius: 10,
+            padding: 4,
+          }}
+        >
+          {TAB_LABELS.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              style={{
+                flex: 1,
+                padding: '6px 0',
+                fontSize: 'var(--text-xs)',
+                fontWeight: activeTab === key ? 700 : 400,
+                color: activeTab === key ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                background: activeTab === key ? 'var(--bg-primary)' : 'transparent',
+                border: activeTab === key ? '1px solid var(--border)' : '1px solid transparent',
+                borderRadius: 7,
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 역할별 상세 분석 탭 내용 */}
+      {activeTab !== 'summary' && (
+        <div>
+          {artifactLoading ? (
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
+              불러오는 중...
+            </div>
+          ) : (
+            <MarkdownRenderer
+              text={
+                activeTab === 'financial' ? (artifacts?.financial ?? '') :
+                activeTab === 'news' ? (artifacts?.news ?? '') :
+                (artifacts?.sector ?? '')
+              }
+              isStreaming={false}
+            />
+          )}
+        </div>
+      )}
+
+      {activeTab === 'summary' && <>
 
       {/* 한 줄 요약 */}
       <div
@@ -176,6 +257,8 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
         본 분석은 투자 참고용이며, 최종 투자 결정은 본인의 책임입니다.
       </div>
+
+      </>}
     </div>
   )
 }

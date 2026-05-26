@@ -239,4 +239,28 @@ export function registerCliStatsHandlers(): void {
       return { success: false, error: (error as Error).message }
     }
   })
+
+  /**
+   * IPC 채널: 'read-artifact-files'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 분석 artifact 디렉토리에서 역할별 중간 분석 결과(MD)를 읽어 반환
+   *
+   * artifactDir: analyze-stock.mjs가 보고서 JSON에 포함한 절대 경로
+   * 반환값: { financial, news, sector } — 각 역할의 마크다운 내용
+   */
+  ipcMain.handle(IPC.READ_ARTIFACT_FILES, (_event, artifactDir: string) => {
+    console.log(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
+    const read = (filename: string): string => {
+      try {
+        return readFileSync(join(artifactDir, filename), 'utf-8')
+      } catch {
+        return ''
+      }
+    }
+    return {
+      financial: read('financial-analyst-kr.md'),
+      news: read('news-sentiment-analyst.md'),
+      sector: read('sector-researcher.md'),
+    }
+  })
 }
