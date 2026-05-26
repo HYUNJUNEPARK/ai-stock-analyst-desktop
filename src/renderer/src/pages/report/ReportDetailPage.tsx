@@ -3,19 +3,12 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import gptIcon from '../../assets/gpt.jpg'
 import NavBar from '../../components/NavBar'
 import claudeIcon from '../../assets/claude.png'
-import GptReportView from './GptReportView'
 import type { ComponentProps } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
+import ReportView from './ReportView'
 import { ROUTES } from '../../routes'
 
-type GptReport = ComponentProps<typeof GptReportView>['data']
-
-function renderReport(data: Record<string, unknown>, isGpt: boolean): React.JSX.Element {
-  if (isGpt) {
-    return <GptReportView data={data as unknown as GptReport} />
-  }
-  return <MarkdownRenderer text={JSON.stringify(data, null, 2)} isStreaming={false} />
-}
+type GptReport = ComponentProps<typeof ReportView>['data']
 
 export default function ReportDetailPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -105,7 +98,11 @@ export default function ReportDetailPage(): React.JSX.Element {
                 </div>
               )}
 
-              {!loading && !error && data && renderReport(data, isGpt)}
+              {!loading && !error && data && (
+                isGpt
+                  ? <ReportView data={data as unknown as GptReport} />
+                  : <MarkdownRenderer text={JSON.stringify(data, null, 2)} isStreaming={false} />
+              )}
             </div>
           </div>
         </div>

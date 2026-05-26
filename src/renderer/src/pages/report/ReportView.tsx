@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 
-type GptReport = {
+type Report = {
   company: string
   ticker: string
   asOfDate: string
@@ -53,7 +53,7 @@ const VERDICT_COLORS: Record<string, string> = {
   '매도': '#1976d2'
 }
 
-export default function GptReportView({ data }: { data: GptReport }): React.JSX.Element {
+export default function ReportView({ data }: { data: Report }): React.JSX.Element {
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
   const aiModel = data['ai-model'] || data.aiInfo?.model
   const aiProvider = data.aiInfo?.provider
