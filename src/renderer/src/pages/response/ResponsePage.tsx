@@ -20,7 +20,6 @@ export default function ResponsePage(): React.JSX.Element {
     ? (previewState?.model ?? selectedModel ?? 'gpt')
     : selectedModel
   const effectivePrompt = isPreviewOnly ? (previewState?.prompt ?? currentPrompt) : currentPrompt
-  const apiKey = ''
   const initialResponse = isPreviewOnly && previewStatus === 'done' ? DEV_PREVIEW_RESPONSE : ''
   const [response, setResponse] = useState(initialResponse)
   const [status, setStatus] = useState<Status>(isPreviewOnly ? previewStatus : 'streaming')
@@ -71,7 +70,7 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt, apiKey })
+      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt })
     } else {
       window.api.onResponseChunk((chunk: string) => {
         responseRef.current += chunk
@@ -88,7 +87,7 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt, apiKey })
+      window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt })
     }
   }, [effectiveModel, effectivePrompt, isPreviewOnly, navigate, previewStatus, setLastResponse])
 
@@ -121,9 +120,9 @@ export default function ResponsePage(): React.JSX.Element {
     }
 
     if (isStockAnalysisModel(effectiveModel)) {
-      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt, apiKey })
+      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt })
     } else {
-      window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt, apiKey })
+      window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt })
     }
   }
 

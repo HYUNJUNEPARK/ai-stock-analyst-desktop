@@ -57,12 +57,12 @@ declare global {
       onCliLoginComplete: (callback: (result: { success: boolean; error?: string }) => void) => void
 
       /* 프롬프트 실행 */
-      runPrompt: (params: { model: string; prompt: string; apiKey: string }) => void
+      runPrompt: (params: { model: string; prompt: string }) => void
       onResponseChunk: (callback: (chunk: string) => void) => void
       onResponseDone: (callback: (result: { success: boolean; error?: string }) => void) => void
 
       /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis: (params: { model: string; prompt: string; apiKey: string }) => void
+      runStockAnalysis: (params: { model: string; prompt: string }) => void
       cancelStockAnalysis: () => void
       onStockAnalysisAgent: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
       onStockAnalysisChunk: (callback: (chunk: string) => void) => void

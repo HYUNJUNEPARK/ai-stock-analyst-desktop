@@ -89,7 +89,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
 
       <ComingSoonDialog
         visible={showComingSoonPopup}
-        message={'Claude 모델 지원은 현재 준비 중입니다.\n조금만 기다려 주세요!'}
+        message={'Claude 모델 지원은 현재 준비 중입니다.'}
         onClose={() => setShowComingSoonPopup(false)}
       />
     </div>
