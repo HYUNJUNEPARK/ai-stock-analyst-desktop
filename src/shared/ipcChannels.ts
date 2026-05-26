@@ -28,6 +28,9 @@ export const IPC = {
   STOCK_ANALYSIS_CHUNK: 'stock-analysis-chunk',
   STOCK_ANALYSIS_DONE: 'stock-analysis-done',
 
+  // 유틸리티
+  OPEN_EXTERNAL_URL: 'open-external-url',
+
   // 통계 / 리포트
   CHECK_CLI_STATS: 'check-cli-stats',
   LIST_GPT_REPORT_FILES: 'list-gpt-report-files',

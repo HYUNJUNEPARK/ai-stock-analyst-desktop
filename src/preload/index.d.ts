@@ -53,6 +53,9 @@ declare global {
       // artifact 역할별 분석 결과 읽기
       readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string }>
 
+      // 외부 URL을 시스템 기본 브라우저로 열기
+      openExternalUrl: (url: string) => Promise<void>
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void

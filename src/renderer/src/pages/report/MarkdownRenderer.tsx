@@ -258,9 +258,41 @@ function CodeBlock({ lang, code }: { lang: string; code: string }): React.JSX.El
   )
 }
 
+function openUrl(url: string): void {
+  window.api.openExternalUrl(url)
+}
+
 function renderInline(text: string): ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|`[^`]+`)/g)
+  // 마크다운 링크 [text](url), 인라인 코드, 볼드, 이탤릭, 날 URL 순으로 파싱
+  const parts = text.split(/(\[[^\]]+\]\(https?:\/\/[^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|`[^`]+`|https?:\/\/[^\s)>]+)/g)
   return parts.map((part, i) => {
+    // [텍스트](URL) 마크다운 링크
+    const mdLink = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/)
+    if (mdLink) {
+      return (
+        <a
+          key={i}
+          href="#"
+          onClick={(e) => { e.preventDefault(); openUrl(mdLink[2]) }}
+          style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+          {mdLink[1]}
+        </a>
+      )
+    }
+    // 날 URL
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={i}
+          href="#"
+          onClick={(e) => { e.preventDefault(); openUrl(part) }}
+          style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer', wordBreak: 'break-all' }}
+        >
+          {part}
+        </a>
+      )
+    }
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i}>{part.slice(2, -2)}</strong>
     }

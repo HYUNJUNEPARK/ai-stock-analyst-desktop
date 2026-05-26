@@ -32,4 +32,7 @@ export const cliStatsApi = {
 
   /** 분석 artifact 디렉토리에서 역할별 중간 분석 결과(MD)를 읽어 반환한다 */
   readArtifactFiles: (artifactDir: string) => ipcRenderer.invoke(IPC.READ_ARTIFACT_FILES, artifactDir),
+
+  /** 지정한 URL을 시스템 기본 브라우저로 연다 (http/https만 허용) */
+  openExternalUrl: (url: string) => ipcRenderer.invoke(IPC.OPEN_EXTERNAL_URL, url),
 }

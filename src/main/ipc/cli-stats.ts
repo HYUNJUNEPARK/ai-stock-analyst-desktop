@@ -6,7 +6,7 @@
  *   - list-gpt-report-files: GPT 분석 보고서 파일 목록 조회 (양방향)
  */
 
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow, shell } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { homedir } from 'os'
@@ -75,6 +75,19 @@ function getWeekRange(): { weekStart: string; weekEnd: string; mondayTs: number 
  * win을 사용하지 않지만 다른 핸들러와 등록 패턴을 통일하기 위해 인자를 받는다.
  */
 export function registerCliStatsHandlers(): void {
+
+  /**
+   * IPC 채널: 'open-external-url'
+   * 방향: renderer → main (handle = 양방향)
+   * 용도: 보고서 내 웹 링크를 시스템 기본 브라우저로 열기
+   *
+   * http:// 또는 https:// URL만 허용하며, 그 외 스킴은 무시한다.
+   */
+  ipcMain.handle(IPC.OPEN_EXTERNAL_URL, (_event, url: string) => {
+    if (typeof url === 'string' && /^https?:\/\//.test(url)) {
+      shell.openExternal(url)
+    }
+  })
 
   /**
    * IPC 채널: 'check-cli-stats'
