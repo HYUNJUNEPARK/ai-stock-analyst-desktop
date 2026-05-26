@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { FiChevronLeft } from 'react-icons/fi'
 import gptIcon from '../../assets/gpt.jpg'
+import NavBar from '../../components/NavBar'
 import claudeIcon from '../../assets/claude.png'
 import GptReportView from '../response/components/GptReportView'
 import type { ComponentProps } from 'react'
@@ -54,17 +54,11 @@ export default function ReportDetailPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <nav className="nav-bar">
-        <button
-          className="nav-back"
-          onClick={handleCloseOrBack}
-          aria-label={isStandaloneWindow ? '닫기' : '뒤로'}
-        >
-          <FiChevronLeft />
-          {isStandaloneWindow ? '닫기' : '뒤로'}
-        </button>
-        <div className="nav-title">보고서</div>
-      </nav>
+      <NavBar
+        onBack={handleCloseOrBack}
+        title="보고서"
+        backLabel={isStandaloneWindow ? '닫기' : '뒤로'}
+      />
 
       <div className="page-content">
         <div

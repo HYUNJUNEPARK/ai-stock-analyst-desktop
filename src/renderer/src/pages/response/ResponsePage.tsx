@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { FiChevronLeft } from 'react-icons/fi'
 import claudeImg from '../../assets/claude.png'
+import NavBar from '../../components/NavBar'
 import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
 import PromptBubble from './components/PromptBubble'
@@ -128,17 +128,7 @@ export default function ResponsePage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <nav className="nav-bar">
-        <button
-          className="nav-back"
-          onClick={() => navigate('/prompt')}
-          disabled={status === 'streaming'}
-          aria-label="뒤로"
-        >
-          <FiChevronLeft />
-          뒤로
-        </button>
-      </nav>
+      <NavBar onBack={() => navigate('/prompt')} disabled={status === 'streaming'} />
 
       <div className="page-content">
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>

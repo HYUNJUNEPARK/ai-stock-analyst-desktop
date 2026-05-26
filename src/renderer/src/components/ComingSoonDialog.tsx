@@ -38,7 +38,6 @@ export default function ComingSoonDialog({
           boxShadow: '0 8px 32px rgba(0,0,0,0.18)'
         }}
       >
-        <div style={{ fontSize: 36, marginBottom: 12 }}>🚧</div>
         <div
           style={{
             fontSize: 'var(--text-md)',

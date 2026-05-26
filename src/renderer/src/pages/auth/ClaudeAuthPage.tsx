@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiChevronLeft } from 'react-icons/fi'
 import claudeImg from '../../assets/claude.png'
 import PageFooter from '../../components/PageFooter'
+import NavBar from '../../components/NavBar'
 
 export default function ClaudeAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -41,12 +41,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <nav className="nav-bar">
-        <button className="nav-back" onClick={() => navigate('/')} aria-label="뒤로">
-          <FiChevronLeft />
-          뒤로
-        </button>
-      </nav>
+      <NavBar onBack={() => navigate('/')} />
 
       <div className="page-content">
         <div className="content-container">

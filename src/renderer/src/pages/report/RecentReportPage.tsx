@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiChevronRight } from 'react-icons/fi'
+import NavBar from '../../components/NavBar'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 
@@ -46,13 +47,7 @@ export default function RecentReportPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <nav className="nav-bar">
-        <button className="nav-back" onClick={() => navigate('/settings')} aria-label="뒤로">
-          <FiChevronLeft />
-          뒤로
-        </button>
-        <div className="nav-title">이전 보고서</div>
-      </nav>
+      <NavBar onBack={() => navigate('/settings')} title="이전 보고서" />
 
       <div className="page-content">
         <div className="content-container content-container-compact">
