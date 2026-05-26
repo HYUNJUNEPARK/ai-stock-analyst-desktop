@@ -30,6 +30,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import { join } from 'path'
 import { spawn, type ChildProcess } from 'child_process'
 import { readFileSync } from 'fs'
+import { IPC } from '../../shared/ipcChannels'
 import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import { spawnCommand, writeTerminalLine } from '../utils/spawn'
 import { getCliCommand, resolveCliCommand } from '../utils/cli'
@@ -85,7 +86,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    *   child.on('close') 핸들러에서 wasCancelled 플래그로 사용하기 위해서다.
    *   null이면 취소에 의한 종료로 간주하고 에러 이벤트를 renderer에 보내지 않는다.
    */
-  ipcMain.on('cancel-stock-analysis', () => {
+  ipcMain.on(IPC.CANCEL_STOCK_ANALYSIS, () => {
     console.log('[cancel-stock-analysis] 주식 분석 취소 요청')
     if (activeAnalysisChild) {
       const pid = activeAnalysisChild.pid
@@ -110,7 +111,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    * 용도: 사용자가 종목명/분석 요청을 입력하고 분석 시작 버튼을 클릭했을 때 호출
    */
   ipcMain.on(
-    'run-stock-analysis',
+    IPC.RUN_STOCK_ANALYSIS,
     (_event, { model, prompt }: { model: string; prompt: string; apiKey: string }) => {
       console.log(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
       const env: NodeJS.ProcessEnv = { ...process.env }
@@ -142,7 +143,7 @@ interface AnalysisContext {
 function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   const resolvedCodex = resolveCliCommand('codex')
   if (!resolvedCodex.command) {
-    win.webContents.send('stock-analysis-done', {
+    win.webContents.send(IPC.STOCK_ANALYSIS_DONE, {
       success: false,
       error: 'Codex CLI가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.'
     })
@@ -178,11 +179,11 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     analysisCompleted = true
     try {
       const reportJson = JSON.parse(readFileSync(reportPath, 'utf-8'))
-      win.webContents.send('stock-analysis-chunk', JSON.stringify(reportJson))
-      win.webContents.send('stock-analysis-done', { success: true })
+      win.webContents.send(IPC.STOCK_ANALYSIS_CHUNK, JSON.stringify(reportJson))
+      win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      win.webContents.send('stock-analysis-done', { success: false, error: `리포트 읽기 실패: ${message}` })
+      win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: `리포트 읽기 실패: ${message}` })
     }
   }
 
@@ -198,7 +199,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
       // 시스템 PATH 폴백 사용 알림 (스크립트가 bootstrap 시 출력하는 특수 라인)
       if (resolvedCodex.source === 'path' && line === '[bootstrap] codex-fallback:path') {
-        win.webContents.send('stock-analysis-chunk', '> 시스템 PATH의 `codex` 실행 파일을 사용합니다.\n\n')
+        win.webContents.send(IPC.STOCK_ANALYSIS_CHUNK, '> 시스템 PATH의 `codex` 실행 파일을 사용합니다.\n\n')
         continue
       }
 
@@ -206,7 +207,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
       const startMatch = line.match(/^\[start\]\s+(.+)$/)
       if (startMatch) {
         sendLog(`${getStockAgentLabel(startMatch[1])}을 시작했습니다.`)
-        win.webContents.send('stock-analysis-agent', { name: startMatch[1], status: 'running' })
+        win.webContents.send(IPC.STOCK_ANALYSIS_AGENT, { name: startMatch[1], status: 'running' })
         continue
       }
 
@@ -214,7 +215,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
       const doneMatch = line.match(/^\[done\]\s+(.+)$/)
       if (doneMatch) {
         sendLog(`${getStockAgentLabel(doneMatch[1])}을 완료했습니다.`)
-        win.webContents.send('stock-analysis-agent', { name: doneMatch[1], status: 'done' })
+        win.webContents.send(IPC.STOCK_ANALYSIS_AGENT, { name: doneMatch[1], status: 'done' })
         continue
       }
 
@@ -245,29 +246,29 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
     if (code === 0) {
       if (!finalReportPath) {
-        win.webContents.send('stock-analysis-done', { success: false, error: '최종 리포트 경로를 확인하지 못했습니다.' })
+        win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: '최종 리포트 경로를 확인하지 못했습니다.' })
         return
       }
       try {
         const report = readFileSync(finalReportPath, 'utf-8')
-        win.webContents.send('stock-analysis-chunk', report)
-        win.webContents.send('stock-analysis-done', { success: true })
+        win.webContents.send(IPC.STOCK_ANALYSIS_CHUNK, report)
+        win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: true })
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
-        win.webContents.send('stock-analysis-done', { success: false, error: `리포트 읽기 실패: ${message}` })
+        win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: `리포트 읽기 실패: ${message}` })
       }
       return
     }
 
     // 취소가 아닌 오류 종료일 때만 에러 이벤트 전송
     if (!wasCancelled) {
-      win.webContents.send('stock-analysis-done', { success: false, error: `분석 실패 (exit code: ${code})` })
+      win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: `분석 실패 (exit code: ${code})` })
     }
   })
 
   child.on('error', (err) => {
     setActiveChild(null)
-    win.webContents.send('stock-analysis-done', { success: false, error: `CLI 실행 오류: ${err.message}` })
+    win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: `CLI 실행 오류: ${err.message}` })
   })
 }
 
@@ -312,10 +313,10 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
     analysisCompleted = true
     if (ev.subtype === 'success') {
       sendLog('최종 투자 리포트를 생성했습니다.')
-      win.webContents.send('stock-analysis-chunk', ev.result ?? '')
-      win.webContents.send('stock-analysis-done', { success: true })
+      win.webContents.send(IPC.STOCK_ANALYSIS_CHUNK, ev.result ?? '')
+      win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: true })
     } else {
-      win.webContents.send('stock-analysis-done', {
+      win.webContents.send(IPC.STOCK_ANALYSIS_DONE, {
         success: false,
         error: (ev.error as string) ?? '분석 실패'
       })
@@ -343,7 +344,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
               if (agentType) {
                 agentToolMap.set(b.id as string, agentType)   // id → 에이전트명 저장
                 sendLog(`${getStockAgentLabel(agentType)}을 시작했습니다.`)
-                win.webContents.send('stock-analysis-agent', { name: agentType, status: 'running' })
+                win.webContents.send(IPC.STOCK_ANALYSIS_AGENT, { name: agentType, status: 'running' })
               }
             }
           }
@@ -358,7 +359,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
               const agentType = agentToolMap.get(b.tool_use_id as string)
               if (agentType) {
                 sendLog(`${getStockAgentLabel(agentType)}을 완료했습니다.`)
-                win.webContents.send('stock-analysis-agent', { name: agentType, status: 'done' })
+                win.webContents.send(IPC.STOCK_ANALYSIS_AGENT, { name: agentType, status: 'done' })
                 agentToolMap.delete(b.tool_use_id as string)   // 완료된 매핑 제거
               }
             }
@@ -403,7 +404,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
     if (analysisCompleted || wasCancelled) return
 
-    win.webContents.send('stock-analysis-done', {
+    win.webContents.send(IPC.STOCK_ANALYSIS_DONE, {
       success: false,
       error: code === 0
         ? '분석이 완료되었지만 결과를 가져오지 못했습니다.'
@@ -413,6 +414,6 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
   child.on('error', (err) => {
     setActiveChild(null)
-    win.webContents.send('stock-analysis-done', { success: false, error: `CLI 실행 오류: ${err.message}` })
+    win.webContents.send(IPC.STOCK_ANALYSIS_DONE, { success: false, error: `CLI 실행 오류: ${err.message}` })
   })
 }

@@ -86,7 +86,7 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
 export function streamLines(
   win: BrowserWindow,
   child: ReturnType<typeof spawn>,
-  channel: 'install-progress' | 'cli-login-progress',
+  channel: string,
   source: 'stdout' | 'stderr'
 ): void {
   const stream = child[source]

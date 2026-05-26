@@ -7,6 +7,7 @@
  */
 
 import { ipcRenderer } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 
 // main → renderer 이벤트를 받아 실행할 콜백 함수 보관소
 // renderer에서 onCliLoginProgress / onCliLoginComplete를 호출해 콜백을 등록하면 여기에 저장된다
@@ -19,9 +20,9 @@ let cliLoginCompleteCb: ((result: { success: boolean; error?: string }) => void)
  */
 export function registerCliAuthListeners(): void {
   // 로그인 진행 중 터미널 출력 로그를 스트리밍으로 수신
-  ipcRenderer.on('cli-login-progress', (_e, data: string) => cliLoginProgressCb?.(data))
+  ipcRenderer.on(IPC.CLI_LOGIN_PROGRESS, (_e, data: string) => cliLoginProgressCb?.(data))
   // 로그인 완료(성공 또는 실패) 결과 수신
-  ipcRenderer.on('cli-login-complete', (_e, result: { success: boolean; error?: string }) =>
+  ipcRenderer.on(IPC.CLI_LOGIN_COMPLETE, (_e, result: { success: boolean; error?: string }) =>
     cliLoginCompleteCb?.(result)
   )
 }
@@ -32,10 +33,10 @@ export function registerCliAuthListeners(): void {
  */
 export const cliAuthApi = {
   /** Claude CLI 로그인 프로세스를 시작한다 (단방향, 응답 없음) */
-  runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
+  runClaudeLogin: () => ipcRenderer.send(IPC.RUN_CLAUDE_LOGIN),
 
   /** GPT(Codex) CLI 로그인 프로세스를 시작한다 (단방향, 응답 없음) */
-  runGptLogin: () => ipcRenderer.send('run-gpt-login'),
+  runGptLogin: () => ipcRenderer.send(IPC.RUN_GPT_LOGIN),
 
   /** 로그인 진행 로그가 올 때마다 실행할 콜백을 등록한다 */
   onCliLoginProgress: (cb: (data: string) => void) => {

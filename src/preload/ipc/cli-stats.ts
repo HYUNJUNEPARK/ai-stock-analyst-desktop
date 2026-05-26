@@ -11,6 +11,7 @@
  */
 
 import { ipcRenderer } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 
 /**
  * renderer(React)에서 window.api.xxx() 형태로 호출할 수 있는 통계/보고서 관련 함수 모음.
@@ -18,14 +19,14 @@ import { ipcRenderer } from 'electron'
  */
 export const cliStatsApi = {
   /** 선택한 model의 CLI 사용 통계(토큰, 비용 등)를 조회한다 */
-  checkCliStats: (model: string) => ipcRenderer.invoke('check-cli-stats', model),
+  checkCliStats: (model: string) => ipcRenderer.invoke(IPC.CHECK_CLI_STATS, model),
 
   /** 로컬에 저장된 GPT 분석 보고서 파일 목록을 반환한다 */
-  listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
+  listGptReportFiles: () => ipcRenderer.invoke(IPC.LIST_GPT_REPORT_FILES),
 
   /** 지정한 보고서 파일의 내용을 문자열로 읽어 반환한다 */
-  readGptReportFile: (name: string) => ipcRenderer.invoke('read-gpt-report-file', name),
+  readGptReportFile: (name: string) => ipcRenderer.invoke(IPC.READ_GPT_REPORT_FILE, name),
 
   /** 지정한 보고서를 별도 창(BrowserWindow)으로 열어 상세 보기를 제공한다 */
-  openReportDetailWindow: (name: string) => ipcRenderer.invoke('open-report-detail-window', name),
+  openReportDetailWindow: (name: string) => ipcRenderer.invoke(IPC.OPEN_REPORT_DETAIL_WINDOW, name),
 }

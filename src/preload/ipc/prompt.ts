@@ -7,6 +7,7 @@
  */
 
 import { ipcRenderer } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 
 // main → renderer 이벤트를 받아 실행할 콜백 함수 보관소
 // renderer에서 onResponseChunk / onResponseDone을 호출해 콜백을 등록하면 여기에 저장된다
@@ -19,9 +20,9 @@ let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | n
  */
 export function registerPromptListeners(): void {
   // 응답 텍스트를 청크 단위로 스트리밍 수신
-  ipcRenderer.on('prompt-response-chunk', (_e, chunk: string) => responseChunkCb?.(chunk))
+  ipcRenderer.on(IPC.PROMPT_RESPONSE_CHUNK, (_e, chunk: string) => responseChunkCb?.(chunk))
   // 응답 스트리밍 종료(성공 또는 오류) 신호 수신
-  ipcRenderer.on('prompt-response-done', (_e, result: { success: boolean; error?: string }) =>
+  ipcRenderer.on(IPC.PROMPT_RESPONSE_DONE, (_e, result: { success: boolean; error?: string }) =>
     responseDoneCb?.(result)
   )
 }
@@ -33,7 +34,7 @@ export function registerPromptListeners(): void {
 export const promptApi = {
   /** 선택한 model로 프롬프트를 실행한다 (단방향, 응답은 chunk 이벤트로 수신) */
   runPrompt: (params: { model: string; prompt: string }) =>
-    ipcRenderer.send('run-prompt', params),
+    ipcRenderer.send(IPC.RUN_PROMPT, params),
 
   /** 응답 텍스트 청크가 도착할 때마다 실행할 콜백을 등록한다 */
   onResponseChunk: (cb: (chunk: string) => void) => {

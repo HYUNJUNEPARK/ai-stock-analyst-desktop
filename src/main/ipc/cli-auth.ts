@@ -9,6 +9,7 @@
  */
 
 import { ipcMain, type BrowserWindow } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 import { spawnCommand } from '../utils/spawn'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
@@ -27,14 +28,14 @@ import { resolveCliCommand, streamLines } from '../utils/cli'
  * @param args - CLI에 전달할 추가 인수 (예: ['login'])
  */
 function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[] = []): void {
-  const channel = name === 'claude' ? 'run-claude-login' : 'run-gpt-login'
-  console.log(`[${channel}] CLI 로그인 시작: ${name}`)
+  //const channel = name === 'claude' ? IPC.RUN_CLAUDE_LOGIN : IPC.RUN_GPT_LOGIN
+  console.log(`[${name}] CLI 로그인 시작:`)
   const resolved = resolveCliCommand(name)
 
   if (!resolved.command) {
     const label = name === 'codex' ? 'Codex CLI' : 'Claude CLI'
-    win.webContents.send('cli-login-progress', `${label} 실행 파일을 찾지 못했습니다.`)
-    win.webContents.send('cli-login-complete', {
+    win.webContents.send(IPC.CLI_LOGIN_PROGRESS, `${label} 실행 파일을 찾지 못했습니다.`)
+    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
       success: false,
       error: `${label}가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.`
     })
@@ -43,7 +44,7 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
 
   if (resolved.source === 'path') {
     win.webContents.send(
-      'cli-login-progress',
+      IPC.CLI_LOGIN_PROGRESS,
       `앱 전용 ${name} 설치본이 없어 시스템 PATH의 ${resolved.command}를 사용합니다.`
     )
   }
@@ -53,24 +54,24 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
     stdio: ['ignore', 'pipe', 'pipe']
   })
 
-  streamLines(win, child, 'cli-login-progress', 'stdout')
-  streamLines(win, child, 'cli-login-progress', 'stderr')
+  streamLines(win, child, IPC.CLI_LOGIN_PROGRESS, 'stdout')
+  streamLines(win, child, IPC.CLI_LOGIN_PROGRESS, 'stderr')
 
   child.on('close', (code) => {
     if (code === 0) {
-      console.log(`[${channel}] CLI 로그인 완료: ${name}`)
+      console.log(`[${name}] CLI 로그인 완료`)
     } else {
-      console.error(`[${channel}] CLI 로그인 실패: ${name} (exit code: ${code})`)
+      console.error(`[${name}] CLI 로그인 실패 (exit code: ${code})`)
     }
-    win.webContents.send('cli-login-complete', {
+    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
       success: code === 0,
       error: code === 0 ? undefined : `로그인 실패 (exit code: ${code})`
     })
   })
 
   child.on('error', (err) => {
-    win.webContents.send('cli-login-progress', `오류: ${err.message}`)
-    win.webContents.send('cli-login-complete', {
+    win.webContents.send(IPC.CLI_LOGIN_PROGRESS, `오류: ${err.message}`)
+    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
       success: false,
       error: `CLI 실행 오류: ${err.message}`
     })
@@ -91,7 +92,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    *
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
-  ipcMain.on('run-claude-login', () => {
+  ipcMain.on(IPC.RUN_CLAUDE_LOGIN, () => {
     console.log('[run-claude-login] Claude CLI 로그인 요청')
     runCliLogin(win, 'claude', ['login'])
   })
@@ -103,7 +104,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    *
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
-  ipcMain.on('run-gpt-login', () => {
+  ipcMain.on(IPC.RUN_GPT_LOGIN, () => {
     console.log('[run-gpt-login] GPT CLI 로그인 요청')
     runCliLogin(win, 'codex', ['login'])
   })

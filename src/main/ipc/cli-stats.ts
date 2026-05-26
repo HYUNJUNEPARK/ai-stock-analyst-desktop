@@ -7,6 +7,7 @@
  */
 
 import { ipcMain, BrowserWindow } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { homedir } from 'os'
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs'
@@ -88,7 +89,7 @@ export function registerCliStatsHandlers(): void {
    * 반환값 예시:
    *   { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
    */
-  ipcMain.handle('check-cli-stats', (_event, model: string) => {
+  ipcMain.handle(IPC.CHECK_CLI_STATS, (_event, model: string) => {
     console.log(`[check-cli-stats] CLI 사용 통계 조회: 모델=${model}`)
     const { weekStart, weekEnd, mondayTs } = getWeekRange()
 
@@ -168,7 +169,7 @@ export function registerCliStatsHandlers(): void {
    * 반환값 예시:
    *   [{ name: '삼성전자_260101.json', model: 'gpt', createdAt: '2026-01-01T...' }, ...]
    */
-  ipcMain.handle('list-gpt-report-files', () => {
+  ipcMain.handle(IPC.LIST_GPT_REPORT_FILES, () => {
     console.log('[list-gpt-report-files] GPT 보고서 목록 조회')
     try {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
@@ -216,7 +217,7 @@ export function registerCliStatsHandlers(): void {
    * 방향: renderer → main → renderer (handle = 양방향)
    * 용도: 특정 보고서 파일의 JSON 내용을 읽어 반환
    */
-  ipcMain.handle('read-gpt-report-file', (_event, name: string) => {
+  ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
     console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
       const filePath = join(STOCK_GPT_REPORTS_DIR, name)
@@ -228,7 +229,7 @@ export function registerCliStatsHandlers(): void {
     }
   })
 
-  ipcMain.handle('open-report-detail-window', (_event, name: string) => {
+  ipcMain.handle(IPC.OPEN_REPORT_DETAIL_WINDOW, (_event, name: string) => {
     console.log(`[open-report-detail-window] 보고서 새 창 열기: ${name}`)
     try {
       createReportDetailWindow(name)

@@ -9,6 +9,7 @@
  */
 
 import { ipcRenderer } from 'electron'
+import { IPC } from '../../shared/ipcChannels'
 
 // main → renderer 이벤트를 받아 실행할 콜백 함수 보관소
 // renderer에서 onStockAnalysis* 함수를 호출해 콜백을 등록하면 여기에 저장된다
@@ -24,13 +25,13 @@ let stockAnalysisDoneCb: ((result: { success: boolean; error?: string }) => void
 export function registerStockAnalysisListeners(): void {
   // 개별 에이전트의 실행 상태(running / done) 변경 이벤트 수신
   ipcRenderer.on(
-    'stock-analysis-agent',
+    IPC.STOCK_ANALYSIS_AGENT,
     (_e, event: { name: string; status: 'running' | 'done' }) => stockAnalysisAgentCb?.(event)
   )
   // 분석 결과 텍스트를 청크 단위로 스트리밍 수신
-  ipcRenderer.on('stock-analysis-chunk', (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
+  ipcRenderer.on(IPC.STOCK_ANALYSIS_CHUNK, (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
   // 전체 분석 완료(성공 또는 오류) 신호 수신
-  ipcRenderer.on('stock-analysis-done', (_e, result: { success: boolean; error?: string }) =>
+  ipcRenderer.on(IPC.STOCK_ANALYSIS_DONE, (_e, result: { success: boolean; error?: string }) =>
     stockAnalysisDoneCb?.(result)
   )
 }
@@ -42,10 +43,10 @@ export function registerStockAnalysisListeners(): void {
 export const stockAnalysisApi = {
   /** 선택한 model로 주식 멀티 에이전트 분석을 시작한다 (단방향, 결과는 이벤트로 수신) */
   runStockAnalysis: (params: { model: string; prompt: string }) =>
-    ipcRenderer.send('run-stock-analysis', params),
+    ipcRenderer.send(IPC.RUN_STOCK_ANALYSIS, params),
 
   /** 진행 중인 주식 분석을 취소한다 (단방향) */
-  cancelStockAnalysis: () => ipcRenderer.send('cancel-stock-analysis'),
+  cancelStockAnalysis: () => ipcRenderer.send(IPC.CANCEL_STOCK_ANALYSIS),
 
   /** 에이전트 상태(running/done)가 변경될 때마다 실행할 콜백을 등록한다 */
   onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {

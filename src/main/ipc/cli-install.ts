@@ -10,6 +10,7 @@ import { ipcMain, type BrowserWindow } from 'electron'
 import { join } from 'path'
 import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync } from 'fs'
+import { IPC } from '../../shared/ipcChannels'
 import { CLI_PREFIX } from '../constants'
 import { spawnCommand } from '../utils/spawn'
 import { resolveCliCommand, streamLines } from '../utils/cli'
@@ -42,11 +43,11 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    *
    * Windows에서는 npm.cmd를 사용해야 실행 가능 (npm은 .cmd 래퍼로 제공됨)
    */
-  ipcMain.on('start-cli-install', (_event, model: string) => {
+  ipcMain.on(IPC.START_CLI_INSTALL, (_event, model: string) => {
     console.log(`[start-cli-install] "${model}" 모델 설치 시작`)
     const pkg = CLI_PACKAGES[model]
     if (!pkg) {
-      win.webContents.send('install-complete', {
+      win.webContents.send(IPC.INSTALL_COMPLETE, {
         success: false,
         error: `알 수 없는 모델: ${model}`
       })
@@ -61,16 +62,16 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
-    streamLines(win, child, 'install-progress', 'stdout')
-    streamLines(win, child, 'install-progress', 'stderr')
+    streamLines(win, child, IPC.INSTALL_PROGRESS, 'stdout')
+    streamLines(win, child, IPC.INSTALL_PROGRESS, 'stderr')
 
     child.on('close', (code) => {
       if (code === 0) {
         console.log(`[start-cli-install] "${model}" 모델 설치 완료`)
-        win.webContents.send('install-complete', { success: true })
+        win.webContents.send(IPC.INSTALL_COMPLETE, { success: true })
       } else {
         console.error(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
-        win.webContents.send('install-complete', {
+        win.webContents.send(IPC.INSTALL_COMPLETE, {
           success: false,
           error: `설치 중 오류가 발생했습니다. (exit code: ${code})`
         })
@@ -78,7 +79,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     })
 
     child.on('error', (err) => {
-      win.webContents.send('install-complete', {
+      win.webContents.send(IPC.INSTALL_COMPLETE, {
         success: false,
         error: `npm 실행 실패: ${err.message}`
       })
@@ -96,7 +97,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    *   Claude: ~/.claude/.credentials.json 파일의 OAuth 토큰 및 만료 시각 검사
    *   GPT   : ~/.codex/auth.json 파일의 accessToken / oauthToken / apiKey 존재 여부 검사
    */
-  ipcMain.handle('check-cli-status', (_event, model: string) => {
+  ipcMain.handle(IPC.CHECK_CLI_STATUS, (_event, model: string) => {
     console.log(`[check-cli-status] CLI 상태 확인: 모델=${model}`)
     const cliName = model === 'claude' ? 'claude' : 'codex'
     const resolved = resolveCliCommand(cliName)
