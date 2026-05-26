@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import gptImg from '../../assets/gpt.jpg'
 import claudeImg from '../../assets/claude.png'
-import RecentReportModal, { RecentReport } from '../response/components/RecentReportModal'
+import RecentReportModal, { RecentReport } from './components/RecentReportModal'
 
 const MAX_CHARS = 100
 

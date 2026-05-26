@@ -237,6 +237,11 @@
   flex: 1;
 }
 
+.report-list-body--center {
+  display: flex;
+  align-items: center;
+}
+
 .report-list-topline {
   display: flex;
   align-items: center;

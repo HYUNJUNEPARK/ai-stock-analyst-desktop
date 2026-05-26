@@ -102,7 +102,7 @@ export default function RecentReportPage(): React.JSX.Element {
 
 function reportCard(report: ReportFile, onClick: (name: string) => void): React.JSX.Element {
   const displayName = report.company || report.name.replace(/\.json$/, '')
-  const subtitle = report.ticker
+  const label = report.ticker ? `${displayName}(${report.ticker})` : displayName
 
   return (
     <button
@@ -116,30 +116,19 @@ function reportCard(report: ReportFile, onClick: (name: string) => void): React.
         alt={displayName}
         className="report-list-thumb"
       />
-      <div className="report-list-body">
-        <div className="report-list-topline">
-          <div className="report-list-title">{displayName}</div>
-        </div>
-        {subtitle && (
-          <div className="report-list-subtitle">{subtitle}</div>
-        )}
+      <div className="report-list-body report-list-body--center">
+        <div className="report-list-title">{label}</div>
       </div>
-      <ChevronRightIcon />
+      <svg className="report-list-chevron" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <polyline
+          points="6,3 12,9 6,15"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </button>
-  )
-}
-
-function ChevronRightIcon(): React.JSX.Element {
-  return (
-    <svg className="report-list-chevron" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <polyline
-        points="6,3 12,9 6,15"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }
 
@@ -148,14 +137,6 @@ function formatDate(value: string): string {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
-  }).format(new Date(value))
-}
-
-function formatTime(value: string): string {
-  return new Intl.DateTimeFormat('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
   }).format(new Date(value))
 }
 
