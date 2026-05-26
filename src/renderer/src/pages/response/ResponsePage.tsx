@@ -32,6 +32,10 @@ export default function ResponsePage(): React.JSX.Element {
   const hasStartedRef = useRef(false)
 
   useEffect(() => {
+    console.log('[Page] ResponsePage 렌더링')
+  }, [])
+
+  useEffect(() => {
     if (hasStartedRef.current) return
     hasStartedRef.current = true
 

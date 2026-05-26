@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
@@ -8,6 +8,10 @@ export default function GptAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
   const [cliStatus, setCliStatus] = useState<'idle' | 'running' | 'done'>('idle')
   const [cliError, setCliError] = useState('')
+
+  useEffect(() => {
+    console.log('[Page] GptAuthPage 렌더링')
+  }, [])
 
   function handleCliLogin(): void {
     setCliStatus('running')

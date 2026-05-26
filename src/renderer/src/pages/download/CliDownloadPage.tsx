@@ -18,6 +18,10 @@ export default function CliDownloadPage(): React.JSX.Element {
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    console.log('[Page] CliDownloadPage 렌더링')
+  }, [])
+
+  useEffect(() => {
     // 모델이 선택되지 않은 상태로 직접 접근하면 홈으로 리다이렉트
     if (!selectedModel) {
       navigate('/')

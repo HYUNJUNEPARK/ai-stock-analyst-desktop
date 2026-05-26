@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiSettings } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
@@ -14,6 +14,11 @@ export default function PromptPage(): React.JSX.Element {
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [text, setText] = useState(currentPrompt)
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
+
+  useEffect(() => {
+    console.log('[Page] PromptPage 렌더링')
+  }, [])
+
   function handleChange(value: string): void {
     if (value.length > MAX_CHARS) return
     setText(value)

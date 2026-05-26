@@ -31,6 +31,10 @@ export default function RecentReportPage(): React.JSX.Element {
   }
 
   useEffect(() => {
+    console.log('[Page] RecentReportPage 렌더링')
+  }, [])
+
+  useEffect(() => {
     let cancelled = false
 
     window.api.listGptReportFiles().then((files) => {

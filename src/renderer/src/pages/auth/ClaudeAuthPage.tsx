@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import claudeImg from '../../assets/claude.png'
 import PageFooter from '../../components/PageFooter'
@@ -10,6 +10,10 @@ export default function ClaudeAuthPage(): React.JSX.Element {
   const [cliError, setCliError] = useState('')
   const [cliLogs, setCliLogs] = useState<string[]>([])
   const logRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    console.log('[Page] ClaudeAuthPage 렌더링')
+  }, [])
 
   function handleCliLogin(): void {
     setCliStatus('running')

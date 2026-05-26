@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import ComingSoonDialog from '../../components/ComingSoonDialog'
@@ -28,6 +28,10 @@ export default function ModelSelectionPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { setSelectedModel } = useApp()
   const [showComingSoonPopup, setShowComingSoonPopup] = useState(false)
+
+  useEffect(() => {
+    console.log('[Page] ModelSelectionPage 렌더링')
+  }, [])
 
   // 선택한 모델을 전역 상태에 저장하고 CLI 설치 화면으로 이동
   function handleSelect(id: 'gpt' | 'claude'): void {

@@ -13,6 +13,10 @@ export default function SettingsPage(): React.JSX.Element {
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
 
   useEffect(() => {
+    console.log('[Page] SettingsPage 렌더링')
+  }, [])
+
+  useEffect(() => {
     if (!selectedModel) {
       navigate('/')
     }

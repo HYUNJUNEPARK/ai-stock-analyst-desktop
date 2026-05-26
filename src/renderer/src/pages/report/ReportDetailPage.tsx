@@ -27,6 +27,10 @@ export default function ReportDetailPage(): React.JSX.Element {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    console.log('[Page] ReportDetailPage 렌더링')
+  }, [])
+
+  useEffect(() => {
     if (!name) return
     window.api.readGptReportFile(name).then((result) => {
       if (result.success) {

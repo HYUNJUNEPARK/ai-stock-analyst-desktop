@@ -7,6 +7,10 @@ export default function LandingPage(): React.JSX.Element {
   const { selectedModel } = useApp()
 
   useEffect(() => {
+    console.log('[Page] LandingPage 렌더링')
+  }, [])
+
+  useEffect(() => {
     if (!selectedModel) {
       navigate('/')
       return
