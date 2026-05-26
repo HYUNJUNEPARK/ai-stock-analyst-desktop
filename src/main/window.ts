@@ -21,7 +21,7 @@ import icon from '../../resources/icon.png?asset'
  * 개발 환경에서는 Vite 개발 서버 URL을 로드하고,
  * 프로덕션에서는 빌드된 index.html 파일을 로드한다.
  */
-export function createWindow(): void {
+export function createWindow(): BrowserWindow {
   console.log('[createWindow] 메인 윈도우 생성 시작')
 
   const mainWindow = new BrowserWindow({
@@ -53,9 +53,15 @@ export function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))  // 빌드 결과물
   }
 
-  // 윈도우가 만들어진 직후 IPC 핸들러를 등록한다.
-  // win 참조가 필요한 핸들러들이 있으므로 createWindow 내부에서 호출한다.
-  registerIpcHandlers(mainWindow)
+  return mainWindow
+}
+
+/**
+ * IPC 핸들러를 등록한다. 앱 전체 생명주기 동안 딱 한 번만 호출해야 한다.
+ * ipcMain.handle()은 전역 등록이므로 창 재생성 시 중복 등록하면 에러가 발생한다.
+ */
+export function registerHandlers(win: BrowserWindow): void {
+  registerIpcHandlers(win)
 }
 
 /**

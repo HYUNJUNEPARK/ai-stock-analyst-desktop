@@ -1,130 +1,48 @@
-import { contextBridge, ipcRenderer } from 'electron'
+/**
+ * preload/index.ts — contextBridge 통합 진입점
+ *
+ * 역할:
+ *   1. 각 기능 모듈의 IPC 이벤트 리스너를 일괄 등록한다 (main → renderer 수신 준비).
+ *   2. 각 모듈의 api 객체를 병합해 window.api로 renderer에 안전하게 노출한다.
+ *
+ * 새 IPC 채널을 추가할 때:
+ *   1. preload/ 하위에 새 파일을 만들어 register*Listeners + *Api를 구현한다.
+ *   2. 이 파일에서 import 후 리스너 등록 및 api 병합에 추가한다.
+ *   3. src/preload/index.d.ts의 window.api 타입도 함께 업데이트한다.
+ */
+import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { registerCliInstallListeners, cliInstallApi } from './ipc/cli-install'
+import { registerCliAuthListeners, cliAuthApi } from './ipc/cli-auth'
+import { cliStatsApi } from './ipc/cli-stats'
+import { registerPromptListeners, promptApi } from './ipc/prompt'
+import { registerStockAnalysisListeners, stockAnalysisApi } from './ipc/stock-analysis'
 
-/**
- * contextBridge를 통해 main process의 기능을 renderer(React)에 안전하게 노출하는 실제 구현하기 위해 작성됨
- */
+// main → renderer 방향 IPC 이벤트 수신 등록
+// (리스너는 콜백 등록 여부와 무관하게 앱 시작 시 항상 열려 있어야 한다)
+registerCliInstallListeners()
+registerCliAuthListeners()
+registerPromptListeners()
+registerStockAnalysisListeners()
 
-//콜백 변수 선언: main → renderer 방향의 이벤트를 받을 콜백 함수들을 전역 변수로 보관한다.
-let installProgressCb: ((data: string) => void) | null = null
-let installCompleteCb: ((result: { success: boolean; error?: string }) => void) | null = null
-let cliLoginProgressCb: ((data: string) => void) | null = null
-let cliLoginCompleteCb: ((result: { success: boolean; error?: string }) => void) | null = null
-let responseChunkCb: ((chunk: string) => void) | null = null
-let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
-let stockAnalysisAgentCb: ((event: { name: string; status: 'running' | 'done' }) => void) | null = null
-let stockAnalysisChunkCb: ((chunk: string) => void) | null = null
-let stockAnalysisDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
-
-/**
- * ipcRenderer.on :이벤트 수신
- * IPC 이벤트 수신 등록: main process가 보내는 이벤트를 항상 리스닝하고, 콜백이 등록되어 있으면 실행한다.
- */
-ipcRenderer.on('install-progress', (_e, data: string) => installProgressCb?.(data))
-ipcRenderer.on('install-complete', (_e, result: { success: boolean; error?: string }) =>
-  installCompleteCb?.(result)
-)
-ipcRenderer.on('cli-login-progress', (_e, data: string) => cliLoginProgressCb?.(data))
-ipcRenderer.on('cli-login-complete', (_e, result: { success: boolean; error?: string }) =>
-  cliLoginCompleteCb?.(result)
-)
-ipcRenderer.on('prompt-response-chunk', (_e, chunk: string) => responseChunkCb?.(chunk))
-ipcRenderer.on('prompt-response-done', (_e, result: { success: boolean; error?: string }) =>
-  responseDoneCb?.(result)
-)
-ipcRenderer.on('stock-analysis-agent', (_e, event: { name: string; status: 'running' | 'done' }) =>
-  stockAnalysisAgentCb?.(event)
-)
-ipcRenderer.on('stock-analysis-chunk', (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
-ipcRenderer.on('stock-analysis-done', (_e, result: { success: boolean; error?: string }) =>
-  stockAnalysisDoneCb?.(result)
-)
-
-/**
- * contextBridge로 API 노출
- * 
- * ipcRenderer.send : 응답을 기다리지 않는 요청, 단방향
- * ipcRenderer.invoke : 응답을 기다리는 요청, 양방향
- * 
- *  
- * window.api 객체에 여러 함수들을 정의하여 renderer에서 사용할 수 있도록 노출한다.
- * 예를 들어, window.api.runPrompt(...) 같은 함수를 renderer에서 호출하면 ipcRenderer.send('run-prompt', params)로 main process에 이벤트가 전달된다.
- * main process에서는 이 이벤트를 받아서 처리하고, 필요하면 다시 renderer로 결과를 보낼 수 있다.
- * 
- * TypeScript 타입 선언은 src/preload/index.d.ts에 정의되어 있다. 이 구현 파일에서는 실제로 함수들이 어떻게 동작하는지만 작성하면 된다.
- */
 if (process.contextIsolated) {
   try {
+    // Electron 기본 API (ipcRenderer, shell 등) 노출
     contextBridge.exposeInMainWorld('electron', electronAPI)
+
+    // 기능별 api 객체를 병합해 window.api 단일 네임스페이스로 노출
     contextBridge.exposeInMainWorld('api', {
-      /* CLI 설치 */
-      startCliInstall: (model: string) => ipcRenderer.send('start-cli-install', model),
-      onInstallProgress: (cb: (data: string) => void) => {
-        installProgressCb = cb
-      },
-      onInstallComplete: (cb: (result: { success: boolean; error?: string }) => void) => {
-        installCompleteCb = cb
-      },
-
-      /* CLI 설치/인증 상태 확인 */
-      checkCliStatus: (model: string) => ipcRenderer.invoke('check-cli-status', model),
-
-      /* CLI stats 조회 */
-      checkCliStats: (model: string) => ipcRenderer.invoke('check-cli-stats', model),
-
-      /// 보고서 파일 목록 조회
-      listGptReportFiles: () => ipcRenderer.invoke('list-gpt-report-files'),
-
-      /// 보고서 파일 내용 읽기
-      readGptReportFile: (name: string) => ipcRenderer.invoke('read-gpt-report-file', name),
-
-      /// 보고서 상세 새 창 열기
-      openReportDetailWindow: (name: string) => ipcRenderer.invoke('open-report-detail-window', name),
-
-      /* CLI 로그인 */
-      runClaudeLogin: () => ipcRenderer.send('run-claude-login'),
-      runGptLogin: () => ipcRenderer.send('run-gpt-login'),
-      onCliLoginProgress: (cb: (data: string) => void) => {
-        cliLoginProgressCb = cb
-      },
-      onCliLoginComplete: (cb: (result: { success: boolean; error?: string }) => void) => {
-        cliLoginCompleteCb = cb
-      },
-
-      /* 프롬프트 실행 */
-      runPrompt: (params: { model: string; prompt: string; }) =>
-        ipcRenderer.send('run-prompt', params),
-      onResponseChunk: (cb: (chunk: string) => void) => {
-        responseChunkCb = cb
-      },
-      onResponseDone: (cb: (result: { success: boolean; error?: string }) => void) => {
-        responseDoneCb = cb
-      },
-
-      /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis: (params: { model: string; prompt: string; }) => ipcRenderer.send('run-stock-analysis', params),
-
-      // 분석 취소
-      cancelStockAnalysis: () => ipcRenderer.send('cancel-stock-analysis'),
-      
-      // 분석 에이전트 이벤트
-      onStockAnalysisAgent: (cb: (event: { name: string; status: 'running' | 'done' }) => void) => {
-        stockAnalysisAgentCb = cb
-      },
-
-      onStockAnalysisChunk: (cb: (chunk: string) => void) => {
-        stockAnalysisChunkCb = cb
-      },
-
-      // 분석 완료
-      onStockAnalysisDone: (cb: (result: { success: boolean; error?: string }) => void) => {
-        stockAnalysisDoneCb = cb
-      }
+      ...cliInstallApi,    // CLI 설치 및 상태 확인
+      ...cliAuthApi,       // CLI 로그인 인증
+      ...cliStatsApi,      // 사용 통계 및 보고서 파일 조회
+      ...promptApi,        // 단발 프롬프트 실행
+      ...stockAnalysisApi, // 주식 멀티 에이전트 분석
     })
   } catch (error) {
     console.error(error)
   }
 } else {
+  // contextIsolation 비활성 환경 (개발 디버깅 등 예외 상황)
   // @ts-ignore (define in dts)
   window.electron = electronAPI
 }
