@@ -7,7 +7,11 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { registerIpcHandlers } from './ipc'
+import { registerCliInstallHandlers } from './ipc/cli-install'
+import { registerCliStatsHandlers } from './ipc/cli-stats'
+import { registerCliAuthHandlers } from './ipc/cli-auth'
+import { registerPromptHandlers } from './ipc/prompt'
+import { registerStockAnalysisHandlers } from './ipc/stock-analysis'
 import icon from '../../resources/icon.png?asset'
 
 /**
@@ -57,11 +61,19 @@ export function createWindow(): BrowserWindow {
 }
 
 /**
- * IPC 핸들러를 등록한다. 앱 전체 생명주기 동안 딱 한 번만 호출해야 한다.
+ * 모든 IPC 핸들러를 등록한다. 앱 전체 생명주기 동안 딱 한 번만 호출해야 한다.
  * ipcMain.handle()은 전역 등록이므로 창 재생성 시 중복 등록하면 에러가 발생한다.
+ *
+ * 새 IPC 채널을 추가할 때:
+ *   1. ipc/ 하위에 새 파일을 만들어 register*Handlers 함수를 구현한다.
+ *   2. 이 함수에서 import 후 호출한다.
  */
 export function registerHandlers(win: BrowserWindow): void {
-  registerIpcHandlers(win)
+  registerCliInstallHandlers(win)    // CLI 설치, 설치/인증 상태 확인
+  registerCliStatsHandlers()         // CLI 사용 통계, GPT 보고서 목록 (win 불필요)
+  registerCliAuthHandlers(win)       // Claude/GPT 로그인
+  registerPromptHandlers(win)        // 단발 프롬프트 실행
+  registerStockAnalysisHandlers(win) // 주식 멀티 에이전트 분석
 }
 
 /**
