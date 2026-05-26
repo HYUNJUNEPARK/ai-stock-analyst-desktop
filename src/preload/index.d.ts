@@ -1,5 +1,10 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 
+/**
+ *  TypeScript 타입 선언 파일로, renderer(React UI)에서 window.api와 window.electron을 사용할 때 타입 안전성을 보장하기 위해 작성됨
+ *  -> TypeScript에게 "window.api에 이런 함수들이 있어" 라고 알려주는 역할
+ *  -> 이 파일이 없으면 renderer에서 window.api.runPrompt(...) 호출 시 TypeScript가 오류를 냄. 이 파일이 있어야 자동완성 + 타입 체크가 가능하다.
+ */
 declare global {
   interface Window {
     electron: ElectronAPI

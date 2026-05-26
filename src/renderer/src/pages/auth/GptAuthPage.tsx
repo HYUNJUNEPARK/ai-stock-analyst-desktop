@@ -20,12 +20,12 @@ export default function GptAuthPage(): React.JSX.Element {
     window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setCliStatus('done')
-        setTimeout(() => navigate('/prompt'), 800)
+        setTimeout(() => navigate('/prompt'), 1000)
         return
       }
 
       setCliStatus('idle')
-      setCliError(result.error ?? 'Codex 로그인에 실패했습니다.')
+      setCliError(result.error ?? '로그인에 실패했습니다.')
     })
 
     window.api.runGptLogin()
@@ -52,27 +52,11 @@ export default function GptAuthPage(): React.JSX.Element {
           </div>
 
           <div>
-            <div className="info-card" style={{ marginBottom: 20 }}>
-             `codex login`을 실행합니다. 브라우저가 열리면 ChatGPT 계정으로 Codex에 로그인해 주세요.
+            <div className="info-card">
+             브라우저가 열리면 ChatGPT 계정으로 Codex에 로그인해 주세요.
             </div>
 
             {cliError && <div className="error-banner">⚠ {cliError}</div>}
-
-            {/* {cliStatus === 'running' && (
-              <div>
-                <div
-                  ref={logRef}
-                  className="terminal"
-                  role="log"
-                  aria-live="polite"
-                  style={{ height: 80 }}
-                >
-                  {cliLogs.map((line, index) => (
-                    <div key={index}>{line}</div>
-                  ))}
-                </div>
-              </div>
-            )} */}
 
             {cliStatus === 'done' && (
               <div
