@@ -4,10 +4,13 @@ import claudeImg from '../../assets/claude.png'
 import NavBar from '../../components/NavBar'
 import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
-import ResponseCard from './components/ResponseCard'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
 import { ROUTES } from '../../routes'
+import AnalysisCancelledView from './components/AnalysisCancelledView'
+import AnalysisCompleteView from './components/AnalysisCompleteView'
+import AnalysisProgressView from './components/AnalysisProgressView'
+import ErrorResponseView from './components/ErrorResponseView'
 
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -129,6 +132,26 @@ export default function ResponsePage(): React.JSX.Element {
   const modelLabel = effectiveModel === 'gpt' ? 'GPT' : 'Claude'
   const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
+  const isStreamingEmpty = status === 'streaming' && !response
+  const contentMinHeight = status === 'done' ? 216 : 260
+  const isCancelled = status === 'cancelled'
+  const isError = status === 'error'
+  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
+  const totalCount = AGENT_CONFIG.length
+  const progressPct = Math.round((doneCount / totalCount) * 100)
+  const showProgress = status === 'streaming' && progressPct < 100
+
+  const circleSize = 28
+  const radius = 10
+  const progressColor =
+    doneCount === 0
+      ? 'var(--text-tertiary)'
+      : doneCount === 1
+        ? '#4A90E2'
+        : doneCount === 2
+          ? '#9B59B6'
+          : '#E67E22'
+
   return (
     <div className="page">
       <NavBar onBack={() => navigate(ROUTES.PROMPT)} disabled={status === 'streaming'} />
@@ -154,18 +177,90 @@ export default function ResponsePage(): React.JSX.Element {
             </div>
           </div>
 
-          <ResponseCard
-            agentStatuses={agentStatuses}
-            errorMsg={errorMsg}
-            model={effectiveModel}
-            modelImg={modelImg}
-            modelLabel={modelLabel}
-            onCancel={handleCancel}
-            onRetry={handleRetry}
-            onViewReport={() => navigate(ROUTES.REPORTS_LATEST)}
-            response={response}
-            status={status}
-          />
+          <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '0 16px',
+                height: 48,
+                background: 'var(--bg-primary)',
+                borderBottom: '1px solid var(--border)'
+              }}
+            >
+              <img
+                src={modelImg}
+                alt={modelLabel}
+                style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+              />
+              <span
+                style={{
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 600,
+                  color: 'var(--text-secondary)',
+                  flexShrink: 0
+                }}
+              >
+                {modelLabel}
+              </span>
+
+              {showProgress && (
+                <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+                  <svg
+                    width={circleSize}
+                    height={circleSize}
+                    style={{ animation: 'spin 1s linear infinite', display: 'block' }}
+                  >
+                    <circle
+                      cx={circleSize / 2}
+                      cy={circleSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke="var(--border)"
+                      strokeWidth={3}
+                    />
+                    <circle
+                      cx={circleSize / 2}
+                      cy={circleSize / 2}
+                      r={radius}
+                      fill="none"
+                      stroke={progressColor}
+                      strokeWidth={3}
+                      strokeDasharray={`${2 * Math.PI * radius * 0.25} ${2 * Math.PI * radius * 0.75}`}
+                      strokeLinecap="round"
+                      style={{ transition: 'stroke 0.4s ease' }}
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{ padding: 16, minHeight: contentMinHeight, position: 'relative' }}
+              role="article"
+            >
+              {/* 분석 취소 */}
+              {isCancelled && <AnalysisCancelledView onRetry={handleRetry} />}
+
+              {/* 에러 */}
+              {isError && <ErrorResponseView errorMsg={errorMsg} onRetry={handleRetry} />}
+
+              {/* 분석 중 */}
+              {!isCancelled && !isError && isStreamingEmpty && (
+                <AnalysisProgressView
+                  agentStatuses={agentStatuses}
+                  onCancel={handleCancel}
+                  showAgentFlow={isStockAnalysisModel(effectiveModel)}
+                />
+              )}
+
+              {/* 분석 완료 */}
+              {!isCancelled && !isError && status === 'done' && (
+                <AnalysisCompleteView onViewReport={() => navigate(ROUTES.REPORTS_LATEST)} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -4,17 +4,17 @@ import ConfirmDialog from '../../../components/ConfirmDialog'
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus } from '../types'
 
-type StreamingResponseViewProps = {
+type AnalysisProgressViewProps = {
   agentStatuses: Record<string, AgentStatus>
   onCancel: () => void
   showAgentFlow: boolean
 }
 
-export default function StreamingResponseView({
+export default function AnalysisProgressView({
   agentStatuses,
   onCancel,
   showAgentFlow
-}: StreamingResponseViewProps): React.JSX.Element {
+}: AnalysisProgressViewProps): React.JSX.Element {
   const [showConfirm, setShowConfirm] = useState(false)
 
   return (
