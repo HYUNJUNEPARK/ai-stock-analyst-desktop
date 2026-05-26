@@ -51,14 +51,14 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {data.company}
+            {data.company} ({data.ticker})
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 3 }}>
-            {[data.ticker, data.asOfDate].filter(Boolean).join(' · ')}
+            {data.asOfDate}
           </div>
           {(aiModel || aiProvider) && (
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>
-              {['AI', aiProvider, aiModel].filter(Boolean).join(' · ')}
+              {[aiModel].filter(Boolean).join(' · ')}
             </div>
           )}
         </div>

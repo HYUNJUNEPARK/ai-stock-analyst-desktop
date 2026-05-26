@@ -298,7 +298,6 @@ function parseJsonReport(raw) {
 
 function buildAiInfo(model) {
   return {
-    provider: 'OpenAI Codex CLI',
     model: model || 'gpt-5.4',
     engine: 'gpt'
   }
