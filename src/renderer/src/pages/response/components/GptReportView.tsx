@@ -84,26 +84,33 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
       {/* 한 줄 요약 */}
       <div
         style={{
-          padding: '12px 14px',
-          background: 'var(--bg-secondary)',
-          borderRadius: 10,
-          borderLeft: `3px solid ${verdictColor}`,
-          fontSize: 'var(--text-sm)',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.6
+          padding: '14px 16px',
+          background: 'rgba(0, 122, 255, 0.08)',
+          border: '1px solid rgba(0, 122, 255, 0.2)',
+          borderRadius: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6
         }}
       >
-        {data.summary}
-      </div>
-
-      {/* 분석 근거 */}
-      <div>
-        <SectionTitle>분석 근거</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
-          <AnalysisItem label="뉴스 감성" signal={data.analysis.news.signal} content={data.analysis.news.content} />
-          <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
-          <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
+        <div
+          style={{
+            fontSize: 'var(--text-xs)',
+            fontWeight: 700,
+            color: 'var(--accent)',
+            letterSpacing: '0.04em'
+          }}
+        >
+          한 줄 요약
+        </div>
+        <div
+          style={{
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-primary)',
+            lineHeight: 1.65
+          }}
+        >
+          {data.summary}
         </div>
       </div>
 
@@ -146,6 +153,17 @@ export default function GptReportView({ data }: { data: GptReport }): React.JSX.
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 분석 근거 */}
+      <div>
+        <SectionTitle>분석 근거</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
+          <AnalysisItem label="뉴스 감성" signal={data.analysis.news.signal} content={data.analysis.news.content} />
+          <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
+          <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
         </div>
       </div>
 
