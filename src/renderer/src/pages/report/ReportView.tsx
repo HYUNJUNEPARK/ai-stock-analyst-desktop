@@ -53,6 +53,15 @@ const VERDICT_COLORS: Record<string, string> = {
   '매도': '#1976d2'
 }
 
+function getSignalColor(signal: string): string {
+  const hasBullish = signal.includes('강세')
+  const hasBearish = signal.includes('약세')
+  if (hasBullish && hasBearish) return '#f97316' // 혼합 → 주황
+  if (hasBullish) return '#22c55e'               // 강세 → 초록
+  if (hasBearish) return '#ef4444'               // 약세 → 빨강
+  return '#f59e0b'                               // 중립 → 노랑/앰버
+}
+
 export default function ReportView({ data }: { data: Report }): React.JSX.Element {
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
   const aiModel = data['ai-model'] || data.aiInfo?.model
@@ -306,9 +315,10 @@ function AnalysisItem({
           <span
             style={{
               fontSize: 'var(--text-xs)',
-              color: 'var(--text-tertiary)',
-              background: 'var(--bg-primary)',
-              border: '1px solid var(--border)',
+              fontWeight: 600,
+              color: getSignalColor(signal),
+              background: `${getSignalColor(signal)}18`,
+              border: `1px solid ${getSignalColor(signal)}50`,
               borderRadius: 6,
               padding: '2px 8px'
             }}

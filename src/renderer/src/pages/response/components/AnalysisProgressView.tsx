@@ -43,7 +43,7 @@ export default function AnalysisProgressView({
             lineHeight: 1.5
           }}
         >
-          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다.(4-8분)
+          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (4-8분 소요)
         </div>
       </div>
 

@@ -153,6 +153,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
   // 스크립트가 codex 경로를 환경변수로 받아 사용
   env['CODEX_BIN'] = resolvedCodex.command
 
+  // 실행 명령: node <STOCK_GPT_DIR>/scripts/analyze-stock.mjs --request <prompt>
   const child = spawn(
     process.execPath,   // 현재 Electron의 Node.js 실행 파일 경로
     [join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs'), '--request', prompt],
@@ -281,6 +282,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   // --output-format stream-json: 이벤트를 JSON Lines 형식으로 스트리밍 출력
   // --verbose: tool_use / tool_result 이벤트를 포함한 전체 이벤트 스트림 출력
+  // 실행 명령: claude -p <prompt> --output-format stream-json --verbose
   const claudeCmd = getCliCommand('claude')
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
 

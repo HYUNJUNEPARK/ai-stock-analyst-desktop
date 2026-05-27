@@ -41,10 +41,11 @@ export function registerPromptHandlers(win: BrowserWindow): void {
       let args: string[]
 
       if (model === 'gpt') {
+        // 실행 명령: codex exec --skip-git-repo-check --color never <prompt>
         cmd = getCliCommand('codex')
         args = ['exec', '--skip-git-repo-check', '--color', 'never', prompt]
       } else {
-        // claude CLI: ANTHROPIC_API_KEY 환경변수로 인증 (또는 claude login 세션)
+        // 실행 명령: claude -p <prompt> --output-format text
         cmd = getCliCommand('claude')
         args = ['-p', prompt, '--output-format', 'text']
       }

@@ -174,6 +174,7 @@ export function registerCliStatsHandlers(): void {
         const dbPath = join(homedir(), '.codex', 'state_5.sqlite')
         // mondayTs(Unix 초)를 기준으로 이번 주 threads를 모델별로 집계
         const query = `SELECT COALESCE(model,'unknown') as model, COUNT(*) as sessions, SUM(tokens_used) as tokens FROM threads WHERE created_at >= ${mondayTs} GROUP BY model;`
+        // 실행 명령: sqlite3 ~/.codex/state_5.sqlite -separator | "SELECT ... FROM threads WHERE created_at >= <mondayTs> GROUP BY model;"
         const result = spawnSync('sqlite3', [dbPath, '-separator', '|', query], { encoding: 'utf-8' })
 
         if (result.error) throw result.error

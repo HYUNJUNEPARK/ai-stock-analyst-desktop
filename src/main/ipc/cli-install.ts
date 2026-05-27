@@ -57,6 +57,8 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
     // -g 대신 --prefix로 사용자 홈 하위 경로에 설치 → EACCES(exit 243) 방지
     mkdirSync(CLI_PREFIX, { recursive: true })
+    // 실행 명령: npm install --prefix ~/.ai-cli-launcher @anthropic-ai/claude-code
+    //          npm install --prefix ~/.ai-cli-launcher @openai/codex
     const child = spawnCommand(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
       env: { ...process.env },
       stdio: ['ignore', 'pipe', 'pipe']

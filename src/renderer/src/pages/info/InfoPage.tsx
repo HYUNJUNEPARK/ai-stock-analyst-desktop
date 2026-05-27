@@ -122,7 +122,7 @@ export default function InfoPage(): React.JSX.Element {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={settingsRowTitleStyle}>이름</div>
                 <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
-                  PARK HYUNJUNE
+                  
                 </div>
               </div>
               <div style={{ height: 1, background: 'var(--border)' }} />

@@ -49,6 +49,8 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
     )
   }
 
+  // 실행 명령: claude login
+  //           codex login
   const child = spawnCommand(resolved.command, args, {
     env: { ...process.env },
     stdio: ['ignore', 'pipe', 'pipe']
