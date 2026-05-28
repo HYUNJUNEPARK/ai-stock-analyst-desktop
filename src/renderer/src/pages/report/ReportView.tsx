@@ -27,12 +27,8 @@ type Report = {
     targetPrice: string
     stopLoss: string
     stopLossPrice: string
-    riskReward: string
     recommendedBuyPrice?: string
     recommendedBuyPriceBasis?: string
-    entryTiming: string
-    positionSize: string
-    holdingPeriod: string
   }
   risks: string[]
   monitoringPoints: string[]
@@ -254,10 +250,6 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
             ['현재 주가', data.strategy.currentPrice],
             ['목표 수익률', `${data.strategy.targetReturn} (${data.strategy.targetPrice})`],
             ['손절 라인', `${data.strategy.stopLoss} (${data.strategy.stopLossPrice})`],
-            ['리스크/리워드', data.strategy.riskReward],
-            ['진입 타이밍', data.strategy.entryTiming],
-            ['포지션 크기', data.strategy.positionSize],
-            ['투자 기간', data.strategy.holdingPeriod],
             ['판정', data.verdict]
           ].map(([label, value]) => (
             <div

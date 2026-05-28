@@ -11,7 +11,7 @@
 | 에이전트 | 역할 |
 |----------|------|
 | `financial-analyst-kr` | 재무 분석 |
-| `news-sentiment-analyst` | 뉴스 감성 분석 |
+| `news-sentiment-analyst` | 뉴스 분석 |
 | `sector-researcher` | 섹터 리서치 |
 | `aggressive-investment-strategist` | 투자 전략 수립 |
 
