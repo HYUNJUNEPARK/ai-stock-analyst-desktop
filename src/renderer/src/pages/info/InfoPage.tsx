@@ -4,7 +4,6 @@ import { FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
-import valuationTerms from '../../data/valuation-terms.json'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
 
@@ -32,14 +31,12 @@ export default function InfoPage(): React.JSX.Element {
 
   if (!selectedModel) return <></>
 
-  function openJsonInNewTab(data: object): void {
-    const jsonStr = JSON.stringify(data, null, 2)
-    const dataUrl = `data:application/json;charset=utf-8,${encodeURIComponent(jsonStr)}`
-    window.open(dataUrl, '_blank')
-  }
-
   function handleOpenInvestmentGuide(): void {
     void window.api.openGuideWindow('investment')
+  }
+
+  function handleOpenValuationGuide(): void {
+    void window.api.openGuideWindow('valuation')
   }
 
   function handleDevPreview(): void {
@@ -115,7 +112,7 @@ export default function InfoPage(): React.JSX.Element {
               빠른 작업
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-              <button onClick={() => navigate(ROUTES.REPORTS_LATEST)} style={settingsRowButtonStyle}>
+              <button onClick={() => void window.api.openReportsWindow()} style={settingsRowButtonStyle}>
                 <div>
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
                   <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>
@@ -130,7 +127,7 @@ export default function InfoPage(): React.JSX.Element {
               투자 가이드
             </div>
             <div style={{ display: 'grid', gap: 10 }}>
-              <button onClick={() => openJsonInNewTab(valuationTerms)} style={settingsRowButtonStyle}>
+              <button onClick={handleOpenValuationGuide} style={settingsRowButtonStyle}>
                 <div>
                   <div style={settingsRowTitleStyle}>투자 지표 용어 사전</div>
                   <div style={settingsRowDescStyle}>PER·PBR·ROE·부채비율 등 핵심 지표의 개념과 해석 기준을 확인합니다.</div>

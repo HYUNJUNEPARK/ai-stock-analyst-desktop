@@ -9,6 +9,7 @@ import InfoPage from './pages/info/InfoPage'
 import RecentReportPage from './pages/report/RecentReportPage'
 import ReportDetailPage from './pages/report/ReportDetailPage'
 import InvestmentTypePage from './pages/guide/investment/InvestmentTypePage'
+import ValuationTermsPage from './pages/guide/valuation/ValuationTermsPage'
 import { ROUTES } from './routes'
 
 function App(): React.JSX.Element {
@@ -22,6 +23,7 @@ function App(): React.JSX.Element {
       <Route path={ROUTES.REPORTS_LATEST} element={<RecentReportPage />} />
       <Route path={ROUTES.REPORT_DETAIL(':name')} element={<ReportDetailPage />} />
       <Route path={ROUTES.GUIDE_INVESTMENT} element={<InvestmentTypePage />} />
+      <Route path={ROUTES.GUIDE_VALUATION} element={<ValuationTermsPage />} />
       <Route path={ROUTES.PROMPT} element={<PromptPage />} />
       <Route path={ROUTES.RESPONSE} element={<ResponsePage />} />
       <Route path="*" element={<Navigate to={ROUTES.ROOT} replace />} />

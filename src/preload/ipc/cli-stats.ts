@@ -47,4 +47,7 @@ export const cliStatsApi = {
 
   /** 투자 가이드 페이지를 별도 창(BrowserWindow)으로 연다 */
   openGuideWindow: (guide: string) => ipcRenderer.invoke(IPC.OPEN_GUIDE_WINDOW, guide),
+
+  /** 보고서 목록 페이지를 별도 창(BrowserWindow)으로 연다 */
+  openReportsWindow: () => ipcRenderer.invoke(IPC.OPEN_REPORTS_WINDOW),
 }

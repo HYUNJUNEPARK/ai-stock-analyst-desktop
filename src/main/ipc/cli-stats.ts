@@ -17,6 +17,35 @@ import { is } from '@electron-toolkit/utils'
 import { STOCK_GPT_REPORTS_DIR, STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import icon from '../../../resources/icon.png?asset'
 
+function createReportsWindow(): void {
+  const reportsWindow = new BrowserWindow({
+    width: 560,
+    height: 720,
+    minWidth: 480,
+    minHeight: 500,
+    show: false,
+    autoHideMenuBar: true,
+    title: '이전 보고서',
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
+
+  reportsWindow.on('ready-to-show', () => {
+    reportsWindow.show()
+  })
+
+  const hash = `/reports/latest?mode=window`
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    reportsWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}#${hash}`)
+  } else {
+    reportsWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash })
+  }
+}
+
 function createGuideWindow(guide: string): void {
   const guideWindow = new BrowserWindow({
     width: 860,
@@ -313,6 +342,17 @@ export function registerCliStatsHandlers(): void {
     }
   })
 
+  ipcMain.handle(IPC.OPEN_REPORTS_WINDOW, () => {
+    console.log('[open-reports-window] 보고서 목록 새 창 열기')
+    try {
+      createReportsWindow()
+      return { success: true }
+    } catch (error) {
+      console.error('[open-reports-window] 보고서 목록 새 창 열기 실패:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
+
   ipcMain.handle(IPC.OPEN_GUIDE_WINDOW, (_event, guide: string) => {
     console.log(`[open-guide-window] 가이드 새 창 열기: ${guide}`)
     try {
@@ -409,25 +449,52 @@ export function registerCliStatsHandlers(): void {
 
     if (canceled || !filePath) return { success: false, canceled: true }
 
-    // body / .page / .page-content 등에 설정된 고정 높이·overflow 제약을 풀어
-    // printToPDF가 스크롤 없이 전체 콘텐츠를 캡처할 수 있도록 한다.
+    // macOS sheet dialog가 닫힌 뒤 창 repaint 대기
+    await new Promise<void>((r) => setTimeout(r, 300))
+
+    // ─────────────────────────────────────────────────────────────────
+    // 핵심 설계:
+    //   printToPDF는 Chromium의 print 파이프라인을 사용한다.
+    //   @media print 규칙만이 print 렌더링에 확실히 반영되므로,
+    //   CSS 오버라이드는 반드시 @media print 블록 안에 작성한다.
+    //   화면 레이아웃은 전혀 건드리지 않아 시각적 깜빡임도 없다.
+    // ─────────────────────────────────────────────────────────────────
     const PRINT_CSS = `
-      body, #root {
-        height: auto !important;
-        overflow: visible !important;
-      }
-      .page {
-        height: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-      }
-      .page-content {
-        flex: none !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-      .card {
-        overflow: visible !important;
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          animation: none !important;
+          transition: none !important;
+        }
+        html, body {
+          height: auto !important;
+          min-height: 0 !important;
+          overflow: visible !important;
+        }
+        #root {
+          height: auto !important;
+          overflow: visible !important;
+        }
+        .page {
+          height: auto !important;
+          min-height: 0 !important;
+          overflow: visible !important;
+        }
+        .page-content {
+          flex: none !important;
+          height: auto !important;
+          overflow: visible !important;
+          overflow-y: visible !important;
+        }
+        .card {
+          overflow: visible !important;
+        }
+        .nav-bar {
+          background: #f2f2f7 !important;
+        }
       }
     `
 
@@ -435,30 +502,11 @@ export function registerCliStatsHandlers(): void {
     try {
       cssKey = await event.sender.insertCSS(PRINT_CSS)
 
-      // 스타일 적용 후 전체 콘텐츠 높이(px)를 측정한다.
-      // CSS 적용 → 레이아웃 재계산 → 측정 순서를 보장하기 위해 requestAnimationFrame 두 번 대기한다.
-      const scrollHeight = await event.sender.executeJavaScript(`
-        new Promise(resolve => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              resolve(document.documentElement.scrollHeight)
-            })
-          })
-        })
-      `)
-
-      // 96dpi 기준: 1px = 264.583µm
-      // A4 가로 너비: 210mm = 210,000µm
-      const PX_TO_MICRON = 264.583
-      const A4_WIDTH_MICRON = 210000
-      const heightMicron = Math.ceil((scrollHeight as number) * PX_TO_MICRON)
-
-      console.log(`[save-report-pdf] 콘텐츠 높이: ${scrollHeight}px → ${heightMicron}µm`)
-
       const pdfBuffer = await event.sender.printToPDF({
         printBackground: true,
-        pageSize: { width: A4_WIDTH_MICRON, height: heightMicron },
-        margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
+        pageSize: 'A4',
+        margins: { marginType: 'default' },
+        landscape: false,
       })
 
       writeFileSync(filePath, pdfBuffer)

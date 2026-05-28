@@ -9,4 +9,5 @@ export const ROUTES = {
   REPORTS_LATEST: '/reports/latest',
   REPORT_DETAIL: (name: string) => `/reports/${name}`,
   GUIDE_INVESTMENT: '/guide/investment',
+  GUIDE_VALUATION: '/guide/valuation',
 } as const

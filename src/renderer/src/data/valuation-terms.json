@@ -1,15 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "1.0.0",
-  "description": "투자 분석 핵심 지표 용어 설명 — PER·PBR·ROE·영업이익률·순이익률·부채비율의 개념, 공식, 수치 해석, 실전 활용 기준",
-  "viewingOrder": [
-    { "step": 1, "metric": "영업이익률", "question": "본업으로 돈을 잘 버는가?" },
-    { "step": 2, "metric": "순이익률",   "question": "최종적으로 돈이 남는가?" },
-    { "step": 3, "metric": "ROE",        "question": "자본을 효율적으로 굴리는가?" },
-    { "step": 4, "metric": "부채비율",   "question": "빚이 너무 많지는 않은가?" },
-    { "step": 5, "metric": "PER",        "question": "이익 대비 주가가 비싸지 않은가?" },
-    { "step": 6, "metric": "PBR",        "question": "자산가치 대비 주가가 비싸지 않은가?" }
-  ],
+  "description": "PER·PBR·ROE·영업이익률·순이익률·부채비율의 개념, 공식, 수치 해석, 실전 활용 기준",
   "metrics": [
     {
       "id": "per",
@@ -31,8 +23,8 @@
       "ranges": [
         { "range": "음수 또는 N/A", "interpretation": "EPS가 음수인 적자 기업. PER 계산 불가로 N/A 표기됨. 해석 주의" },
         { "range": "5배 이하",      "interpretation": "매우 낮음. 저평가 가능성도 있지만, 성장 둔화·위험 반영일 수 있음" },
-        { "range": "5~10배",        "interpretation": "낮은 편. 전통 산업, 경기민감주에서 자주 보임" },
-        { "range": "10~20배",       "interpretation": "보통 수준으로 많이 보는 구간" },
+        { "range": "5~10배",        "interpretation": "낮은 편. 전통 산업, 경기민감주에서 자주 보임", "highlight": true },
+        { "range": "10~20배",       "interpretation": "보통 수준으로 많이 보는 구간", "highlight": true },
         { "range": "20~30배",       "interpretation": "높은 편. 성장 기대가 반영된 상태" },
         { "range": "30배 이상",     "interpretation": "상당히 높음. 고성장 기대가 있어야 정당화 가능" }
       ],
@@ -71,8 +63,8 @@
       },
       "ranges": [
         { "range": "0.5배 이하", "interpretation": "매우 낮음. 저평가 가능성 있지만, 시장이 회사를 좋게 보지 않을 가능성도 큼" },
-        { "range": "0.5~1배",   "interpretation": "자산가치보다 낮거나 비슷하게 평가받는 구간" },
-        { "range": "1~2배",     "interpretation": "일반적인 구간" },
+        { "range": "0.5~1배",   "interpretation": "자산가치보다 낮거나 비슷하게 평가받는 구간", "highlight": true },
+        { "range": "1~2배",     "interpretation": "일반적인 구간", "highlight": true },
         { "range": "2~4배",     "interpretation": "높은 편. 수익성이나 성장성이 좋아야 정당화 가능" },
         { "range": "4배 이상",  "interpretation": "상당히 높음. 브랜드, 기술력, 고성장 기대가 강하게 반영된 경우" }
       ],
@@ -119,9 +111,9 @@
         { "range": "0% 이하",  "interpretation": "적자. 돈을 못 벌고 있음" },
         { "range": "0~5%",    "interpretation": "낮음. 자본 효율이 약함" },
         { "range": "5~10%",   "interpretation": "보통 이하 또는 무난한 수준" },
-        { "range": "10~15%",  "interpretation": "괜찮은 편" },
-        { "range": "15~20%",  "interpretation": "우수한 편" },
-        { "range": "20% 이상","interpretation": "매우 우수. 다만 일시적 이익인지 확인 필요" }
+        { "range": "10~15%",  "interpretation": "괜찮은 편", "highlight": true },
+        { "range": "15~20%",  "interpretation": "우수한 편", "highlight": true },
+        { "range": "20% 이상","interpretation": "매우 우수. 다만 일시적 이익인지 확인 필요", "highlight": true }
       ],
       "beginnerThreshold": {
         "good": "10% 이상 괜찮음",
@@ -159,9 +151,9 @@
         { "range": "0% 이하",   "interpretation": "본업에서 적자" },
         { "range": "0~5%",     "interpretation": "낮은 편. 원가 부담이나 경쟁이 심할 수 있음" },
         { "range": "5~10%",    "interpretation": "무난한 수준" },
-        { "range": "10~20%",   "interpretation": "좋은 편" },
-        { "range": "20% 이상", "interpretation": "매우 우수한 수익성" },
-        { "range": "30% 이상", "interpretation": "독점력, 브랜드, 플랫폼, 소프트웨어형 사업일 가능성" }
+        { "range": "10~20%",   "interpretation": "좋은 편", "highlight": true },
+        { "range": "20% 이상", "interpretation": "매우 우수한 수익성", "highlight": true },
+        { "range": "30% 이상", "interpretation": "독점력, 브랜드, 플랫폼, 소프트웨어형 사업일 가능성", "highlight": true }
       ],
       "beginnerThreshold": {
         "good": "10% 이상 좋음"
@@ -192,9 +184,9 @@
         { "range": "0% 이하",   "interpretation": "최종 적자" },
         { "range": "0~3%",     "interpretation": "낮은 편. 비용 부담이 큼" },
         { "range": "3~7%",     "interpretation": "무난한 수준" },
-        { "range": "7~10%",    "interpretation": "괜찮은 편" },
-        { "range": "10~20%",   "interpretation": "좋은 편" },
-        { "range": "20% 이상", "interpretation": "매우 우수한 수익성" }
+        { "range": "7~10%",    "interpretation": "괜찮은 편", "highlight": true },
+        { "range": "10~20%",   "interpretation": "좋은 편", "highlight": true },
+        { "range": "20% 이상", "interpretation": "매우 우수한 수익성", "highlight": true }
       ],
       "beginnerThreshold": {
         "good": "7~10% 이상 괜찮음"
@@ -230,8 +222,8 @@
         "caution": "업종별로 다르게 봐야 합니다."
       },
       "ranges": [
-        { "range": "50% 이하",   "interpretation": "매우 안정적인 편" },
-        { "range": "50~100%",   "interpretation": "안정적인 편" },
+        { "range": "50% 이하",   "interpretation": "매우 안정적인 편", "highlight": true },
+        { "range": "50~100%",   "interpretation": "안정적인 편", "highlight": true },
         { "range": "100~200%",  "interpretation": "일반적으로 관리 가능한 수준" },
         { "range": "200~300%",  "interpretation": "다소 높은 편. 업종 확인 필요" },
         { "range": "300% 이상", "interpretation": "위험 신호 가능성. 이자 부담과 현금흐름 확인 필요" }

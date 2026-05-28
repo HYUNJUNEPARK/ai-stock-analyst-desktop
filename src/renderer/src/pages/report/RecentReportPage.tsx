@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
@@ -24,6 +24,8 @@ type ReportSection = {
 
 export default function RecentReportPage(): React.JSX.Element {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isWindow = searchParams.get('mode') === 'window'
   const [reports, setReports] = useState<ReportFile[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<ReportFile | null>(null)
@@ -85,7 +87,11 @@ export default function RecentReportPage(): React.JSX.Element {
 
   return (
     <div className="page">
-      <NavBar onBack={() => navigate(ROUTES.INFO)} title="이전 보고서" />
+      <NavBar
+        onBack={() => isWindow ? window.close() : navigate(ROUTES.INFO)}
+        backLabel={isWindow ? '닫기' : '뒤로'}
+        title="이전 보고서"
+      />
 
       <div className="page-content">
         <div className="content-container content-container-compact">

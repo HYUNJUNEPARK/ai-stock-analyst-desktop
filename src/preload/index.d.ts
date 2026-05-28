@@ -70,6 +70,9 @@ declare global {
       // 투자 가이드 새 창 열기
       openGuideWindow: (guide: string) => Promise<{ success: true } | { success: false; error: string }>
 
+      // 보고서 목록 새 창 열기
+      openReportsWindow: () => Promise<{ success: true } | { success: false; error: string }>
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void
