@@ -6,6 +6,7 @@
  */
 
 import { spawn, type ChildProcessByStdio, type SpawnOptions } from 'child_process'
+import { type BrowserWindow } from 'electron'
 import iconv from 'iconv-lite'
 
 /** spawn 옵션 중 stdio가 ['ignore', 'pipe', 'pipe']로 고정된 타입 */
@@ -36,6 +37,19 @@ export function spawnCommand(
     return spawn(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
   }
   return spawn(command, args, options)
+}
+
+/**
+ * BrowserWindow가 살아있을 때만 IPC 이벤트를 전송하는 안전 래퍼.
+ *
+ * 분석 중 창이 닫히거나 destroy된 경우 win.webContents.send()를 호출하면
+ * "Object has been destroyed" TypeError가 발생한다.
+ * 이 함수는 전송 전에 win과 webContents의 상태를 확인해 해당 오류를 방지한다.
+ */
+export function safeSend(win: BrowserWindow, channel: string, ...args: unknown[]): void {
+  if (!win.isDestroyed() && !win.webContents.isDestroyed()) {
+    win.webContents.send(channel, ...args)
+  }
 }
 
 /**

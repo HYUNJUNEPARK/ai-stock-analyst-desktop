@@ -13,6 +13,7 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { spawn, spawnSync } from 'child_process'
 import type { BrowserWindow } from 'electron'
+import { safeSend } from './spawn'
 import { CLI_BIN } from '../constants'
 
 /**
@@ -96,7 +97,7 @@ export function streamLines(
     const lines = data.toString().split('\n')
     for (const line of lines) {
       if (line.trim()) {
-        win.webContents.send(channel, line)
+        safeSend(win, channel, line)
       }
     }
   })

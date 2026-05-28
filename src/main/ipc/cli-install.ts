@@ -12,7 +12,7 @@ import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { CLI_PREFIX } from '../constants'
-import { spawnCommand } from '../utils/spawn'
+import { spawnCommand, safeSend } from '../utils/spawn'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
 /**
@@ -47,7 +47,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     console.log(`[start-cli-install] "${model}" 모델 설치 시작`)
     const pkg = CLI_PACKAGES[model]
     if (!pkg) {
-      win.webContents.send(IPC.INSTALL_COMPLETE, {
+      safeSend(win,IPC.INSTALL_COMPLETE, {
         success: false,
         error: `알 수 없는 모델: ${model}`
       })
@@ -70,10 +70,10 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     child.on('close', (code) => {
       if (code === 0) {
         console.log(`[start-cli-install] "${model}" 모델 설치 완료`)
-        win.webContents.send(IPC.INSTALL_COMPLETE, { success: true })
+        safeSend(win,IPC.INSTALL_COMPLETE, { success: true })
       } else {
         console.error(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
-        win.webContents.send(IPC.INSTALL_COMPLETE, {
+        safeSend(win,IPC.INSTALL_COMPLETE, {
           success: false,
           error: `설치 중 오류가 발생했습니다. (exit code: ${code})`
         })
@@ -81,7 +81,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     })
 
     child.on('error', (err) => {
-      win.webContents.send(IPC.INSTALL_COMPLETE, {
+      safeSend(win,IPC.INSTALL_COMPLETE, {
         success: false,
         error: `npm 실행 실패: ${err.message}`
       })

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
 import claudeImg from '../../assets/claude.png'
 import NavBar from '../../components/NavBar'
 import gptImg from '../../assets/gpt.jpg'
@@ -261,6 +262,54 @@ export default function ResponsePage(): React.JSX.Element {
               )}
             </div>
           </div>
+        </div>
+
+        {/* 빠른 이동 링크 */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 4,
+            paddingTop: 10,
+            paddingBottom: 4
+          }}
+        >
+          {[
+            { icon: <FiFileText size={13} />, label: '이전 보고서', route: ROUTES.REPORTS_LATEST },
+            { icon: <FiPieChart size={13} />, label: '투자 지표 용어 사전', route: ROUTES.GUIDE_VALUATION },
+            { icon: <FiBookOpen size={13} />, label: '투자 유형 기준', route: ROUTES.GUIDE_INVESTMENT }
+          ].map(({ icon, label, route }) => (
+            <button
+              key={route}
+              onClick={() => navigate(route)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '5px 8px',
+                borderRadius: 8,
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-tertiary)',
+                fontFamily: 'inherit',
+                transition: 'color 0.15s, background 0.15s',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--accent)'
+                e.currentTarget.style.background = 'var(--accent-light)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-tertiary)'
+                e.currentTarget.style.background = 'none'
+              }}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

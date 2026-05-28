@@ -7,7 +7,7 @@
 
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
-import { spawnCommand } from '../utils/spawn'
+import { spawnCommand, safeSend } from '../utils/spawn'
 import { getCliCommand } from '../utils/cli'
 
 /**
@@ -56,24 +56,24 @@ export function registerPromptHandlers(win: BrowserWindow): void {
       })
 
       child.stdout.on('data', (data: Buffer) => {
-        win.webContents.send(IPC.PROMPT_RESPONSE_CHUNK, data.toString())
+        safeSend(win,IPC.PROMPT_RESPONSE_CHUNK, data.toString())
       })
 
       child.stderr.on('data', (data: Buffer) => {
         // Claude CLI는 stderr에 진행 정보를 출력하기도 함 — error 관련 메시지만 전달
         const text = data.toString()
         if (text.toLowerCase().includes('error')) {
-          win.webContents.send(IPC.PROMPT_RESPONSE_CHUNK, text)
+          safeSend(win,IPC.PROMPT_RESPONSE_CHUNK, text)
         }
       })
 
       child.on('close', (code) => {
         if (code === 0) {
           console.log(`[run-prompt] 프롬프트 실행 완료: 모델=${model}`)
-          win.webContents.send(IPC.PROMPT_RESPONSE_DONE, { success: true })
+          safeSend(win,IPC.PROMPT_RESPONSE_DONE, { success: true })
         } else {
           console.error(`[run-prompt] 프롬프트 실행 실패: 모델=${model} (exit code: ${code})`)
-          win.webContents.send(IPC.PROMPT_RESPONSE_DONE, {
+          safeSend(win,IPC.PROMPT_RESPONSE_DONE, {
             success: false,
             error: `CLI 실행 실패 (exit code: ${code})`
           })
@@ -81,7 +81,7 @@ export function registerPromptHandlers(win: BrowserWindow): void {
       })
 
       child.on('error', (err) => {
-        win.webContents.send(IPC.PROMPT_RESPONSE_DONE, {
+        safeSend(win,IPC.PROMPT_RESPONSE_DONE, {
           success: false,
           error: `CLI 실행 오류: ${err.message}`
         })

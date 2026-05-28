@@ -10,7 +10,7 @@
 
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
-import { spawnCommand } from '../utils/spawn'
+import { spawnCommand, safeSend } from '../utils/spawn'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
 /**
@@ -34,8 +34,8 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
 
   if (!resolved.command) {
     const label = name === 'codex' ? 'Codex CLI' : 'Claude CLI'
-    win.webContents.send(IPC.CLI_LOGIN_PROGRESS, `${label} 실행 파일을 찾지 못했습니다.`)
-    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
+    safeSend(win,IPC.CLI_LOGIN_PROGRESS, `${label} 실행 파일을 찾지 못했습니다.`)
+    safeSend(win,IPC.CLI_LOGIN_COMPLETE, {
       success: false,
       error: `${label}가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.`
     })
@@ -43,7 +43,7 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
   }
 
   if (resolved.source === 'path') {
-    win.webContents.send(
+    safeSend(win,
       IPC.CLI_LOGIN_PROGRESS,
       `앱 전용 ${name} 설치본이 없어 시스템 PATH의 ${resolved.command}를 사용합니다.`
     )
@@ -64,15 +64,15 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
     } else {
       console.error(`[${name}] CLI 로그인 실패 (exit code: ${code})`)
     }
-    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
+    safeSend(win,IPC.CLI_LOGIN_COMPLETE, {
       success: code === 0,
       error: code === 0 ? undefined : `로그인 실패 (exit code: ${code})`
     })
   })
 
   child.on('error', (err) => {
-    win.webContents.send(IPC.CLI_LOGIN_PROGRESS, `오류: ${err.message}`)
-    win.webContents.send(IPC.CLI_LOGIN_COMPLETE, {
+    safeSend(win,IPC.CLI_LOGIN_PROGRESS, `오류: ${err.message}`)
+    safeSend(win,IPC.CLI_LOGIN_COMPLETE, {
       success: false,
       error: `CLI 실행 오류: ${err.message}`
     })
