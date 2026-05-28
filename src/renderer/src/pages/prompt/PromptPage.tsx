@@ -33,16 +33,16 @@ export default function PromptPage(): React.JSX.Element {
       const files = await window.api.listGptReportFiles()
       const keyword = trimmed.toLowerCase()
       const today = new Date()
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
       const found = files
         .filter((f) => {
-          // 이름 또는 티커에 키워드 포함 여부 + 오늘 생성된 보고서만
+          // 이름 또는 티커에 키워드 포함 여부
           const matchName = f.company.toLowerCase().includes(keyword) || f.ticker.toLowerCase().includes(keyword)
-          const createdDate = new Date(f.createdAt)
-          const isToday =
-            createdDate.getFullYear() === today.getFullYear() &&
-            createdDate.getMonth() === today.getMonth() &&
-            createdDate.getDate() === today.getDate()
-          return matchName && isToday
+          // 날짜 비교: asOfDate(JSON 내용) 우선, 없으면 폴더명(name = "YYYYMMDD/stockFolder")에서 파싱
+          // 파일 시스템 stat(createdAt)은 복사·git 작업 등으로 변경될 수 있어 사용하지 않음
+          const dateFolder = f.name.split('/')[0]
+          const reportDate = f.asOfDate || `${dateFolder.slice(0, 4)}-${dateFolder.slice(4, 6)}-${dateFolder.slice(6, 8)}`
+          return matchName && reportDate === todayStr
         })
         // 가장 최근 보고서 하나만 남기기
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
