@@ -19,6 +19,7 @@ export default function ReportDetailPage(): React.JSX.Element {
   const [data, setData] = useState<Record<string, unknown> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [savingPdf, setSavingPdf] = useState(false)
 
   useEffect(() => {
     console.log('[Page] ReportDetailPage 렌더링')
@@ -50,12 +51,44 @@ export default function ReportDetailPage(): React.JSX.Element {
     navigate(ROUTES.REPORTS_LATEST)
   }
 
+  async function handleSavePdf(): Promise<void> {
+    setSavingPdf(true)
+    const company = data && typeof data.company === 'string' ? data.company : ''
+    const ticker = data && typeof data.ticker === 'string' ? data.ticker : ''
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const defaultName = [company, ticker, today].filter(Boolean).join('_') + '.pdf'
+    await window.api.saveReportPdf(defaultName)
+    setSavingPdf(false)
+  }
+
   return (
     <div className="page">
       <NavBar
         onBack={handleCloseOrBack}
         title="보고서"
         backLabel={isStandaloneWindow ? '닫기' : '뒤로'}
+        rightAction={
+          !loading && !error && data
+            ? (
+              <button
+                onClick={handleSavePdf}
+                disabled={savingPdf}
+                style={{
+                  padding: '4px 12px',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 500,
+                  background: savingPdf ? 'var(--bg-secondary)' : 'var(--accent)',
+                  color: savingPdf ? 'var(--text-secondary)' : '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: savingPdf ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {savingPdf ? 'PDF 저장 중...' : 'PDF 저장'}
+              </button>
+            )
+            : undefined
+        }
       />
 
       <div className="page-content">

@@ -38,4 +38,7 @@ export const cliStatsApi = {
 
   /** 선택된 모델의 구체적인 모델명을 반환한다 */
   getModelInfo: (model: string) => ipcRenderer.invoke(IPC.GET_MODEL_INFO, model),
+
+  /** 현재 보고서 화면을 PDF로 캡처하여 로컬 파일로 저장한다 */
+  saveReportPdf: (defaultFilename: string) => ipcRenderer.invoke(IPC.SAVE_REPORT_PDF, defaultFilename),
 }

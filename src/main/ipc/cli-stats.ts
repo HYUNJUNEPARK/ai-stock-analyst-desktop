@@ -6,7 +6,8 @@
  *   - list-gpt-report-files: GPT 분석 보고서 파일 목록 조회 (양방향)
  */
 
-import { ipcMain, BrowserWindow, shell } from 'electron'
+import { ipcMain, BrowserWindow, shell, dialog } from 'electron'
+import { writeFileSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { homedir } from 'os'
@@ -290,6 +291,74 @@ export function registerCliStatsHandlers(): void {
    * artifactDir: analyze-stock.mjs가 보고서 JSON에 포함한 절대 경로
    * 반환값: { financial, news, sector } — 각 역할의 마크다운 내용
    */
+  /**
+   * IPC 채널: 'save-report-pdf'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 현재 보고서 화면을 PDF로 캡처하여 사용자가 선택한 경로에 저장
+   *
+   * event.sender를 통해 현재 webContents(보고서 창)를 printToPDF로 캡처한다.
+   * dialog.showSaveDialog로 저장 경로를 선택받은 뒤 파일로 쓴다.
+   */
+  ipcMain.handle(IPC.SAVE_REPORT_PDF, async (event, defaultFilename: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return { success: false, error: '창을 찾을 수 없습니다.' }
+
+    const { canceled, filePath } = await dialog.showSaveDialog(win, {
+      title: 'PDF로 저장',
+      defaultPath: defaultFilename || 'report.pdf',
+      filters: [{ name: 'PDF 파일', extensions: ['pdf'] }],
+    })
+
+    if (canceled || !filePath) return { success: false, canceled: true }
+
+    // body / .page / .page-content 등에 설정된 고정 높이·overflow 제약을 풀어
+    // printToPDF가 스크롤 없이 전체 콘텐츠를 캡처할 수 있도록 한다.
+    const PRINT_CSS = `
+      body, #root {
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .page {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      .page-content {
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .card {
+        overflow: visible !important;
+      }
+    `
+
+    let cssKey: string | undefined
+    try {
+      cssKey = await event.sender.insertCSS(PRINT_CSS)
+      // 스타일 적용 대기
+      await new Promise<void>((resolve) => setTimeout(resolve, 300))
+
+      const pdfBuffer = await event.sender.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
+      })
+
+      writeFileSync(filePath, pdfBuffer)
+      console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
+      return { success: true, filePath }
+    } catch (err) {
+      console.error('[save-report-pdf] PDF 저장 실패:', err)
+      return { success: false, error: (err as Error).message }
+    } finally {
+      // CSS 원상복구
+      if (cssKey !== undefined) {
+        event.sender.removeInsertedCSS(cssKey).catch(() => {})
+      }
+    }
+  })
+
   ipcMain.handle(IPC.READ_ARTIFACT_FILES, (_event, artifactDir: string) => {
     console.log(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
     const read = (filename: string): string => {

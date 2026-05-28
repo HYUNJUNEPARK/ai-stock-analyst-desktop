@@ -59,6 +59,11 @@ declare global {
       // 선택된 모델의 구체적인 모델명 조회
       getModelInfo: (model: string) => Promise<{ modelName: string | null }>
 
+      // 보고서 화면을 PDF로 저장
+      saveReportPdf: (defaultFilename: string) => Promise<
+        { success: true; filePath: string } | { success: false; canceled?: boolean; error?: string }
+      >
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void
