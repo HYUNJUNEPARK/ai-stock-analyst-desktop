@@ -28,6 +28,8 @@ type Report = {
     stopLoss: string
     stopLossPrice: string
     riskReward: string
+    recommendedBuyPrice?: string
+    recommendedBuyPriceBasis?: string
     entryTiming: string
     positionSize: string
     holdingPeriod: string
@@ -207,6 +209,37 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       {/* 투자 실행 전략 */}
       <div>
         <SectionTitle>투자 실행 전략</SectionTitle>
+
+        {/* 매수 추천가 강조 카드 */}
+        {data.strategy.recommendedBuyPrice && (
+          <div
+            style={{
+              padding: '14px 16px',
+              background: `${verdictColor}10`,
+              border: `1px solid ${verdictColor}40`,
+              borderRadius: 10,
+              marginBottom: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: verdictColor, letterSpacing: '0.04em' }}>
+                매수 추천가
+              </div>
+              <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: verdictColor }}>
+                {data.strategy.recommendedBuyPrice}
+              </div>
+            </div>
+            {data.strategy.recommendedBuyPriceBasis && (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: `1px solid ${verdictColor}25`, paddingTop: 8 }}>
+                {data.strategy.recommendedBuyPriceBasis}
+              </div>
+            )}
+          </div>
+        )}
+
         <div
           style={{
             display: 'grid',
