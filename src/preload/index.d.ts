@@ -48,7 +48,7 @@ declare global {
       readGptReportFile: (name: string) => Promise<{ success: true; data: unknown } | { success: false; error: string }>
 
       // 보고서 상세 새 창 열기
-      openReportDetailWindow: (name: string) => Promise<{ success: true } | { success: false; error: string }>
+      openReportDetailWindow: (name: string, model: string) => Promise<{ success: true } | { success: false; error: string }>
 
       // artifact 역할별 분석 결과 읽기
       readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string; investType: string }>

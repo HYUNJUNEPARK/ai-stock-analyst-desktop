@@ -37,7 +37,7 @@ export default function ReportDetailPage(): React.JSX.Element {
     })
   }, [name])
 
-  const isGpt = name?.endsWith('.json') ?? false
+  const isGpt = searchParams.get('model') === 'gpt'
   const modelImg = isGpt ? gptIcon : claudeIcon
   const modelLabel = isGpt ? 'GPT' : 'Claude'
   const contentWidth = isStandaloneWindow ? 800 : 550

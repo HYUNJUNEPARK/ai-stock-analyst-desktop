@@ -306,8 +306,8 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
 
       {/* 리스크 + 모니터링 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <BulletSection title="핵심 리스크" items={data.risks} />
-        <BulletSection title="모니터링 포인트" items={data.monitoringPoints} />
+        <BulletSection title="* 핵심 리스크" items={data.risks} />
+        <BulletSection title="* 모니터링 포인트" items={data.monitoringPoints} />
       </div>
 
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>

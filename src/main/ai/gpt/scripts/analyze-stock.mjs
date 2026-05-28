@@ -55,8 +55,8 @@ async function main() {
   const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company)
   const baseName = `${identifier}_${asOfDateFile}`
-  const artifactDir = path.join(reportsDir, '.artifacts', baseName)
-  const finalReportPath = resolveUniqueReportPath(reportsDir, baseName)
+  const artifactDir = resolveUniqueFolderPath(reportsDir, baseName)
+  const finalReportPath = path.join(artifactDir, `${path.basename(artifactDir)}.json`)
   const aiInfo = buildAiInfo(options.model)
 
   await mkdir(artifactDir, { recursive: true })
@@ -321,14 +321,14 @@ function buildAiInfo(model) {
   }
 }
 
-function resolveUniqueReportPath(dir, baseName) {
-  const candidate = path.join(dir, `${baseName}.json`)
+function resolveUniqueFolderPath(dir, baseName) {
+  const candidate = path.join(dir, baseName)
   if (!existsSync(candidate)) return candidate
   let i = 1
-  while (existsSync(path.join(dir, `${baseName}_${i}.json`))) {
+  while (existsSync(path.join(dir, `${baseName}_${i}`))) {
     i++
   }
-  return path.join(dir, `${baseName}_${i}.json`)
+  return path.join(dir, `${baseName}_${i}`)
 }
 
 function printHelp() {

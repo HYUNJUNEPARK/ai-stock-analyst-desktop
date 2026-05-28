@@ -29,8 +29,8 @@ export default function RecentReportPage(): React.JSX.Element {
   const [deleteTarget, setDeleteTarget] = useState<ReportFile | null>(null)
   const sections = groupReportsByDate(reports)
 
-  const handleReportClick = (name: string): void => {
-    void window.api.openReportDetailWindow(name)
+  const handleReportClick = (name: string, model: string): void => {
+    void window.api.openReportDetailWindow(name, model)
   }
 
   const handleDeleteRequest = (report: ReportFile): void => {
@@ -68,7 +68,7 @@ export default function RecentReportPage(): React.JSX.Element {
   const deleteTargetLabel = deleteTarget
     ? deleteTarget.ticker
       ? `${deleteTarget.company}(${deleteTarget.ticker})`
-      : deleteTarget.company || deleteTarget.name.replace(/\.json$/, '')
+      : deleteTarget.company || deleteTarget.name
     : ''
 
   return (
@@ -133,10 +133,10 @@ export default function RecentReportPage(): React.JSX.Element {
 
 function reportCard(
   report: ReportFile,
-  onClick: (name: string) => void,
+  onClick: (name: string, model: string) => void,
   onDelete: (report: ReportFile) => void
 ): React.JSX.Element {
-  const displayName = report.company || report.name.replace(/\.json$/, '')
+  const displayName = report.company || report.name
   const label = report.ticker ? `${displayName}(${report.ticker})` : displayName
 
   return (
@@ -144,7 +144,7 @@ function reportCard(
       key={report.name}
       type="button"
       className="report-list-row"
-      onClick={() => onClick(report.name)}
+      onClick={() => onClick(report.name, report.model)}
     >
       <img
         src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}

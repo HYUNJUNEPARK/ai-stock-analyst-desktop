@@ -17,7 +17,7 @@ import { is } from '@electron-toolkit/utils'
 import { STOCK_GPT_REPORTS_DIR, STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import icon from '../../../resources/icon.png?asset'
 
-function createReportDetailWindow(name: string): void {
+function createReportDetailWindow(name: string, model: string): void {
   const reportWindow = new BrowserWindow({
     width: 900,
     height: 1080,
@@ -37,7 +37,7 @@ function createReportDetailWindow(name: string): void {
     reportWindow.show()
   })
 
-  const hash = `/reports/${encodeURIComponent(name)}?mode=window`
+  const hash = `/reports/${encodeURIComponent(name)}?mode=window&model=${encodeURIComponent(model)}`
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     reportWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}#${hash}`)
@@ -218,17 +218,22 @@ export function registerCliStatsHandlers(): void {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
       const files = readdirSync(STOCK_GPT_REPORTS_DIR)
-        .filter((name) => name.endsWith('.json'))
-        .map((name) => {
-          const filePath = join(STOCK_GPT_REPORTS_DIR, name)
-          const stats = statSync(filePath)
+        .filter((name) => {
+          if (name.startsWith('.')) return false
+          const fullPath = join(STOCK_GPT_REPORTS_DIR, name)
+          return statSync(fullPath).isDirectory()
+        })
+        .map((folderName) => {
+          const folderPath = join(STOCK_GPT_REPORTS_DIR, folderName)
+          const jsonPath = join(folderPath, `${folderName}.json`)
+          const stats = statSync(folderPath)
           const createdAt =
             stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : stats.mtime.toISOString()
           let company = ''
           let ticker = ''
           let asOfDate = ''
           try {
-            const json = JSON.parse(readFileSync(filePath, 'utf-8'))
+            const json = JSON.parse(readFileSync(jsonPath, 'utf-8'))
             company = json.company ?? ''
             ticker = json.ticker ?? ''
             asOfDate = json.asOfDate ?? ''
@@ -236,7 +241,7 @@ export function registerCliStatsHandlers(): void {
             // JSON 파싱 실패 시 빈 값 유지
           }
           return {
-            name,
+            name: folderName,
             company,
             ticker,
             asOfDate,
@@ -263,7 +268,7 @@ export function registerCliStatsHandlers(): void {
   ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
     console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
-      const filePath = join(STOCK_GPT_REPORTS_DIR, name)
+      const filePath = join(STOCK_GPT_REPORTS_DIR, name, `${name}.json`)
       const content = readFileSync(filePath, 'utf-8')
       return { success: true, data: JSON.parse(content) }
     } catch (error) {
@@ -272,10 +277,10 @@ export function registerCliStatsHandlers(): void {
     }
   })
 
-  ipcMain.handle(IPC.OPEN_REPORT_DETAIL_WINDOW, (_event, name: string) => {
+  ipcMain.handle(IPC.OPEN_REPORT_DETAIL_WINDOW, (_event, name: string, model: string) => {
     console.log(`[open-report-detail-window] 보고서 새 창 열기: ${name}`)
     try {
-      createReportDetailWindow(name)
+      createReportDetailWindow(name, model)
       return { success: true }
     } catch (error) {
       console.error('[open-report-detail-window] 보고서 새 창 열기 실패:', error)

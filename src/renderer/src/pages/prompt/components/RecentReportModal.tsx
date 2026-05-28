@@ -2,6 +2,7 @@ export interface RecentReport {
   name: string
   company: string
   ticker: string
+  model: string
   daysAgo: number
 }
 

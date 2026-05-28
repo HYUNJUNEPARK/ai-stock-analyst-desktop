@@ -62,7 +62,7 @@ export default function PromptPage(): React.JSX.Element {
 
   function handleViewReport(): void {
     if (recentReport) {
-      window.api.openReportDetailWindow(recentReport.name)
+      window.api.openReportDetailWindow(recentReport.name, recentReport.model ?? 'gpt')
       setRecentReport(null)
     }
   }
