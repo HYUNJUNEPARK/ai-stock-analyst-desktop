@@ -18,6 +18,7 @@ const ROLE_FILES = {
   'financial-analyst-kr': 'financial-analyst-kr.md',
   'news-sentiment-analyst': 'news-sentiment-analyst.md',
   'sector-researcher': 'sector-researcher.md',
+  'invest-type-classifier': 'invest-type-classifier.md',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
 }
 
@@ -89,11 +90,27 @@ async function main() {
 
   const resultMap = Object.fromEntries(specialistResults.map((item) => [item.role, item.content]))
 
-  const strategistContext = {
+  const classifierContext = {
     ...context,
     FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
     NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
     SECTOR_ANALYSIS: resultMap['sector-researcher']
+  }
+
+  const classifierOutputPath = path.join(artifactDir, 'invest-type-classifier.md')
+  const classifierResult = await runRole({
+    role: 'invest-type-classifier',
+    context: classifierContext,
+    outputPath: classifierOutputPath,
+    model: options.model
+  })
+
+  const strategistContext = {
+    ...context,
+    FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
+    NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
+    SECTOR_ANALYSIS: resultMap['sector-researcher'],
+    INVEST_TYPE_ANALYSIS: classifierResult.content
   }
 
   const strategistOutputPath = path.join(artifactDir, 'aggressive-investment-strategist.md')

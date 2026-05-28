@@ -304,6 +304,7 @@ export function registerCliStatsHandlers(): void {
       financial: read('financial-analyst-kr.md'),
       news: read('news-sentiment-analyst.md'),
       sector: read('sector-researcher.md'),
+      investType: read('invest-type-classifier.md'),
     }
   })
 
@@ -327,18 +328,69 @@ export function registerCliStatsHandlers(): void {
 
     if (canceled || !filePath) return { success: false, canceled: true }
 
+    // body / .page / .page-content 등에 설정된 고정 높이·overflow 제약을 풀어
+    // printToPDF가 스크롤 없이 전체 콘텐츠를 캡처할 수 있도록 한다.
+    const PRINT_CSS = `
+      body, #root {
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .page {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      .page-content {
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .card {
+        overflow: visible !important;
+      }
+    `
+
+    let cssKey: string | undefined
     try {
+      cssKey = await event.sender.insertCSS(PRINT_CSS)
+
+      // 스타일 적용 후 전체 콘텐츠 높이(px)를 측정한다.
+      // CSS 적용 → 레이아웃 재계산 → 측정 순서를 보장하기 위해 requestAnimationFrame 두 번 대기한다.
+      const scrollHeight = await event.sender.executeJavaScript(`
+        new Promise(resolve => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              resolve(document.documentElement.scrollHeight)
+            })
+          })
+        })
+      `)
+
+      // 96dpi 기준: 1px = 264.583µm
+      // A4 가로 너비: 210mm = 210,000µm
+      const PX_TO_MICRON = 264.583
+      const A4_WIDTH_MICRON = 210000
+      const heightMicron = Math.ceil((scrollHeight as number) * PX_TO_MICRON)
+
+      console.log(`[save-report-pdf] 콘텐츠 높이: ${scrollHeight}px → ${heightMicron}µm`)
+
       const pdfBuffer = await event.sender.printToPDF({
         printBackground: true,
-        pageSize: 'A4',
+        pageSize: { width: A4_WIDTH_MICRON, height: heightMicron },
         margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
       })
+
       writeFileSync(filePath, pdfBuffer)
       console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
       return { success: true, filePath }
     } catch (err) {
       console.error('[save-report-pdf] PDF 저장 실패:', err)
       return { success: false, error: (err as Error).message }
+    } finally {
+      // 성공·실패 관계없이 CSS를 원상복구한다.
+      if (cssKey !== undefined) {
+        event.sender.removeInsertedCSS(cssKey).catch(() => {})
+      }
     }
   })
 }

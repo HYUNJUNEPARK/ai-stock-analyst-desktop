@@ -89,18 +89,22 @@ export default function AnalysisProgressView({
 }
 
 // 에이전트 실행 흐름을 시각화하는 컴포넌트.
-// 상단 3개 에이전트(병렬) → 화살표 → 하단 1개 에이전트(종합) 구조로 표시한다.
+// 3개 에이전트(병렬) → 화살표 → 투자 유형 판단 → 화살표 → 투자 전략 구조로 표시한다.
 function AgentStatusBar({
   agentStatuses
 }: {
   agentStatuses: Record<string, AgentStatus>
 }): React.JSX.Element {
-  const firstRowAgents = AGENT_CONFIG.slice(0, 3)
-  const strategyAgent = AGENT_CONFIG[3]
-  const firstRowDone = firstRowAgents.every((agent) => agentStatuses[agent.key] === 'done')
+  const specialistAgents = AGENT_CONFIG.slice(0, 3)
+  const classifierAgent = AGENT_CONFIG[3]
+  const strategyAgent = AGENT_CONFIG[4]
+
+  const specialistsDone = specialistAgents.every((agent) => agentStatuses[agent.key] === 'done')
+  const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* 1단계: 3개 전문가 에이전트 (병렬) */}
       <div
         style={{
           display: 'grid',
@@ -108,7 +112,7 @@ function AgentStatusBar({
           gap: 8
         }}
       >
-        {firstRowAgents.map((agent) => (
+        {specialistAgents.map((agent) => (
           <AgentStatusChip
             key={agent.key}
             label={agent.label}
@@ -116,28 +120,47 @@ function AgentStatusBar({
           />
         ))}
       </div>
-      <div
-        aria-hidden="true"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
-          alignItems: 'center',
-          columnGap: 8,
-          color: firstRowDone ? 'var(--accent)' : 'var(--text-tertiary)'
-        }}
-      >
-        <div style={{ height: 1, background: firstRowDone ? 'var(--accent)' : 'var(--border)' }} />
-        <FiArrowDown size={18} />
-        <div style={{ height: 1, background: firstRowDone ? 'var(--accent)' : 'var(--border)' }} />
-      </div>
-      {strategyAgent && (
-        <div>
-          <AgentStatusChip
-            label={strategyAgent.label}
-            status={agentStatuses[strategyAgent.key] ?? 'idle'}
-          />
-        </div>
+
+      {/* 화살표 1 */}
+      <FlowArrow active={specialistsDone} />
+
+      {/* 2단계: 투자 유형 판단 */}
+      {classifierAgent && (
+        <AgentStatusChip
+          label={classifierAgent.label}
+          status={agentStatuses[classifierAgent.key] ?? 'idle'}
+        />
       )}
+
+      {/* 화살표 2 */}
+      <FlowArrow active={classifierDone} />
+
+      {/* 3단계: 투자 전략 */}
+      {strategyAgent && (
+        <AgentStatusChip
+          label={strategyAgent.label}
+          status={agentStatuses[strategyAgent.key] ?? 'idle'}
+        />
+      )}
+    </div>
+  )
+}
+
+function FlowArrow({ active }: { active: boolean }): React.JSX.Element {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        alignItems: 'center',
+        columnGap: 8,
+        color: active ? 'var(--accent)' : 'var(--text-tertiary)'
+      }}
+    >
+      <div style={{ height: 1, background: active ? 'var(--accent)' : 'var(--border)' }} />
+      <FiArrowDown size={18} />
+      <div style={{ height: 1, background: active ? 'var(--accent)' : 'var(--border)' }} />
     </div>
   )
 }

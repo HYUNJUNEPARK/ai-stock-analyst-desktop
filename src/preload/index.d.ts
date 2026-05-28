@@ -51,7 +51,7 @@ declare global {
       openReportDetailWindow: (name: string) => Promise<{ success: true } | { success: false; error: string }>
 
       // artifact 역할별 분석 결과 읽기
-      readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string }>
+      readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string; investType: string }>
 
       // 외부 URL을 시스템 기본 브라우저로 열기
       openExternalUrl: (url: string) => Promise<void>

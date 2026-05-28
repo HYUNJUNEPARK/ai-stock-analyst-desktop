@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 
+type InvestType = {
+  type: string
+  coreIdea: string
+  suitableHorizon: string
+  investmentThesisBreakers: string[]
+}
+
 type Report = {
   company: string
   ticker: string
@@ -15,6 +22,7 @@ type Report = {
   verdict: string
   verdictEmoji: string
   summary: string
+  investType?: InvestType
   analysis: {
     financial: { signal: string; content: string }
     news: { signal: string; content: string }
@@ -34,13 +42,14 @@ type Report = {
   monitoringPoints: string[]
 }
 
-type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector'
+type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'invest-type'
 
 const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'summary', label: '종합 보고서' },
   { key: 'financial', label: '재무 분석' },
   { key: 'news', label: '뉴스 분석' },
   { key: 'sector', label: '섹터 리서치' },
+  { key: 'invest-type', label: '투자 유형' },
 ]
 
 const VERDICT_COLORS: Record<string, string> = {
@@ -65,7 +74,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   const aiModel = data['ai-model'] || data.aiInfo?.model
   const aiProvider = data.aiInfo?.provider
   const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
-  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string } | null>(null)
+  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; investType: string } | null>(null)
   const [artifactLoading, setArtifactLoading] = useState(false)
 
   useEffect(() => {
@@ -154,6 +163,16 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
               불러오는 중...
             </div>
+          ) : activeTab === 'invest-type' ? (
+            artifacts?.investType
+              ? <MarkdownRenderer text={artifacts.investType} isStreaming={false} />
+              : data.investType
+                ? <InvestTypeSection investType={data.investType} />
+                : (
+                  <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
+                    투자 유형 분석 데이터가 없습니다.
+                  </div>
+                )
           ) : (
             <MarkdownRenderer
               text={
@@ -201,6 +220,9 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           {data.summary}
         </div>
       </div>
+
+      {/* 투자 유형 */}
+      {data.investType && <InvestTypeSection investType={data.investType} />}
 
       {/* 투자 실행 전략 */}
       <div style={{ marginTop: 12 }}>
@@ -293,6 +315,150 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       </div>
 
       </>}
+    </div>
+  )
+}
+
+const INVEST_TYPE_COLORS: { keyword: string; color: string }[] = [
+  { keyword: '실적 성장형', color: '#16a34a' },
+  { keyword: '저평가 가치형', color: '#2563eb' },
+  { keyword: '턴어라운드형', color: '#d97706' },
+  { keyword: '모멘텀형', color: '#7c3aed' },
+  { keyword: '고위험 테마형', color: '#dc2626' },
+  { keyword: '배당·방어형', color: '#0891b2' },
+]
+
+const HORIZON_LABELS: Record<string, { label: string; color: string }> = {
+  '단기': { label: '단기', color: '#dc2626' },
+  '중기': { label: '중기', color: '#d97706' },
+  '장기': { label: '장기', color: '#16a34a' },
+}
+
+function getInvestTypeColor(type: string): string {
+  for (const { keyword, color } of INVEST_TYPE_COLORS) {
+    if (type.includes(keyword)) return color
+  }
+  return '#6b7280'
+}
+
+function InvestTypeSection({ investType }: { investType: InvestType }): React.JSX.Element {
+  const primaryColor = getInvestTypeColor(investType.type)
+  const horizon = HORIZON_LABELS[investType.suitableHorizon] ?? { label: investType.suitableHorizon, color: '#6b7280' }
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <SectionTitle>* 투자 유형 판단</SectionTitle>
+      <div
+        style={{
+          border: `1px solid ${primaryColor}40`,
+          borderRadius: 12,
+          overflow: 'hidden',
+        }}
+      >
+        {/* 헤더: 유형 + 기간 */}
+        <div
+          style={{
+            padding: '12px 16px',
+            background: `${primaryColor}10`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            borderBottom: `1px solid ${primaryColor}20`,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {investType.type.split('+').map((part) => part.trim()).filter(Boolean).map((part) => (
+              <span
+                key={part}
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  color: getInvestTypeColor(part),
+                  background: `${getInvestTypeColor(part)}15`,
+                  border: `1px solid ${getInvestTypeColor(part)}50`,
+                  borderRadius: 6,
+                  padding: '3px 10px',
+                }}
+              >
+                {part}
+              </span>
+            ))}
+          </div>
+          <span
+            style={{
+              fontSize: 'var(--text-xs)',
+              fontWeight: 600,
+              color: horizon.color,
+              background: `${horizon.color}15`,
+              border: `1px solid ${horizon.color}40`,
+              borderRadius: 6,
+              padding: '3px 10px',
+              flexShrink: 0,
+            }}
+          >
+            {horizon.label} 투자
+          </span>
+        </div>
+
+        {/* 핵심 투자 아이디어 */}
+        <div
+          style={{
+            padding: '14px 16px',
+            background: 'var(--bg-primary)',
+            borderBottom: `1px solid var(--border)`,
+          }}
+        >
+          <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 6, letterSpacing: '0.03em' }}>
+            핵심 투자 아이디어
+          </div>
+          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', lineHeight: 1.65 }}>
+            {investType.coreIdea}
+          </div>
+        </div>
+
+        {/* 아이디어 무효화 조건 */}
+        {investType.investmentThesisBreakers?.length > 0 && (
+          <div
+            style={{
+              padding: '12px 16px',
+              background: 'var(--bg-secondary)',
+            }}
+          >
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 8, letterSpacing: '0.03em' }}>
+              투자 아이디어 무효화 조건
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {investType.investmentThesisBreakers.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.6,
+                    paddingLeft: 12,
+                    position: 'relative',
+                  }}
+                >
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: '0.45em',
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: '#dc2626',
+                      display: 'inline-block',
+                    }}
+                  />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

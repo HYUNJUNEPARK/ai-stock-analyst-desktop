@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "투자 유형 분류 기준 — 재무 분석, 뉴스 분석, 섹터 리서치 결과를 종합하여 투자 유형을 판단하는 기준",
+  "decisionOrder": [
+    "재무 분석 결과로 실적 안정성·성장성·수익성·현금흐름·밸류에이션 확인",
+    "뉴스 분석 결과로 호재·악재·이벤트·정책·수급 변화·리스크 요인 확인",
+    "섹터 리서치 결과로 산업 성장성·업황 사이클·경쟁 구도·정책 수혜·시장 기대감 확인",
+    "세 분석 근거를 종합해 '이 종목을 왜 사는가?' 핵심 투자 아이디어 정의",
+    "핵심 투자 아이디어 기반으로 투자 유형 분류",
+    "투자 유형 기반으로 목표가·손절가·매수 추천가 설정"
+  ],
+  "types": [
+    {
+      "id": "growth",
+      "name": "실적 성장형",
+      "nameEn": "Earnings Growth",
+      "criteria": [
+        "매출·영업이익·순이익이 꾸준히 증가하고 있음",
+        "영업이익률 또는 ROE가 개선되고 있음",
+        "향후 실적 전망이 긍정적임",
+        "섹터 성장성과 기업 경쟁력이 함께 확인됨"
+      ],
+      "suitableHorizon": ["중기", "장기"],
+      "riskLevel": "보통",
+      "keyMetrics": ["매출 성장률", "영업이익 증가율", "영업이익률", "ROE", "EPS 성장률"]
+    },
+    {
+      "id": "value",
+      "name": "저평가 가치형",
+      "nameEn": "Undervalued Value",
+      "criteria": [
+        "PER·PBR 등 밸류에이션 지표가 역사적 평균 또는 동종 업계 대비 낮음",
+        "실적과 현금흐름은 안정적이나 주가가 저평가되어 있음",
+        "배당·자사주 매입·자산가치 등 방어 요소가 있음"
+      ],
+      "suitableHorizon": ["중기", "장기"],
+      "riskLevel": "낮음",
+      "keyMetrics": ["PER", "PBR", "배당수익률", "FCF", "EV/EBITDA"]
+    },
+    {
+      "id": "turnaround",
+      "name": "턴어라운드형",
+      "nameEn": "Turnaround",
+      "criteria": [
+        "과거 실적 부진 이후 매출 회복·적자 축소·흑자 전환 가능성이 확인됨",
+        "업황 바닥 통과·비용 구조 개선·구조조정 효과 등이 나타남",
+        "향후 실적 개선 가능성이 현재 주가에 충분히 반영되지 않았다고 판단됨"
+      ],
+      "suitableHorizon": ["중기"],
+      "riskLevel": "높음",
+      "keyMetrics": ["영업적자 축소 추이", "부채비율 변화", "매출 회복률", "비용 절감율"]
+    },
+    {
+      "id": "momentum",
+      "name": "모멘텀형",
+      "nameEn": "Momentum",
+      "criteria": [
+        "단기적으로 주가를 움직일 수 있는 뉴스·수주·정책·신제품·실적 발표·지수 편입 등 이벤트가 있음",
+        "거래량 증가·시장 관심도 상승·섹터 내 수급 유입이 확인됨",
+        "실적보다 기대감이 주가에 더 크게 반영되어 있는지 점검 필요"
+      ],
+      "suitableHorizon": ["단기"],
+      "riskLevel": "높음",
+      "keyMetrics": ["거래량 증가율", "수급 동향", "이벤트 일정", "뉴스 강도"]
+    },
+    {
+      "id": "high-risk-theme",
+      "name": "고위험 테마형",
+      "nameEn": "High-Risk Theme",
+      "criteria": [
+        "AI·로봇·2차전지·바이오·우주항공 등 미래 성장 기대감이 강함",
+        "현재 실적보다 미래 시장성이나 기대감이 주가에 더 크게 반영되어 있음",
+        "기대감 훼손 시 급락 위험이 있으므로 손절 기준과 투자 비중을 보수적으로 설정해야 함"
+      ],
+      "suitableHorizon": ["단기", "중기"],
+      "riskLevel": "매우 높음",
+      "keyMetrics": ["밸류에이션 프리미엄", "기대 매출 성장률", "R&D 투자비율", "업계 내 기술 경쟁력"]
+    },
+    {
+      "id": "dividend-defensive",
+      "name": "배당·방어형",
+      "nameEn": "Dividend & Defensive",
+      "criteria": [
+        "안정적인 현금흐름과 배당 여력이 확인됨",
+        "경기 변동에 대한 방어력이 상대적으로 높음",
+        "단기 시세차익보다 배당수익과 안정성을 주요 투자 근거로 삼음"
+      ],
+      "suitableHorizon": ["장기"],
+      "riskLevel": "낮음",
+      "keyMetrics": ["배당수익률", "배당성향", "FCF 커버리지", "부채비율", "영업현금흐름"]
+    }
+  ],
+  "compositeRules": {
+    "description": "단일 유형으로 분류하기 어렵다면 복합 유형으로 작성",
+    "examples": [
+      "실적 성장형 + 모멘텀형",
+      "저평가 가치형 + 배당·방어형",
+      "본업은 가치형, 신사업은 고위험 테마형"
+    ]
+  },
+  "conflictResolutionRule": "재무 분석·뉴스 분석·섹터 리서치 세 결과가 서로 충돌할 경우, 충돌 내용을 명시하고 보수적으로 판단한다.",
+  "outputRequiredFields": [
+    {
+      "field": "coreInvestmentIdea",
+      "description": "이 종목을 투자 대상으로 검토하는 가장 중요한 이유"
+    },
+    {
+      "field": "investType",
+      "description": "투자 유형 (types[].name 또는 복합 유형)"
+    },
+    {
+      "field": "typeRationale",
+      "description": "재무·뉴스·섹터 분석에서 확인된 유형 판단 근거"
+    },
+    {
+      "field": "suitableHorizon",
+      "description": "단기 / 중기 / 장기 중 적합한 투자 기간"
+    },
+    {
+      "field": "keyMonitoringMetrics",
+      "description": "향후 투자 판단을 위해 추적해야 할 핵심 지표"
+    },
+    {
+      "field": "investmentThesisBreakers",
+      "description": "투자 아이디어가 틀렸다고 판단할 수 있는 조건"
+    }
+  ]
+}
