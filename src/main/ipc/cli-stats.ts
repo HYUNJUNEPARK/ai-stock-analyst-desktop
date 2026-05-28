@@ -291,6 +291,22 @@ export function registerCliStatsHandlers(): void {
    * artifactDir: analyze-stock.mjs가 보고서 JSON에 포함한 절대 경로
    * 반환값: { financial, news, sector } — 각 역할의 마크다운 내용
    */
+  ipcMain.handle(IPC.READ_ARTIFACT_FILES, (_event, artifactDir: string) => {
+    console.log(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
+    const read = (filename: string): string => {
+      try {
+        return readFileSync(join(artifactDir, filename), 'utf-8')
+      } catch {
+        return ''
+      }
+    }
+    return {
+      financial: read('financial-analyst-kr.md'),
+      news: read('news-sentiment-analyst.md'),
+      sector: read('sector-researcher.md'),
+    }
+  })
+
   /**
    * IPC 채널: 'save-report-pdf'
    * 방향: renderer → main → renderer (handle = 양방향)
@@ -311,67 +327,18 @@ export function registerCliStatsHandlers(): void {
 
     if (canceled || !filePath) return { success: false, canceled: true }
 
-    // body / .page / .page-content 등에 설정된 고정 높이·overflow 제약을 풀어
-    // printToPDF가 스크롤 없이 전체 콘텐츠를 캡처할 수 있도록 한다.
-    const PRINT_CSS = `
-      body, #root {
-        height: auto !important;
-        overflow: visible !important;
-      }
-      .page {
-        height: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
-      }
-      .page-content {
-        flex: none !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-      .card {
-        overflow: visible !important;
-      }
-    `
-
-    let cssKey: string | undefined
     try {
-      cssKey = await event.sender.insertCSS(PRINT_CSS)
-      // 스타일 적용 대기
-      await new Promise<void>((resolve) => setTimeout(resolve, 300))
-
       const pdfBuffer = await event.sender.printToPDF({
         printBackground: true,
         pageSize: 'A4',
         margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
       })
-
       writeFileSync(filePath, pdfBuffer)
       console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
       return { success: true, filePath }
     } catch (err) {
       console.error('[save-report-pdf] PDF 저장 실패:', err)
       return { success: false, error: (err as Error).message }
-    } finally {
-      // CSS 원상복구
-      if (cssKey !== undefined) {
-        event.sender.removeInsertedCSS(cssKey).catch(() => {})
-      }
-    }
-  })
-
-  ipcMain.handle(IPC.READ_ARTIFACT_FILES, (_event, artifactDir: string) => {
-    console.log(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
-    const read = (filename: string): string => {
-      try {
-        return readFileSync(join(artifactDir, filename), 'utf-8')
-      } catch {
-        return ''
-      }
-    }
-    return {
-      financial: read('financial-analyst-kr.md'),
-      news: read('news-sentiment-analyst.md'),
-      sector: read('sector-researcher.md'),
     }
   })
 }
