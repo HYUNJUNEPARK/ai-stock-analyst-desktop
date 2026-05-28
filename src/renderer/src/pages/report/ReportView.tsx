@@ -172,13 +172,13 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       {/* 한 줄 요약 */}
       <div
         style={{
-          padding: '14px 16px',
+          padding: '16px 18px',
           background: 'rgba(0, 122, 255, 0.08)',
           border: '1px solid rgba(0, 122, 255, 0.2)',
           borderRadius: 14,
           display: 'flex',
           flexDirection: 'column',
-          gap: 6
+          gap: 8
         }}
       >
         <div
@@ -203,8 +203,8 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       </div>
 
       {/* 투자 실행 전략 */}
-      <div>
-        <SectionTitle>투자 실행 전략</SectionTitle>
+      <div style={{ marginTop: 12 }}>
+        <SectionTitle>* 투자 실행 전략</SectionTitle>
 
         {/* 매수 추천가 강조 카드 */}
         {data.strategy.recommendedBuyPrice && (
@@ -272,8 +272,8 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       </div>
 
       {/* 분석 근거 */}
-      <div>
-        <SectionTitle>분석 근거</SectionTitle>
+      <div style={{ marginTop: 12 }}>
+        <SectionTitle>* 분석 근거</SectionTitle>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
           <AnalysisItem label="뉴스 분석" signal={data.analysis.news.signal} content={data.analysis.news.content} />
