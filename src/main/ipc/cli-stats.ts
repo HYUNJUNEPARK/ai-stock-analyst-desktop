@@ -437,57 +437,82 @@ export function registerCliStatsHandlers(): void {
     }
   })
 
+
+  
+  /**
+   * IPC 채널: 'save-report-pdf'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 현재 보고서 창의 전체 콘텐츠를 PDF로 캡처하여 사용자가 지정한 경로에 저장
+   *
+   * 처리 흐름:
+   *   1. event.sender(보고서 창의 webContents)로부터 BrowserWindow 인스턴스를 획득
+   *   2. dialog.showSaveDialog로 사용자에게 저장 경로를 선택받음
+   *   3. printToPDF 실행 전 PRINT_CSS를 임시 주입 → 스크롤 클리핑 문제 해결
+   *   4. event.sender.printToPDF()로 Chromium 렌더러가 A4 PDF를 생성
+   *   5. Node.js writeFileSync로 디스크에 기록
+   *   6. finally 블록에서 주입했던 CSS를 반드시 제거 (원상복구)
+   */
   ipcMain.handle(IPC.SAVE_REPORT_PDF, async (event, defaultFilename: string) => {
+    // event.sender: 이 IPC를 호출한 renderer의 webContents
+    // BrowserWindow.fromWebContents()로 해당 webContents가 속한 창을 역조회한다.
+    // dialog는 부모 창이 있어야 올바른 위치에 표시되므로 win이 필수다.
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return { success: false, error: '창을 찾을 수 없습니다.' }
 
+    // 1. PDF 경로 선택
     const { canceled, filePath } = await dialog.showSaveDialog(win, {
       title: 'PDF로 저장',
       defaultPath: defaultFilename || 'report.pdf',
       filters: [{ name: 'PDF 파일', extensions: ['pdf'] }],
     })
 
+    // 사용자가 취소하거나 경로를 선택하지 않은 경우 조용히 종료
     if (canceled || !filePath) return { success: false, canceled: true }
 
-    // ─── 원인 ────────────────────────────────────────────────────────
-    // ec6224d 이후 InvestTypeSection 등 콘텐츠 추가로 보고서 높이가 창 높이(1080px)를
-    // 초과하게 됐다. Chromium의 print 렌더링에서 overflow-y: auto 요소는 screen과
-    // 동일하게 설정된 높이까지만 캡처하고 넘치는 부분을 클리핑한다.
-    // → height/overflow 제약을 해제해 전체 콘텐츠를 PDF에 포함시킨다.
+    // ─── PRINT_CSS 주입 이유 ──────────────────────────────────────────
+    // Chromium의 print 렌더링 엔진은 화면 레이아웃을 그대로 사용한다.
+    // 즉, overflow-y: auto / scroll 로 설정된 요소는 화면에서 보이는 높이까지만 캡처하고 스크롤 영역 아래의 콘텐츠는 잘린다(클리핑).
+    //
+    // 보고서 창(.page, .page-content)은 창 높이(≈940px)에 맞춰 스크롤되도록 설계되어 있기 때문에, InvestTypeSection 등 콘텐츠가 추가되면서
+    // 전체 높이가 창 높이를 초과할 경우 PDF에서 하단 내용이 누락된다.
+    //
+    // 해결책: printToPDF 직전에 CSS를 임시 주입하여
+    //   - height 고정값 해제 → auto로 전체 콘텐츠 높이만큼 늘어나게 함
+    //   - overflow 제약 해제 → 클리핑 없이 전체 내용을 PDF에 포함시킴
     // ─────────────────────────────────────────────────────────────────
     const PRINT_CSS = `
       body, #root {
-        height: auto !important;
-        overflow: visible !important;
+        height: auto !important;      /* 고정 높이 제거 → 콘텐츠 전체 높이로 확장 */
+        overflow: visible !important; /* body 레벨 스크롤 클리핑 제거 */
       }
       .page {
-        height: auto !important;
-        min-height: 0 !important;
-        overflow: visible !important;
+        height: auto !important;      /* 창 높이에 종속된 고정값 해제 */
+        min-height: 0 !important;     /* min-height가 강제 여백을 만드는 것을 방지 */
+        overflow: visible !important; /* 보고서 페이지 래퍼의 클리핑 제거 */
       }
       .page-content {
-        flex: none !important;
-        height: auto !important;
-        overflow: visible !important;
+        flex: none !important;        /* flexbox 높이 배분에서 벗어나 콘텐츠 크기를 따르게 함 */
+        height: auto !important;      /* 고정 높이 제거 */
+        overflow: visible !important; /* 스크롤 영역의 클리핑 제거 */
       }
       .card {
-        overflow: visible !important;
+        overflow: visible !important; /* 카드 컴포넌트 내부 콘텐츠 잘림 방지 */
       }
     `
 
     let cssKey: string | undefined
     try {
+      // 2. PDF 캡처 (CSS 임시 주입 → reflow 대기 → printToPDF)
+      // cssKey: finally 블록에서 removeInsertedCSS()로 제거할 때 사용하는 핸들
       cssKey = await event.sender.insertCSS(PRINT_CSS)
-
-      // CSS 적용 후 레이아웃 재계산 대기
       await new Promise<void>((r) => setTimeout(r, 300))
-
       const pdfBuffer = await event.sender.printToPDF({
         printBackground: true,
         pageSize: 'A4',
         margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
       })
 
+      // 3. 파일 저장
       writeFileSync(filePath, pdfBuffer)
       console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
       return { success: true, filePath }
@@ -495,7 +520,9 @@ export function registerCliStatsHandlers(): void {
       console.error('[save-report-pdf] PDF 저장 실패:', err)
       return { success: false, error: (err as Error).message }
     } finally {
-      // 성공·실패 관계없이 CSS를 원상복구한다.
+      // 성공·실패·예외 발생 여부와 관계없이 반드시 CSS를 원상복구한다.
+      // 제거하지 않으면 보고서 창이 열려 있는 동안 레이아웃이 변형된 채로 유지된다.
+      // removeInsertedCSS()는 비동기이므로 오류가 발생해도 무시한다(빈 catch).
       if (cssKey !== undefined) {
         event.sender.removeInsertedCSS(cssKey).catch(() => {})
       }
