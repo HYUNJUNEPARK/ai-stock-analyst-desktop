@@ -48,8 +48,8 @@ function createReportsWindow(): void {
 
 function createGuideWindow(guide: string): void {
   const guideWindow = new BrowserWindow({
-    width: 860,
-    height: 900,
+    width: 960,
+    height: 720,
     minWidth: 700,
     minHeight: 600,
     show: false,
@@ -77,8 +77,8 @@ function createGuideWindow(guide: string): void {
 
 function createReportDetailWindow(name: string, model: string): void {
   const reportWindow = new BrowserWindow({
-    width: 900,
-    height: 1080,
+    width: 960,
+    height: 720,
     minWidth: 840,
     minHeight: 800,
     show: false,

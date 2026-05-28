@@ -275,13 +275,13 @@ export default function ResponsePage(): React.JSX.Element {
           }}
         >
           {[
-            { icon: <FiFileText size={13} />, label: '이전 보고서', route: ROUTES.REPORTS_LATEST },
-            { icon: <FiPieChart size={13} />, label: '투자 지표 용어 사전', route: ROUTES.GUIDE_VALUATION },
-            { icon: <FiBookOpen size={13} />, label: '투자 유형 기준', route: ROUTES.GUIDE_INVESTMENT }
-          ].map(({ icon, label, route }) => (
+            { icon: <FiFileText size={13} />, label: '이전 보고서', onClick: () => window.api.openReportsWindow() },
+            { icon: <FiPieChart size={13} />, label: '투자 지표 용어 사전', onClick: () => window.api.openGuideWindow('valuation') },
+            { icon: <FiBookOpen size={13} />, label: '투자 유형 기준', onClick: () => window.api.openGuideWindow('investment') }
+          ].map(({ icon, label, onClick }) => (
             <button
-              key={route}
-              onClick={() => navigate(route)}
+              key={label}
+              onClick={onClick}
               style={{
                 display: 'flex',
                 alignItems: 'center',
