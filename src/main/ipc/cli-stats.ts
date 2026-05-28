@@ -217,40 +217,46 @@ export function registerCliStatsHandlers(): void {
     try {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
-      const files = readdirSync(STOCK_GPT_REPORTS_DIR)
-        .filter((name) => {
-          if (name.startsWith('.')) return false
-          const fullPath = join(STOCK_GPT_REPORTS_DIR, name)
-          return statSync(fullPath).isDirectory()
-        })
-        .map((folderName) => {
-          const folderPath = join(STOCK_GPT_REPORTS_DIR, folderName)
-          const jsonPath = join(folderPath, `${folderName}.json`)
-          const stats = statSync(folderPath)
-          const createdAt =
-            stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : stats.mtime.toISOString()
-          let company = ''
-          let ticker = ''
-          let asOfDate = ''
-          try {
-            const json = JSON.parse(readFileSync(jsonPath, 'utf-8'))
-            company = json.company ?? ''
-            ticker = json.ticker ?? ''
-            asOfDate = json.asOfDate ?? ''
-          } catch {
-            // JSON 파싱 실패 시 빈 값 유지
-          }
-          return {
-            name: folderName,
-            company,
-            ticker,
-            asOfDate,
-            model: 'gpt',
-            createdAt,
-            updatedAt: stats.mtime.toISOString()
-          }
-        })
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      const dateFolders = readdirSync(STOCK_GPT_REPORTS_DIR).filter((name) => {
+        if (name.startsWith('.') || name === 'useless') return false
+        return statSync(join(STOCK_GPT_REPORTS_DIR, name)).isDirectory()
+      })
+
+      const files = dateFolders.flatMap((dateFolder) => {
+        const datePath = join(STOCK_GPT_REPORTS_DIR, dateFolder)
+        return readdirSync(datePath)
+          .filter((name) => {
+            if (name.startsWith('.')) return false
+            return statSync(join(datePath, name)).isDirectory()
+          })
+          .map((stockFolder) => {
+            const stockPath = join(datePath, stockFolder)
+            const jsonPath = join(stockPath, `${stockFolder}.json`)
+            const stats = statSync(stockPath)
+            const createdAt =
+              stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : stats.mtime.toISOString()
+            let company = ''
+            let ticker = ''
+            let asOfDate = ''
+            try {
+              const json = JSON.parse(readFileSync(jsonPath, 'utf-8'))
+              company = json.company ?? ''
+              ticker = json.ticker ?? ''
+              asOfDate = json.asOfDate ?? ''
+            } catch {
+              // JSON 파싱 실패 시 빈 값 유지
+            }
+            return {
+              name: `${dateFolder}/${stockFolder}`,
+              company,
+              ticker,
+              asOfDate,
+              model: 'gpt',
+              createdAt,
+              updatedAt: stats.mtime.toISOString()
+            }
+          })
+      }).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
       console.log(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
       return files
@@ -268,7 +274,8 @@ export function registerCliStatsHandlers(): void {
   ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
     console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
-      const filePath = join(STOCK_GPT_REPORTS_DIR, name, `${name}.json`)
+      const stockName = name.split('/').pop() ?? name
+      const filePath = join(STOCK_GPT_REPORTS_DIR, name, `${stockName}.json`)
       const content = readFileSync(filePath, 'utf-8')
       return { success: true, data: JSON.parse(content) }
     } catch (error) {

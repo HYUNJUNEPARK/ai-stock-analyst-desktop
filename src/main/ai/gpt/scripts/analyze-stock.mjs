@@ -54,8 +54,8 @@ async function main() {
   const asOfDateFile = formatDate(new Date())
   const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company)
-  const baseName = `${identifier}_${asOfDateFile}`
-  const artifactDir = resolveUniqueFolderPath(reportsDir, baseName)
+  const dateDir = path.join(reportsDir, asOfDateFile)
+  const artifactDir = resolveUniqueFolderPath(dateDir, identifier)
   const finalReportPath = path.join(artifactDir, `${path.basename(artifactDir)}.json`)
   const aiInfo = buildAiInfo(options.model)
 

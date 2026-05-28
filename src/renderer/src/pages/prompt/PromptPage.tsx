@@ -31,21 +31,24 @@ export default function PromptPage(): React.JSX.Element {
 
     if (selectedModel === 'gpt') {
       const files = await window.api.listGptReportFiles()
-      const now = Date.now()
       const keyword = trimmed.toLowerCase()
+      const today = new Date()
       const found = files
         .filter((f) => {
-          // 이름 또는 티커에 키워드 포함 여부 + 2주 이내 생성된 보고서만
+          // 이름 또는 티커에 키워드 포함 여부 + 오늘 생성된 보고서만
           const matchName = f.company.toLowerCase().includes(keyword) || f.ticker.toLowerCase().includes(keyword)
-          const withinTwoWeeks = now - new Date(f.createdAt).getTime() < (14 * 24 * 60 * 60 * 1000)
-          return matchName && withinTwoWeeks
+          const createdDate = new Date(f.createdAt)
+          const isToday =
+            createdDate.getFullYear() === today.getFullYear() &&
+            createdDate.getMonth() === today.getMonth() &&
+            createdDate.getDate() === today.getDate()
+          return matchName && isToday
         })
         // 가장 최근 보고서 하나만 남기기
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
 
       if (found) {
-        const daysAgo = Math.floor((now - new Date(found.createdAt).getTime()) / (24 * 60 * 60 * 1000))
-        setRecentReport({ ...found, daysAgo })
+        setRecentReport({ ...found, daysAgo: 0 })
         return
       }
     }

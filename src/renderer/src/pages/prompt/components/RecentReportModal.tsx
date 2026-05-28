@@ -59,9 +59,8 @@ export default function RecentReportModal({
             marginBottom: 24
           }}
         >
-          <strong>{report.company || report.ticker}</strong> 보고서가{' '}
-          {report.daysAgo === 0 ? '오늘' : `${report.daysAgo}일 전`}에 저장되어 있습니다.
-          새로 분석하시겠습니까?
+          오늘 분석한 <strong>{report.company || report.ticker}</strong> 보고서가
+          이미 저장되어 있습니다. 새로 분석하시겠습니까?
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button

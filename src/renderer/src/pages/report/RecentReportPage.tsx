@@ -170,31 +170,34 @@ function reportCard(
   )
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('sv-SE', {
+function formatSectionDate(asOfDate: string): string {
+  if (!asOfDate) return '날짜 미상'
+  const d = new Date(asOfDate)
+  if (isNaN(d.getTime())) return asOfDate
+  return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date(value))
+    month: 'long',
+    day: 'numeric'
+  }).format(d)
 }
 
 function groupReportsByDate(reports: ReportFile[]): ReportSection[] {
   const grouped = new Map<string, ReportFile[]>()
 
   for (const report of reports) {
-    const date = formatDate(report.createdAt)
-    const section = grouped.get(date)
-
+    const key = report.asOfDate || report.createdAt.slice(0, 10)
+    const section = grouped.get(key)
     if (section) {
       section.push(report)
-      continue
+    } else {
+      grouped.set(key, [report])
     }
-
-    grouped.set(date, [report])
   }
 
-  return Array.from(grouped.entries()).map(([date, sectionReports]) => ({
-    date,
-    reports: sectionReports
-  }))
+  return Array.from(grouped.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, sectionReports]) => ({
+      date: formatSectionDate(date),
+      reports: sectionReports
+    }))
 }
