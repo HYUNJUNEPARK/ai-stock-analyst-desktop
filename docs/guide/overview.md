@@ -12,7 +12,7 @@
 |----------|------|
 | `financial-analyst-kr` | 재무 분석 |
 | `news-sentiment-analyst` | 뉴스 분석 |
-| `sector-researcher` | 섹터 리서치 |
+| `sector-researcher` | 업종 리서치 |
 | `aggressive-investment-strategist` | 투자 전략 수립 |
 
 ---

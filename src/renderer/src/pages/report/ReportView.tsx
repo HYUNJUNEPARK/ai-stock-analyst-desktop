@@ -48,7 +48,7 @@ const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'summary', label: '종합 보고서' },
   { key: 'financial', label: '재무 분석' },
   { key: 'news', label: '뉴스 분석' },
-  { key: 'sector', label: '섹터 리서치' },
+  { key: 'sector', label: '업종 리서치' },
   { key: 'invest-type', label: '투자 유형' },
 ]
 
