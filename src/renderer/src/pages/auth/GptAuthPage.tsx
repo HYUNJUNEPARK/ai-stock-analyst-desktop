@@ -38,7 +38,7 @@ export default function GptAuthPage(): React.JSX.Element {
 
       <div className="page-content">
         <div className="content-container">
-          <div style={{ textAlign: 'center', paddingTop: 40, paddingBottom: 32 }}>
+          <div style={{ textAlign: 'center', paddingTop: 220, paddingBottom: 32 }}>
             <img
               src={gptImg}
               alt="Codex"
@@ -47,32 +47,28 @@ export default function GptAuthPage(): React.JSX.Element {
             <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, marginBottom: 8 }}>
               Codex 인증
             </h1>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-              ChatGPT로 Codex에 로그인을 진행해 주세요
-            </p>
-          </div>
+            <div style={{ display: 'inline-block', textAlign: 'left' }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                브라우저가 열리면 ChatGPT 계정으로 Codex에 로그인해 주세요.
+              </p>
+              {cliError && <div className="error-banner">⚠ {cliError}</div>}
 
-          <div>
-            <div className="info-card">
-             브라우저가 열리면 ChatGPT 계정으로 Codex에 로그인해 주세요.
+              {cliStatus === 'done' && (
+                <div
+                  style={{
+                    paddingRight: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    color: 'var(--success)',
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 500
+                  }}
+                >
+                  ✓ Codex 로그인 성공
+                </div>
+              )}
             </div>
-
-            {cliError && <div className="error-banner">⚠ {cliError}</div>}
-
-            {cliStatus === 'done' && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  color: 'var(--success)',
-                  fontSize: 'var(--text-base)',
-                  fontWeight: 500
-                }}
-              >
-                ✓ Codex 로그인 성공
-              </div>
-            )}
           </div>
         </div>
       </div>

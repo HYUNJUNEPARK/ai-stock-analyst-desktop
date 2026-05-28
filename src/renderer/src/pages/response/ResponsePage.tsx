@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
 import claudeImg from '../../assets/claude.png'
 import NavBar from '../../components/NavBar'
+import ReportSidePanel from '../../components/ReportSidePanel'
 import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
@@ -31,6 +32,7 @@ export default function ResponsePage(): React.JSX.Element {
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
+  const [isReportPanelOpen, setIsReportPanelOpen] = useState(false)
   const responseRef = useRef(initialResponse)
   const hasStartedRef = useRef(false)
 
@@ -130,6 +132,14 @@ export default function ResponsePage(): React.JSX.Element {
     }
   }
 
+  function openReportPanel(): void {
+    setIsReportPanelOpen(true)
+  }
+
+  function closeReportPanel(): void {
+    setIsReportPanelOpen(false)
+  }
+
   const modelLabel = effectiveModel === 'gpt' ? 'GPT' : 'Claude'
   const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
@@ -193,7 +203,13 @@ export default function ResponsePage(): React.JSX.Element {
               <img
                 src={modelImg}
                 alt={modelLabel}
-                style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 6,
+                  objectFit: 'cover',
+                  flexShrink: 0
+                }}
               />
               <span
                 style={{
@@ -275,9 +291,17 @@ export default function ResponsePage(): React.JSX.Element {
           }}
         >
           {[
-            { icon: <FiFileText size={13} />, label: '이전 보고서', onClick: () => window.api.openReportsWindow() },
-            { icon: <FiPieChart size={13} />, label: '투자 지표 용어 사전', onClick: () => window.api.openGuideWindow('valuation') },
-            { icon: <FiBookOpen size={13} />, label: '투자 유형 기준', onClick: () => window.api.openGuideWindow('investment') }
+            { icon: <FiFileText size={13} />, label: '이전 보고서', onClick: openReportPanel },
+            {
+              icon: <FiPieChart size={13} />,
+              label: '투자 지표 용어 사전',
+              onClick: () => window.api.openGuideWindow('valuation')
+            },
+            {
+              icon: <FiBookOpen size={13} />,
+              label: '투자 유형 기준',
+              onClick: () => window.api.openGuideWindow('investment')
+            }
           ].map(({ icon, label, onClick }) => (
             <button
               key={label}
@@ -312,6 +336,7 @@ export default function ResponsePage(): React.JSX.Element {
           ))}
         </div>
       </div>
+      <ReportSidePanel isOpen={isReportPanelOpen} onClose={closeReportPanel} />
     </div>
   )
 }
