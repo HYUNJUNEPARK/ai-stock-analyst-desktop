@@ -43,6 +43,11 @@ export default function ValuationTermsPage(): React.JSX.Element {
                       <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{metric.name}</span>
                       <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{metric.fullName}</span>
                     </div>
+                    {'acronym' in metric && typeof metric.acronym === 'string' && (
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4, fontFamily: "'SF Mono', 'Menlo', monospace" }}>
+                        {metric.acronym}
+                      </div>
+                    )}
                     <div style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 500 }}>{metric.oneLiner}</div>
                   </div>
 

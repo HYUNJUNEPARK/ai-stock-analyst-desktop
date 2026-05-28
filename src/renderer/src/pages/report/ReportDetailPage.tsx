@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { LuDownload } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import gptIcon from '../../assets/gpt.jpg'
 import NavBar from '../../components/NavBar'
-import claudeIcon from '../../assets/claude.png'
 import type { ComponentProps } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import ReportView from './ReportView'
@@ -39,8 +37,6 @@ export default function ReportDetailPage(): React.JSX.Element {
   }, [name])
 
   const isGpt = searchParams.get('model') === 'gpt'
-  const modelImg = isGpt ? gptIcon : claudeIcon
-  const modelLabel = isGpt ? 'GPT' : 'Claude'
   const contentWidth = isStandaloneWindow ? 800 : 550
 
   function handleCloseOrBack(): void {
@@ -118,27 +114,6 @@ export default function ReportDetailPage(): React.JSX.Element {
           style={{ maxWidth: contentWidth, paddingTop: 16, paddingBottom: 24 }}
         >
           <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '0 16px',
-                height: 48,
-                background: 'var(--bg-primary)',
-                borderBottom: '1px solid var(--border)'
-              }}
-            >
-              <img
-                src={modelImg}
-                alt={modelLabel}
-                style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
-              />
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                {modelLabel}
-              </span>
-            </div>
-
             <div style={{ padding: isStandaloneWindow ? 24 : 16, minHeight: 216 }}>
               {loading && (
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
+import gptIcon from '../../assets/gpt.jpg'
+import claudeIcon from '../../assets/claude.png'
 
 type InvestType = {
   type: string
@@ -73,6 +75,8 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
   const aiModel = data['ai-model'] || data.aiInfo?.model
   const aiProvider = data.aiInfo?.provider
+  const isGpt = (data.aiInfo?.provider === 'openai') || (typeof aiModel === 'string' && aiModel.toLowerCase().includes('gpt'))
+  const modelIcon = isGpt ? gptIcon : claudeIcon
   const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
   const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; investType: string } | null>(null)
   const [artifactLoading, setArtifactLoading] = useState(false)
@@ -98,8 +102,15 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
             {data.asOfDate}
           </div>
           {(aiModel || aiProvider) && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>
-              {[aiModel].filter(Boolean).join(' · ')}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+              <img
+                src={modelIcon}
+                alt={isGpt ? 'GPT' : 'Claude'}
+                style={{ width: 22, height: 22, borderRadius: 3, objectFit: 'cover', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                {[aiModel].filter(Boolean).join(' · ')}
+              </span>
             </div>
           )}
         </div>

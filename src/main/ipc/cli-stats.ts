@@ -449,52 +449,29 @@ export function registerCliStatsHandlers(): void {
 
     if (canceled || !filePath) return { success: false, canceled: true }
 
-    // macOS sheet dialog가 닫힌 뒤 창 repaint 대기
-    await new Promise<void>((r) => setTimeout(r, 300))
-
-    // ─────────────────────────────────────────────────────────────────
-    // 핵심 설계:
-    //   printToPDF는 Chromium의 print 파이프라인을 사용한다.
-    //   @media print 규칙만이 print 렌더링에 확실히 반영되므로,
-    //   CSS 오버라이드는 반드시 @media print 블록 안에 작성한다.
-    //   화면 레이아웃은 전혀 건드리지 않아 시각적 깜빡임도 없다.
+    // ─── 원인 ────────────────────────────────────────────────────────
+    // ec6224d 이후 InvestTypeSection 등 콘텐츠 추가로 보고서 높이가 창 높이(1080px)를
+    // 초과하게 됐다. Chromium의 print 렌더링에서 overflow-y: auto 요소는 screen과
+    // 동일하게 설정된 높이까지만 캡처하고 넘치는 부분을 클리핑한다.
+    // → height/overflow 제약을 해제해 전체 콘텐츠를 PDF에 포함시킨다.
     // ─────────────────────────────────────────────────────────────────
     const PRINT_CSS = `
-      @media print {
-        * {
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          animation: none !important;
-          transition: none !important;
-        }
-        html, body {
-          height: auto !important;
-          min-height: 0 !important;
-          overflow: visible !important;
-        }
-        #root {
-          height: auto !important;
-          overflow: visible !important;
-        }
-        .page {
-          height: auto !important;
-          min-height: 0 !important;
-          overflow: visible !important;
-        }
-        .page-content {
-          flex: none !important;
-          height: auto !important;
-          overflow: visible !important;
-          overflow-y: visible !important;
-        }
-        .card {
-          overflow: visible !important;
-        }
-        .nav-bar {
-          background: #f2f2f7 !important;
-        }
+      body, #root {
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .page {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      .page-content {
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .card {
+        overflow: visible !important;
       }
     `
 
@@ -502,11 +479,13 @@ export function registerCliStatsHandlers(): void {
     try {
       cssKey = await event.sender.insertCSS(PRINT_CSS)
 
+      // CSS 적용 후 레이아웃 재계산 대기
+      await new Promise<void>((r) => setTimeout(r, 300))
+
       const pdfBuffer = await event.sender.printToPDF({
         printBackground: true,
         pageSize: 'A4',
-        margins: { marginType: 'default' },
-        landscape: false,
+        margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
       })
 
       writeFileSync(filePath, pdfBuffer)

@@ -4,6 +4,7 @@ import { FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
+import developerInfo from '../../data/developer-info.json'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
 
@@ -152,21 +153,21 @@ export default function InfoPage(): React.JSX.Element {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={settingsRowTitleStyle}>이름</div>
                 <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
-                  hyunjun park
+                  {developerInfo.name}
                 </div>
               </div>
               <div style={{ height: 1, background: 'var(--border)' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={settingsRowTitleStyle}>GitHub</div>
                 <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', fontFamily: "'SF Mono', 'Menlo', monospace" }}>
-                  github.com/HYUNJUNEPARK
+                  {developerInfo.github}
                 </div>
               </div>
               <div style={{ height: 1, background: 'var(--border)' }} />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={settingsRowTitleStyle}>이메일</div>
                 <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
-                  june2ac4dev@gmail.com
+                  {developerInfo.email}
                 </div>
               </div>
             </div>

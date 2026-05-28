@@ -6,6 +6,7 @@
     {
       "id": "per",
       "name": "PER",
+      "acronym": "Price Earnings Ratio",
       "fullName": "주가수익비율",
       "oneLiner": "이익 대비 주가가 비싼가",
       "description": "회사가 버는 이익에 비해 주가가 얼마나 비싼지 보는 지표입니다.",
@@ -46,6 +47,7 @@
     {
       "id": "pbr",
       "name": "PBR",
+      "acronym": "Price Book-value Ratio",
       "fullName": "주가순자산비율",
       "oneLiner": "자산 대비 주가가 비싼가",
       "description": "회사의 자산가치에 비해 주가가 얼마나 비싼지 보는 지표입니다.",
@@ -93,6 +95,7 @@
     {
       "id": "roe",
       "name": "ROE",
+      "acronym": "Return On Equity",
       "fullName": "자기자본이익률",
       "oneLiner": "자본으로 돈을 잘 버는가",
       "description": "주주의 돈으로 회사가 얼마나 이익을 잘 냈는지 보는 지표입니다.",
