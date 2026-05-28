@@ -41,4 +41,7 @@ export const cliStatsApi = {
 
   /** 현재 보고서 화면을 PDF로 캡처하여 로컬 파일로 저장한다 */
   saveReportPdf: (defaultFilename: string) => ipcRenderer.invoke(IPC.SAVE_REPORT_PDF, defaultFilename),
+
+  /** 지정한 보고서 폴더(dateFolder/stockFolder)를 삭제한다 */
+  deleteGptReportFile: (name: string) => ipcRenderer.invoke(IPC.DELETE_GPT_REPORT_FILE, name),
 }

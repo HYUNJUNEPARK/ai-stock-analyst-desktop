@@ -41,8 +41,12 @@ export default function RecentReportPage(): React.JSX.Element {
     setDeleteTarget(null)
   }
 
-  const handleDeleteConfirm = (): void => {
-    // TODO: 삭제 로직 연결
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!deleteTarget) return
+    const result = await window.api.deleteGptReportFile(deleteTarget.name)
+    if (result.success) {
+      setReports((prev) => prev.filter((r) => r.name !== deleteTarget.name))
+    }
     setDeleteTarget(null)
   }
 

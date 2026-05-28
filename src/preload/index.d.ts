@@ -64,6 +64,9 @@ declare global {
         { success: true; filePath: string } | { success: false; canceled?: boolean; error?: string }
       >
 
+      // 보고서 폴더 삭제
+      deleteGptReportFile: (name: string) => Promise<{ success: true } | { success: false; error: string }>
+
       /* CLI 로그인 */
       runClaudeLogin: () => void
       runGptLogin: () => void

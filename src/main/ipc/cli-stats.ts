@@ -7,7 +7,7 @@
  */
 
 import { ipcMain, BrowserWindow, shell, dialog } from 'electron'
-import { writeFileSync } from 'fs'
+import { writeFileSync, rmSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { homedir } from 'os'
@@ -328,6 +328,35 @@ export function registerCliStatsHandlers(): void {
    * event.sender를 통해 현재 webContents(보고서 창)를 printToPDF로 캡처한다.
    * dialog.showSaveDialog로 저장 경로를 선택받은 뒤 파일로 쓴다.
    */
+  /**
+   * IPC 채널: 'delete-gpt-report-file'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 지정한 종목 폴더(dateFolder/stockFolder)를 재귀 삭제한다.
+   *       삭제 후 날짜 폴더가 비어 있으면 날짜 폴더도 함께 삭제한다.
+   */
+  ipcMain.handle(IPC.DELETE_GPT_REPORT_FILE, (_event, name: string) => {
+    console.log(`[delete-gpt-report-file] 보고서 삭제: ${name}`)
+    try {
+      const stockDirPath = join(STOCK_GPT_REPORTS_DIR, name)
+      if (!existsSync(stockDirPath)) {
+        return { success: false, error: '파일이 존재하지 않습니다.' }
+      }
+      rmSync(stockDirPath, { recursive: true, force: true })
+
+      // 날짜 폴더가 비어 있으면 함께 삭제
+      const dateDirPath = join(STOCK_GPT_REPORTS_DIR, name.split('/')[0])
+      if (existsSync(dateDirPath) && readdirSync(dateDirPath).length === 0) {
+        rmSync(dateDirPath, { recursive: true, force: true })
+      }
+
+      console.log(`[delete-gpt-report-file] 보고서 삭제 완료: ${name}`)
+      return { success: true }
+    } catch (error) {
+      console.error('[delete-gpt-report-file] 보고서 삭제 실패:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
+
   ipcMain.handle(IPC.SAVE_REPORT_PDF, async (event, defaultFilename: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return { success: false, error: '창을 찾을 수 없습니다.' }
