@@ -364,9 +364,6 @@ export default function InfoPage(): React.JSX.Element {
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)'
             }}>
-              <span style={{ fontSize: 'var(--text-md)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                이전 보고서
-              </span>
               <button
                 onClick={closePanel}
                 style={{
@@ -382,14 +379,14 @@ export default function InfoPage(): React.JSX.Element {
                   color: 'var(--text-secondary)'
                 }}
               >
-                <FiX size={16} />
+                <FiChevronRight size={16} />
               </button>
             </div>
 
             {/* 패널 콘텐츠 */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px' }}>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
-                최근에 저장한 보고서를 빠르게 다시 열어볼 수 있습니다.
+                보관 중인 보고서 리스트입니다.
               </p>
 
               {reportsLoading && (
