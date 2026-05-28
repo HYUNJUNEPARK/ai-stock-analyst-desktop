@@ -17,6 +17,35 @@ import { is } from '@electron-toolkit/utils'
 import { STOCK_GPT_REPORTS_DIR, STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import icon from '../../../resources/icon.png?asset'
 
+function createGuideWindow(guide: string): void {
+  const guideWindow = new BrowserWindow({
+    width: 860,
+    height: 900,
+    minWidth: 700,
+    minHeight: 600,
+    show: false,
+    autoHideMenuBar: true,
+    title: '투자 가이드',
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false
+    }
+  })
+
+  guideWindow.on('ready-to-show', () => {
+    guideWindow.show()
+  })
+
+  const hash = `/guide/${guide}?mode=window`
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    guideWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}#${hash}`)
+  } else {
+    guideWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash })
+  }
+}
+
 function createReportDetailWindow(name: string, model: string): void {
   const reportWindow = new BrowserWindow({
     width: 900,
@@ -280,6 +309,17 @@ export function registerCliStatsHandlers(): void {
       return { success: true, data: JSON.parse(content) }
     } catch (error) {
       console.error('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle(IPC.OPEN_GUIDE_WINDOW, (_event, guide: string) => {
+    console.log(`[open-guide-window] 가이드 새 창 열기: ${guide}`)
+    try {
+      createGuideWindow(guide)
+      return { success: true }
+    } catch (error) {
+      console.error('[open-guide-window] 가이드 새 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LuDownload } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import gptIcon from '../../assets/gpt.jpg'
 import NavBar from '../../components/NavBar'
@@ -57,8 +58,11 @@ export default function ReportDetailPage(): React.JSX.Element {
     const ticker = data && typeof data.ticker === 'string' ? data.ticker : ''
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     const defaultName = [company, ticker, today].filter(Boolean).join('_') + '.pdf'
-    await window.api.saveReportPdf(defaultName)
-    setSavingPdf(false)
+    try {
+      await window.api.saveReportPdf(defaultName)
+    } finally {
+      setSavingPdf(false)
+    }
   }
 
   return (
@@ -73,18 +77,35 @@ export default function ReportDetailPage(): React.JSX.Element {
               <button
                 onClick={handleSavePdf}
                 disabled={savingPdf}
+                title="PDF 저장"
                 style={{
-                  padding: '4px 12px',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 500,
-                  background: savingPdf ? 'var(--bg-secondary)' : 'var(--accent)',
-                  color: savingPdf ? 'var(--text-secondary)' : '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 32,
+                  height: 32,
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
                   border: 'none',
                   borderRadius: 8,
                   cursor: savingPdf ? 'not-allowed' : 'pointer',
                 }}
               >
-                {savingPdf ? 'PDF 저장 중...' : 'PDF 저장'}
+                {savingPdf ? (
+                  <span
+                    style={{
+                      display: 'block',
+                      width: 16,
+                      height: 16,
+                      border: '2px solid var(--border)',
+                      borderTopColor: 'var(--text-primary)',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                    }}
+                  />
+                ) : (
+                  <LuDownload size={18} />
+                )}
               </button>
             )
             : undefined

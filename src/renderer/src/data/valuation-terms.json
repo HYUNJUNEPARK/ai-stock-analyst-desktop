@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "description": "투자 분석 핵심 지표 용어 설명 — PER·PBR·ROE·영업이익률·순이익률·부채비율의 개념, 공식, 수치 해석, 실전 활용 기준",
+  "viewingOrder": [
+    { "step": 1, "metric": "영업이익률", "question": "본업으로 돈을 잘 버는가?" },
+    { "step": 2, "metric": "순이익률",   "question": "최종적으로 돈이 남는가?" },
+    { "step": 3, "metric": "ROE",        "question": "자본을 효율적으로 굴리는가?" },
+    { "step": 4, "metric": "부채비율",   "question": "빚이 너무 많지는 않은가?" },
+    { "step": 5, "metric": "PER",        "question": "이익 대비 주가가 비싸지 않은가?" },
+    { "step": 6, "metric": "PBR",        "question": "자산가치 대비 주가가 비싸지 않은가?" }
+  ],
+  "metrics": [
+    {
+      "id": "per",
+      "name": "PER",
+      "fullName": "주가수익비율",
+      "oneLiner": "이익 대비 주가가 비싼가",
+      "description": "회사가 버는 이익에 비해 주가가 얼마나 비싼지 보는 지표입니다.",
+      "formulas": [
+        "PER = 시가총액 ÷ 순이익",
+        "PER = 주가 ÷ 주당순이익(EPS)"
+      ],
+      "example": "PER이 10배라면, 이 회사가 지금처럼 계속 돈을 번다고 가정했을 때 투자 원금을 이익으로 회수하는 데 약 10년이 걸린다는 의미입니다.",
+      "analogy": "이 음식점이 버는 돈에 비해 가게 인수 가격이 비싼가?",
+      "simpleRule": {
+        "low": "PER 낮음 = 싸 보임",
+        "high": "PER 높음 = 비싸 보임",
+        "caution": "무조건 낮다고 좋은 것이 아닙니다."
+      },
+      "ranges": [
+        { "range": "음수 또는 N/A", "interpretation": "EPS가 음수인 적자 기업. PER 계산 불가로 N/A 표기됨. 해석 주의" },
+        { "range": "5배 이하",      "interpretation": "매우 낮음. 저평가 가능성도 있지만, 성장 둔화·위험 반영일 수 있음" },
+        { "range": "5~10배",        "interpretation": "낮은 편. 전통 산업, 경기민감주에서 자주 보임" },
+        { "range": "10~20배",       "interpretation": "보통 수준으로 많이 보는 구간" },
+        { "range": "20~30배",       "interpretation": "높은 편. 성장 기대가 반영된 상태" },
+        { "range": "30배 이상",     "interpretation": "상당히 높음. 고성장 기대가 있어야 정당화 가능" }
+      ],
+      "beginnerThreshold": {
+        "low": "10배 이하 낮음",
+        "high": "20배 이상 높음"
+      },
+      "summary": {
+        "whenLow": "싸 보일 수 있음, 성장성이 낮을 수도 있음",
+        "whenHigh": "비싸 보임, 성장 기대가 클 수 있음",
+        "goodDirection": "무조건 낮은 게 아니라 성장성과 비교"
+      },
+      "pitfalls": [
+        "PER이 낮은데 실적이 계속 나빠진다 → 싸 보이는 함정일 수 있음",
+        "PER이 높은데 이익이 빠르게 성장한다 → 비싸 보여도 정당화될 수 있음"
+      ],
+      "industryNote": "은행·자동차·철강 같은 업종은 PER이 낮은 경우가 많고, AI·반도체·바이오·플랫폼 기업은 PER이 높은 경우가 많습니다."
+    },
+    {
+      "id": "pbr",
+      "name": "PBR",
+      "fullName": "주가순자산비율",
+      "oneLiner": "자산 대비 주가가 비싼가",
+      "description": "회사의 자산가치에 비해 주가가 얼마나 비싼지 보는 지표입니다.",
+      "formulas": [
+        "PBR = 시가총액 ÷ 순자산",
+        "PBR = 주가 ÷ 주당순자산(BPS)",
+        "순자산 = 회사가 가진 자산 - 갚아야 할 부채"
+      ],
+      "example": "PBR이 1배라면, 회사의 장부상 순자산 가치와 현재 시장에서 평가받는 가치가 비슷하다는 뜻입니다.",
+      "analogy": "가게의 인테리어, 주방기기, 보증금 등 자산 대비 가격이 비싼가?",
+      "simpleRule": {
+        "low": "PBR 1배 미만 = 회사 장부상 자산보다 싸게 거래됨",
+        "high": "PBR 1배 이상 = 회사 자산보다 비싸게 평가받음",
+        "caution": "PBR 1배 미만이라고 무조건 좋은 것은 아닙니다."
+      },
+      "ranges": [
+        { "range": "0.5배 이하", "interpretation": "매우 낮음. 저평가 가능성 있지만, 시장이 회사를 좋게 보지 않을 가능성도 큼" },
+        { "range": "0.5~1배",   "interpretation": "자산가치보다 낮거나 비슷하게 평가받는 구간" },
+        { "range": "1~2배",     "interpretation": "일반적인 구간" },
+        { "range": "2~4배",     "interpretation": "높은 편. 수익성이나 성장성이 좋아야 정당화 가능" },
+        { "range": "4배 이상",  "interpretation": "상당히 높음. 브랜드, 기술력, 고성장 기대가 강하게 반영된 경우" }
+      ],
+      "beginnerThreshold": {
+        "low": "1배 이하 낮음",
+        "high": "2배 이상 높음"
+      },
+      "summary": {
+        "whenLow": "자산 대비 싸 보임, 저평가 가능성",
+        "whenHigh": "자산 대비 비싸게 평가",
+        "goodDirection": "ROE와 함께 판단"
+      },
+      "roeRelation": [
+        { "condition": "PBR 낮고 ROE 높음", "interpretation": "진짜 저평가 가능성" },
+        { "condition": "PBR 낮고 ROE 낮음", "interpretation": "싸지만 매력 없는 회사일 수 있음" },
+        { "condition": "PBR 높고 ROE 높음", "interpretation": "비싸지만 좋은 회사일 수 있음" },
+        { "condition": "PBR 높고 ROE 낮음", "interpretation": "고평가 가능성" }
+      ],
+      "pitfalls": [
+        "이 회사는 돈을 잘 못 번다",
+        "자산은 많지만 활용을 못 한다",
+        "앞으로 성장 가능성이 낮다",
+        "부채나 구조적 문제가 있다"
+      ]
+    },
+    {
+      "id": "roe",
+      "name": "ROE",
+      "fullName": "자기자본이익률",
+      "oneLiner": "자본으로 돈을 잘 버는가",
+      "description": "주주의 돈으로 회사가 얼마나 이익을 잘 냈는지 보는 지표입니다.",
+      "formulas": [
+        "ROE = 순이익 ÷ 자기자본 × 100"
+      ],
+      "formulaNote": "엄밀히는 자기자본 대신 기초·기말 평균 자기자본을 사용하는 것이 더 정확하나, 입문 수준에서는 기말 자기자본으로 계산하는 경우가 많음",
+      "example": "ROE가 10%라면, 회사가 자기자본 100만 원으로 1년에 10만 원의 순이익을 냈다는 의미입니다.",
+      "analogy": "사장이 자기 돈을 넣어서 얼마나 효율적으로 돈을 버는가?",
+      "simpleRule": {
+        "low": "ROE가 낮다 = 자본은 있는데 이익을 잘 못 낸다",
+        "high": "ROE가 높다 = 돈을 효율적으로 잘 번다",
+        "caution": "ROE가 높다고 무조건 좋은 것도 아닙니다."
+      },
+      "ranges": [
+        { "range": "0% 이하",  "interpretation": "적자. 돈을 못 벌고 있음" },
+        { "range": "0~5%",    "interpretation": "낮음. 자본 효율이 약함" },
+        { "range": "5~10%",   "interpretation": "보통 이하 또는 무난한 수준" },
+        { "range": "10~15%",  "interpretation": "괜찮은 편" },
+        { "range": "15~20%",  "interpretation": "우수한 편" },
+        { "range": "20% 이상","interpretation": "매우 우수. 다만 일시적 이익인지 확인 필요" }
+      ],
+      "beginnerThreshold": {
+        "good": "10% 이상 괜찮음",
+        "great": "15% 이상 좋음"
+      },
+      "summary": {
+        "whenLow": "자본 효율이 낮음",
+        "whenHigh": "돈을 잘 벌 가능성",
+        "goodDirection": "높을수록 좋지만 부채 확인"
+      },
+      "pitfalls": [
+        "부채를 많이 써서 ROE가 높아진 경우",
+        "일회성 이익 때문에 ROE가 일시적으로 높아진 경우",
+        "자기자본이 너무 작아서 ROE가 왜곡된 경우"
+      ],
+      "checkWith": ["부채비율", "순이익의 지속성", "영업이익률"]
+    },
+    {
+      "id": "operatingMargin",
+      "name": "영업이익률",
+      "fullName": "영업이익률",
+      "oneLiner": "본업으로 돈을 잘 남기는가",
+      "description": "본업으로 얼마나 남기는지 보는 지표입니다.",
+      "formulas": [
+        "영업이익률 = 영업이익 ÷ 매출액 × 100"
+      ],
+      "example": "매출이 1,000억 원이고 영업이익이 100억 원이면, 영업이익률 = 10%. 즉, 1,000억 원어치 팔아서 본업으로 100억 원을 남겼다는 뜻입니다.",
+      "analogy": "음식 팔아서 본업으로 얼마나 남기는가?",
+      "simpleRule": {
+        "low": "매출은 큰데 영업이익률이 낮다 → 많이 팔지만 남는 돈이 별로 없다",
+        "rising": "매출은 비슷한데 영업이익률이 올라간다 → 비용 관리가 좋아졌거나 제품 경쟁력이 좋아졌다",
+        "caution": "본업 장사를 잘하느냐를 보는 지표입니다."
+      },
+      "ranges": [
+        { "range": "0% 이하",   "interpretation": "본업에서 적자" },
+        { "range": "0~5%",     "interpretation": "낮은 편. 원가 부담이나 경쟁이 심할 수 있음" },
+        { "range": "5~10%",    "interpretation": "무난한 수준" },
+        { "range": "10~20%",   "interpretation": "좋은 편" },
+        { "range": "20% 이상", "interpretation": "매우 우수한 수익성" },
+        { "range": "30% 이상", "interpretation": "독점력, 브랜드, 플랫폼, 소프트웨어형 사업일 가능성" }
+      ],
+      "beginnerThreshold": {
+        "good": "10% 이상 좋음"
+      },
+      "summary": {
+        "whenLow": "본업 수익성이 약함",
+        "whenHigh": "본업 수익성이 좋음",
+        "goodDirection": "높을수록 좋음"
+      },
+      "industryNote": "편의점·유통업은 매출은 크지만 영업이익률이 낮은 경우가 많습니다. 반면 소프트웨어·플랫폼·브랜드 기업은 영업이익률이 높게 나올 수 있습니다."
+    },
+    {
+      "id": "netMargin",
+      "name": "순이익률",
+      "fullName": "순이익률",
+      "oneLiner": "최종적으로 돈이 얼마나 남는가",
+      "description": "최종적으로 회사에 얼마나 남는지 보는 지표입니다. 이자비용, 세금, 투자손익, 일회성 손익까지 반영한 최종 결과입니다.",
+      "formulas": [
+        "순이익률 = 순이익 ÷ 매출액 × 100"
+      ],
+      "example": "A회사 매출 1,000억 / 순이익 30억 → 순이익률 3%. B회사 매출 1,000억 / 순이익 150억 → 순이익률 15%. 둘 다 같은 매출이지만 B회사가 훨씬 돈을 잘 남깁니다.",
+      "analogy": "임대료, 이자, 세금까지 다 내고 최종적으로 얼마나 남는가?",
+      "simpleRule": {
+        "description": "장사를 다 끝내고 최종적으로 얼마가 남았는가를 보는 지표입니다.",
+        "caution": "영업이익률과 함께 비교해야 합니다."
+      },
+      "ranges": [
+        { "range": "0% 이하",   "interpretation": "최종 적자" },
+        { "range": "0~3%",     "interpretation": "낮은 편. 비용 부담이 큼" },
+        { "range": "3~7%",     "interpretation": "무난한 수준" },
+        { "range": "7~10%",    "interpretation": "괜찮은 편" },
+        { "range": "10~20%",   "interpretation": "좋은 편" },
+        { "range": "20% 이상", "interpretation": "매우 우수한 수익성" }
+      ],
+      "beginnerThreshold": {
+        "good": "7~10% 이상 괜찮음"
+      },
+      "summary": {
+        "whenLow": "최종적으로 남는 돈이 적음",
+        "whenHigh": "최종 이익률이 좋음",
+        "goodDirection": "높을수록 좋음"
+      },
+      "vsOperatingMargin": {
+        "operatingMargin": "본업으로 얼마나 남겼는가",
+        "netMargin": "모든 비용과 세금을 빼고 최종적으로 얼마나 남겼는가"
+      },
+      "pitfalls": [
+        "영업이익률은 높은데 순이익률이 낮다면 → 이자비용 과다, 세금 부담, 일회성 손실, 환율·투자 손실 가능성",
+        "순이익률이 갑자기 높아졌다면 → 본업 개선이 아니라 자산 매각·투자 수익 같은 일회성 이익일 수 있음"
+      ]
+    },
+    {
+      "id": "debtRatio",
+      "name": "부채비율",
+      "fullName": "부채비율",
+      "oneLiner": "빚이 많아 위험한가",
+      "description": "회사가 자기자본 대비 빚을 얼마나 가지고 있는지 보는 지표입니다.",
+      "formulas": [
+        "부채비율 = 부채 ÷ 자기자본 × 100"
+      ],
+      "example": "자기자본이 1,000억 원이고 부채가 500억 원이면, 부채비율 = 50%. 즉, 자기 돈 1,000억 원에 빚 500억 원을 쓰고 있다는 뜻입니다.",
+      "analogy": "빚을 너무 많이 내서 운영하고 있지는 않은가?",
+      "simpleRule": {
+        "low": "부채비율 낮음 = 재무 안정성이 높음",
+        "high": "부채비율 높음 = 빚 부담이 클 수 있음",
+        "caution": "업종별로 다르게 봐야 합니다."
+      },
+      "ranges": [
+        { "range": "50% 이하",   "interpretation": "매우 안정적인 편" },
+        { "range": "50~100%",   "interpretation": "안정적인 편" },
+        { "range": "100~200%",  "interpretation": "일반적으로 관리 가능한 수준" },
+        { "range": "200~300%",  "interpretation": "다소 높은 편. 업종 확인 필요" },
+        { "range": "300% 이상", "interpretation": "위험 신호 가능성. 이자 부담과 현금흐름 확인 필요" }
+      ],
+      "beginnerThreshold": {
+        "stable": "100% 이하 안정적",
+        "caution": "200% 이상 주의"
+      },
+      "summary": {
+        "whenLow": "안정적",
+        "whenHigh": "빚 부담이 클 수 있음",
+        "goodDirection": "일반적으로 낮을수록 안정적"
+      },
+      "industryNote": "제조업에서 부채비율 300%는 부담스러울 수 있지만, 금융업은 사업 구조상 부채비율이 높게 나오는 경우가 많습니다.",
+      "checkWith": [
+        "영업이익이 안정적인가?",
+        "이자비용을 감당할 수 있는가?",
+        "현금흐름이 좋은가?",
+        "부채가 단기부채인가 장기부채인가?"
+      ]
+    }
+  ],
+  "combinations": {
+    "goodCompany": {
+      "label": "좋은 회사인지 볼 때",
+      "conditions": ["ROE 높음", "영업이익률 높음", "순이익률 안정적", "부채비율 과도하지 않음"],
+      "conclusion": "이 조합이면 돈을 잘 벌고 재무도 괜찮은 회사일 가능성이 높습니다."
+    },
+    "cheapStock": {
+      "label": "싼 주식인지 볼 때",
+      "conditions": ["PER 낮음", "PBR 낮음", "ROE 괜찮음", "실적이 감소하지 않음"],
+      "conclusion": "이 조합이면 저평가 가능성을 검토해볼 수 있습니다."
+    },
+    "warnings": [
+      {
+        "condition": "PER 낮음 + 이익 감소",
+        "interpretation": "싸 보이지만 실적이 나빠지는 회사일 수 있음"
+      },
+      {
+        "condition": "PBR 낮음 + ROE 낮음",
+        "interpretation": "자산은 많지만 돈을 못 버는 회사일 수 있음"
+      },
+      {
+        "condition": "ROE 높음 + 부채비율 높음",
+        "interpretation": "빚을 많이 써서 수익률이 높아 보이는 것일 수 있음"
+      },
+      {
+        "condition": "영업이익률 낮음 + 순이익률 낮음",
+        "interpretation": "경쟁이 심하거나 비용 구조가 나쁜 회사일 수 있음"
+      },
+      {
+        "condition": "순이익률만 갑자기 높음",
+        "interpretation": "일회성 이익일 수 있음"
+      }
+    ]
+  }
+}

@@ -1,15 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "1.0.0",
-  "description": "투자 유형 분류 기준 — 재무 분석, 뉴스 분석, 업종 리서치 결과를 종합하여 투자 유형을 판단하는 기준",
-  "decisionOrder": [
-    "재무 분석 결과로 실적 안정성·성장성·수익성·현금흐름·밸류에이션 확인",
-    "뉴스 분석 결과로 호재·악재·이벤트·정책·수급 변화·리스크 요인 확인",
-    "업종 리서치 결과로 산업 성장성·업황 사이클·경쟁 구도·정책 수혜·시장 기대감 확인",
-    "세 분석 근거를 종합해 '이 종목을 왜 사는가?' 핵심 투자 아이디어 정의",
-    "핵심 투자 아이디어 기반으로 투자 유형 분류",
-    "투자 유형 기반으로 목표가·손절가·매수 추천가 설정"
-  ],
+  "description": "재무 분석, 뉴스 분석, 업종 리서치 결과를 종합하여 투자 유형을 판단하는 기준",
   "types": [
     {
       "id": "growth",
@@ -98,32 +90,5 @@
       "저평가 가치형 + 배당·방어형",
       "본업은 가치형, 신사업은 고위험 테마형"
     ]
-  },
-  "conflictResolutionRule": "재무 분석·뉴스 분석·업종 리서치 세 결과가 서로 충돌할 경우, 충돌 내용을 명시하고 보수적으로 판단한다.",
-  "outputRequiredFields": [
-    {
-      "field": "coreInvestmentIdea",
-      "description": "이 종목을 투자 대상으로 검토하는 가장 중요한 이유"
-    },
-    {
-      "field": "investType",
-      "description": "투자 유형 (types[].name 또는 복합 유형)"
-    },
-    {
-      "field": "typeRationale",
-      "description": "재무·뉴스·섹터 분석에서 확인된 유형 판단 근거"
-    },
-    {
-      "field": "suitableHorizon",
-      "description": "단기 / 중기 / 장기 중 적합한 투자 기간"
-    },
-    {
-      "field": "keyMonitoringMetrics",
-      "description": "향후 투자 판단을 위해 추적해야 할 핵심 지표"
-    },
-    {
-      "field": "investmentThesisBreakers",
-      "description": "투자 아이디어가 틀렸다고 판단할 수 있는 조건"
-    }
-  ]
+  }
 }

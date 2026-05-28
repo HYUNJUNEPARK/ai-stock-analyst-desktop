@@ -4,6 +4,7 @@ import { FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
+import valuationTerms from '../../data/valuation-terms.json'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
 
@@ -30,6 +31,16 @@ export default function InfoPage(): React.JSX.Element {
   }, [navigate, selectedModel])
 
   if (!selectedModel) return <></>
+
+  function openJsonInNewTab(data: object): void {
+    const jsonStr = JSON.stringify(data, null, 2)
+    const dataUrl = `data:application/json;charset=utf-8,${encodeURIComponent(jsonStr)}`
+    window.open(dataUrl, '_blank')
+  }
+
+  function handleOpenInvestmentGuide(): void {
+    void window.api.openGuideWindow('investment')
+  }
 
   function handleDevPreview(): void {
     const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
@@ -108,6 +119,28 @@ export default function InfoPage(): React.JSX.Element {
                 <div>
                   <div style={settingsRowTitleStyle}>이전 보고서 확인</div>
                   <div style={settingsRowDescStyle}>저장된 분석 보고서 목록을 확인합니다.</div>
+                </div>
+                <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              </button>
+            </div>
+          </section>
+
+          <section className="card" style={{ padding: 18, marginTop: 14 }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+              투자 가이드
+            </div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <button onClick={() => openJsonInNewTab(valuationTerms)} style={settingsRowButtonStyle}>
+                <div>
+                  <div style={settingsRowTitleStyle}>투자 지표 용어 사전</div>
+                  <div style={settingsRowDescStyle}>PER·PBR·ROE·부채비율 등 핵심 지표의 개념과 해석 기준을 확인합니다.</div>
+                </div>
+                <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              </button>
+              <button onClick={handleOpenInvestmentGuide} style={settingsRowButtonStyle}>
+                <div>
+                  <div style={settingsRowTitleStyle}>투자 유형 분류 기준</div>
+                  <div style={settingsRowDescStyle}>성장형·가치형 등 투자 유형 분류에 사용되는 판단 기준을 확인합니다.</div>
                 </div>
                 <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
               </button>

@@ -316,7 +316,7 @@ function parseJsonReport(raw) {
 
 function buildAiInfo(model) {
   return {
-    model: model || 'gpt-5.4',
+    model: model || 'gpt-5.5',
     engine: 'gpt'
   }
 }

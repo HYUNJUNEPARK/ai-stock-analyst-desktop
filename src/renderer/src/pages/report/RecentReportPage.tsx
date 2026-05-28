@@ -41,13 +41,21 @@ export default function RecentReportPage(): React.JSX.Element {
     setDeleteTarget(null)
   }
 
-  const handleDeleteConfirm = async (): Promise<void> => {
+  const handleDeleteConfirm = (): void => {
     if (!deleteTarget) return
-    const result = await window.api.deleteGptReportFile(deleteTarget.name)
-    if (result.success) {
-      setReports((prev) => prev.filter((r) => r.name !== deleteTarget.name))
-    }
+    const target = deleteTarget
     setDeleteTarget(null)
+    window.api.deleteGptReportFile(target.name)
+      .then((result) => {
+        if (result.success) {
+          setReports((prev) => prev.filter((r) => r.name !== target.name))
+        } else {
+          console.error('[delete] 삭제 실패:', result.error)
+        }
+      })
+      .catch((err: Error) => {
+        console.error('[delete] IPC 오류 (main 프로세스 재시작 필요):', err.message)
+      })
   }
 
   useEffect(() => {

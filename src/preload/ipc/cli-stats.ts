@@ -44,4 +44,7 @@ export const cliStatsApi = {
 
   /** 지정한 보고서 폴더(dateFolder/stockFolder)를 삭제한다 */
   deleteGptReportFile: (name: string) => ipcRenderer.invoke(IPC.DELETE_GPT_REPORT_FILE, name),
+
+  /** 투자 가이드 페이지를 별도 창(BrowserWindow)으로 연다 */
+  openGuideWindow: (guide: string) => ipcRenderer.invoke(IPC.OPEN_GUIDE_WINDOW, guide),
 }
