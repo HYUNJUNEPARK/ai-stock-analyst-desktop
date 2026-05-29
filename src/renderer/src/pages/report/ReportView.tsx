@@ -29,6 +29,7 @@ type Report = {
     financial: { signal: string; content: string }
     news: { signal: string; content: string }
     sector: { signal: string; content: string }
+    price?: { signal: string; content: string }
     strategist: string
   }
   strategy: {
@@ -44,13 +45,14 @@ type Report = {
   monitoringPoints: string[]
 }
 
-type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'invest-type'
+type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'price' | 'invest-type'
 
 const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'summary', label: '종합 보고서' },
   { key: 'financial', label: '재무 분석' },
   { key: 'news', label: '뉴스 분석' },
   { key: 'sector', label: '업종 리서치' },
+  { key: 'price', label: '기술적 분석' },
   { key: 'invest-type', label: '투자 유형' },
 ]
 
@@ -62,7 +64,33 @@ const VERDICT_COLORS: Record<string, string> = {
   '매도': '#1976d2'
 }
 
+function extractPriceVerdictText(markdown: string): string {
+  // [^\n]+\n 으로 헤더 한 줄만 소비하고 이후 내용을 캡처
+  const section8Match = markdown.match(/##\s*8[^\n]+\n([\s\S]*)/)
+  if (!section8Match) return ''
+  const section8 = section8Match[1]
+  const parts: string[] = []
+
+  const entryPriceMatch = section8.match(/\*\*기술적 진입 적합 가격대\*\*[:\s]*(.+)/)
+  if (entryPriceMatch) {
+    parts.push(entryPriceMatch[1].trim())
+  }
+
+  // 블록쿼트 여러 줄을 모두 합침
+  const blockquoteLines = section8.match(/^>\s*(.+)$/gm)
+  if (blockquoteLines) {
+    const blockquoteText = blockquoteLines
+      .map((line) => line.replace(/^>\s*/, '').trim())
+      .join(' ')
+    parts.push(blockquoteText)
+  }
+
+  return parts.join('\n\n')
+}
+
 function getSignalColor(signal: string): string {
+  if (signal.includes('매수 우위')) return '#22c55e'  // 기술적 매수 우위 → 초록
+  if (signal.includes('매도 우위')) return '#ef4444'  // 기술적 매도 우위 → 빨강
   const hasBullish = signal.includes('강세')
   const hasBearish = signal.includes('약세')
   if (hasBullish && hasBearish) return '#f97316' // 혼합 → 주황
@@ -78,17 +106,17 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   const isGpt = (data.aiInfo?.provider === 'openai') || (typeof aiModel === 'string' && aiModel.toLowerCase().includes('gpt'))
   const modelIcon = isGpt ? gptIcon : claudeIcon
   const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
-  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; investType: string } | null>(null)
+  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; price: string; investType: string } | null>(null)
   const [artifactLoading, setArtifactLoading] = useState(false)
 
   useEffect(() => {
-    if (activeTab === 'summary' || !data.artifactDir || artifacts) return
+    if (!data.artifactDir || artifacts) return
     setArtifactLoading(true)
     window.api.readArtifactFiles(data.artifactDir).then((result) => {
       setArtifacts(result)
       setArtifactLoading(false)
     })
-  }, [activeTab, data.artifactDir, artifacts])
+  }, [data.artifactDir, artifacts])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -189,6 +217,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
               text={
                 activeTab === 'financial' ? (artifacts?.financial ?? '') :
                 activeTab === 'news' ? (artifacts?.news ?? '') :
+                activeTab === 'price' ? (artifacts?.price ?? '') :
                 (artifacts?.sector ?? '')
               }
               isStreaming={false}
@@ -269,6 +298,40 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           </div>
         )}
 
+        {/* 기술적 종합 판정 */}
+        {data.analysis.price && (() => {
+          const priceSignalColor = getSignalColor(data.analysis.price.signal)
+          const verdictText = artifacts?.price ? extractPriceVerdictText(artifacts.price) : ''
+          return (
+            <div
+              style={{
+                padding: '14px 16px',
+                background: `${priceSignalColor}10`,
+                border: `1px solid ${priceSignalColor}40`,
+                borderRadius: 10,
+                marginBottom: 8,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: priceSignalColor, letterSpacing: '0.04em' }}>
+                  기술적 종합 판정
+                </div>
+                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: priceSignalColor }}>
+                  {data.analysis.price.signal}
+                </div>
+              </div>
+              {verdictText && (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: `1px solid ${priceSignalColor}25`, paddingTop: 8, whiteSpace: 'pre-line' }}>
+                  {verdictText}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         <div
           style={{
             display: 'grid',
@@ -311,6 +374,9 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
           <AnalysisItem label="뉴스 분석" signal={data.analysis.news.signal} content={data.analysis.news.content} />
           <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
+          {data.analysis.price && (
+            <AnalysisItem label="기술적 분석" signal={data.analysis.price.signal} content={data.analysis.price.content} />
+          )}
           <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
         </div>
       </div>

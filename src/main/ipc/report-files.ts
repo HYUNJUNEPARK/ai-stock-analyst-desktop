@@ -124,6 +124,7 @@ export function registerReportFilesHandlers(): void {
       financial: read('financial-analyst-kr.md'),
       news: read('news-sentiment-analyst.md'),
       sector: read('sector-researcher.md'),
+      price: read('price-analyst.md'),
       investType: read('invest-type-classifier.md'),
     }
   })

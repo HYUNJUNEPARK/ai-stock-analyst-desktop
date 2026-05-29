@@ -4,6 +4,7 @@ export const AGENT_CONFIG: AgentConfig[] = [
   { key: 'financial-analyst-kr', label: '재무 분석' },
   { key: 'news-sentiment-analyst', label: '뉴스 분석' },
   { key: 'sector-researcher', label: '업종 리서치' },
+  { key: 'price-analyst', label: '기술 분석' },
   { key: 'invest-type-classifier', label: '투자 유형 판단' },
   { key: 'aggressive-investment-strategist', label: '투자 전략' }
 ]

@@ -18,6 +18,7 @@ const ROLE_FILES = {
   'financial-analyst-kr': 'financial-analyst-kr.md',
   'news-sentiment-analyst': 'news-sentiment-analyst.md',
   'sector-researcher': 'sector-researcher.md',
+  'price-analyst': 'price-analyst.md',
   'invest-type-classifier': 'invest-type-classifier.md',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
 }
@@ -74,7 +75,7 @@ async function main() {
     return
   }
 
-  const specialistRoles = ['financial-analyst-kr', 'news-sentiment-analyst', 'sector-researcher']
+  const specialistRoles = ['financial-analyst-kr', 'news-sentiment-analyst', 'sector-researcher', 'price-analyst']
 
   const specialistResults = await Promise.all(
     specialistRoles.map((role) => {
@@ -94,7 +95,8 @@ async function main() {
     ...context,
     FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
     NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
-    SECTOR_ANALYSIS: resultMap['sector-researcher']
+    SECTOR_ANALYSIS: resultMap['sector-researcher'],
+    PRICE_ANALYSIS: resultMap['price-analyst']
   }
 
   const classifierOutputPath = path.join(artifactDir, 'invest-type-classifier.md')
@@ -110,6 +112,7 @@ async function main() {
     FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
     NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
     SECTOR_ANALYSIS: resultMap['sector-researcher'],
+    PRICE_ANALYSIS: resultMap['price-analyst'],
     INVEST_TYPE_ANALYSIS: classifierResult.content
   }
 

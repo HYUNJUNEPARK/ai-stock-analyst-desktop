@@ -95,9 +95,9 @@ function AgentStatusBar({
 }: {
   agentStatuses: Record<string, AgentStatus>
 }): React.JSX.Element {
-  const specialistAgents = AGENT_CONFIG.slice(0, 3)
-  const classifierAgent = AGENT_CONFIG[3]
-  const strategyAgent = AGENT_CONFIG[4]
+  const specialistAgents = AGENT_CONFIG.slice(0, 4)
+  const classifierAgent = AGENT_CONFIG[4]
+  const strategyAgent = AGENT_CONFIG[5]
 
   const specialistsDone = specialistAgents.every((agent) => agentStatuses[agent.key] === 'done')
   const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
@@ -108,7 +108,7 @@ function AgentStatusBar({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
           gap: 8
         }}
       >

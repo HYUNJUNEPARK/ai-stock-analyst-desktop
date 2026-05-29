@@ -52,7 +52,7 @@ declare global {
       openReportDetailWindow: (name: string, model: string) => Promise<{ success: true } | { success: false; error: string }>
 
       // artifact 역할별 분석 결과 읽기
-      readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string; investType: string }>
+      readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string; price: string; investType: string }>
 
       // 선택된 모델의 구체적인 모델명 조회
       getModelInfo: (model: string) => Promise<{ modelName: string | null }>

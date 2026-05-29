@@ -18,12 +18,14 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 | `financial-analyst-kr` | Financial statement analysis: revenue, margins, PER, PBR, ROE, debt ratio, valuation |
 | `news-sentiment-analyst` | Recent 1-month news scan, bullish/bearish classification, sentiment read |
 | `sector-researcher` | Industry trend, peers, regulation, macro and structural context |
-| `aggressive-investment-strategist` | Final investment call synthesized from the three analyses |
+| `price-analyst` | Technical analysis: trend (MA), momentum (RSI, MACD), Bollinger Bands, volume, support/resistance, chart patterns |
+| `invest-type-classifier` | Investment type classification using all four specialist outputs |
+| `aggressive-investment-strategist` | Final investment call synthesized from all analyses including technical signals |
 
 ## Execution Rules
 
-- A stock analysis request must start with the three specialist agents in parallel.
-- Do not run the three specialist agents sequentially unless the user explicitly asks for a single-agent mode.
+- A stock analysis request must start with the four specialist agents in parallel.
+- Do not run the four specialist agents sequentially unless the user explicitly asks for a single-agent mode.
 - The strategist runs only after all three specialist outputs are complete.
 - Save the final report to `reports/{identifier}_{YYYYMMDD}.md`.
 - Write all outputs in Korean.
