@@ -6,10 +6,11 @@ This workspace runs multi-agent stock analysis on top of Codex.
 
 The execution model mirrors `stock-claude`, but the orchestration is implemented with `codex exec` jobs:
 
-1. run three specialist agents in parallel
+1. run four specialist agents in parallel
 2. collect their outputs
-3. run one strategist agent for the final report
-4. save the final report as Markdown under `reports/`
+3. run `invest-type-classifier` to synthesize investment type from the four specialist outputs
+4. run `aggressive-investment-strategist` for the final report
+5. save the final report as JSON under `reports/{YYYYMMDD}/{company}/`
 
 ## Agent Team
 
@@ -26,8 +27,9 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 
 - A stock analysis request must start with the four specialist agents in parallel.
 - Do not run the four specialist agents sequentially unless the user explicitly asks for a single-agent mode.
-- The strategist runs only after all three specialist outputs are complete.
-- Save the final report to `reports/{identifier}_{YYYYMMDD}.md`.
+- `invest-type-classifier` runs only after all four specialist outputs are complete.
+- `aggressive-investment-strategist` runs only after `invest-type-classifier` is complete.
+- Save the final report to `reports/{YYYYMMDD}/{company}/{company}.json`.
 - Write all outputs in Korean.
 
 ## Project Layout

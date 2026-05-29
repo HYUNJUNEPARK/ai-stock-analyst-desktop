@@ -1,6 +1,6 @@
 # stock-gpt
 
-세 개의 전문 분석을 병렬로 실행한 뒤, 마지막에 종합 투자 리포트를 생성합니다.
+네 개의 전문 분석을 병렬로 실행한 뒤, 투자 유형 분류를 거쳐 최종 투자 리포트를 생성합니다.
 
 ## 구조
 
@@ -36,18 +36,20 @@ node scripts/analyze-stock.mjs --company "삼성전자" --ticker "005930" --requ
 
 출력:
 
-- 최종 리포트: `reports/{identifier}_{YYYYMMDD}.md`
-- 중간 산출물: `reports/.artifacts/{identifier}_{YYYYMMDD}/`
+- 최종 리포트: `reports/{YYYYMMDD}/{company}/{company}.json`
+- 중간 산출물: `reports/{YYYYMMDD}/{company}/`
 
 ## 동작 방식
 
-1. `financial-analyst-kr`
-2. `news-sentiment-analyst`
-3. `sector-researcher`
+1. 아래 네 역할을 **병렬** 실행합니다.
+   - `financial-analyst-kr`
+   - `news-sentiment-analyst`
+   - `sector-researcher`
+   - `price-analyst`
 
-위 세 역할을 병렬 실행합니다.
+2. 네 결과를 합쳐 `invest-type-classifier`가 투자 유형을 분류합니다.
 
-이후 세 결과를 합쳐 `aggressive-investment-strategist`가 최종 투자 판단 리포트를 작성합니다.
+3. 모든 분석을 종합해 `aggressive-investment-strategist`가 최종 투자 판단 리포트를 작성합니다.
 
 ## 주의
 

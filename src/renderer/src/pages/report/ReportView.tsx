@@ -29,7 +29,7 @@ type Report = {
     financial: { signal: string; content: string }
     news: { signal: string; content: string }
     sector: { signal: string; content: string }
-    price?: { signal: string; content: string }
+    price?: { signal?: string; content: string }
     strategist: string
   }
   strategy: {
@@ -88,15 +88,16 @@ function extractPriceVerdictText(markdown: string): string {
   return parts.join('\n\n')
 }
 
-function getSignalColor(signal: string): string {
-  if (signal.includes('매수 우위')) return '#22c55e'  // 기술적 매수 우위 → 초록
-  if (signal.includes('매도 우위')) return '#ef4444'  // 기술적 매도 우위 → 빨강
+function getSignalColor(signal: string | undefined): string {
+  if (!signal) return '#f59e0b'
+  if (signal.includes('상승 추세')) return '#22c55e'  // 상승 추세 → 초록
+  if (signal.includes('하락 추세')) return '#ef4444'  // 하락 추세 → 빨강
   const hasBullish = signal.includes('강세')
   const hasBearish = signal.includes('약세')
   if (hasBullish && hasBearish) return '#f97316' // 혼합 → 주황
   if (hasBullish) return '#22c55e'               // 강세 → 초록
   if (hasBearish) return '#ef4444'               // 약세 → 빨강
-  return '#f59e0b'                               // 중립 → 노랑/앰버
+  return '#f59e0b'                               // 중립/횡보 → 노랑/앰버
 }
 
 export default function ReportView({ data }: { data: Report }): React.JSX.Element {
@@ -315,13 +316,8 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
                 gap: 6
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: priceSignalColor, letterSpacing: '0.04em' }}>
-                  기술적 종합 판정
-                </div>
-                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: priceSignalColor }}>
-                  {data.analysis.price.signal}
-                </div>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: priceSignalColor, letterSpacing: '0.04em' }}>
+                기술적 종합 판정
               </div>
               {verdictText && (
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: `1px solid ${priceSignalColor}25`, paddingTop: 8, whiteSpace: 'pre-line' }}>
@@ -375,7 +371,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           <AnalysisItem label="뉴스 분석" signal={data.analysis.news.signal} content={data.analysis.news.content} />
           <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
           {data.analysis.price && (
-            <AnalysisItem label="기술적 분석" signal={data.analysis.price.signal} content={data.analysis.price.content} />
+            <AnalysisItem label="기술적 분석" content={data.analysis.price.content} />
           )}
           <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
         </div>

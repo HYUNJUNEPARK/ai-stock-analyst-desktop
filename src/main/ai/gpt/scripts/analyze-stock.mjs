@@ -77,7 +77,7 @@ async function main() {
 
   const specialistRoles = ['financial-analyst-kr', 'news-sentiment-analyst', 'sector-researcher', 'price-analyst']
 
-  const specialistResults = await Promise.all(
+  const settledResults = await Promise.allSettled(
     specialistRoles.map((role) => {
       const outputPath = path.join(artifactDir, `${role}.md`)
       return runRole({
@@ -89,7 +89,25 @@ async function main() {
     })
   )
 
-  const resultMap = Object.fromEntries(specialistResults.map((item) => [item.role, item.content]))
+  const failedRoles = settledResults
+    .map((r, i) => (r.status === 'rejected' ? specialistRoles[i] : null))
+    .filter(Boolean)
+
+  if (failedRoles.length > 0) {
+    for (const role of failedRoles) {
+      console.error(`[실패] ${role}`)
+    }
+    if (failedRoles.length === specialistRoles.length) {
+      throw new Error('모든 전문가 에이전트가 실패했습니다.')
+    }
+    console.warn(`[경고] ${failedRoles.length}개 에이전트 실패. 나머지 결과로 분석을 계속합니다.`)
+  }
+
+  const resultMap = Object.fromEntries(
+    settledResults
+      .filter((r) => r.status === 'fulfilled')
+      .map((r) => [r.value.role, r.value.content])
+  )
 
   const classifierContext = {
     ...context,
@@ -171,7 +189,7 @@ function applyTemplate(template, vars) {
   })
 }
 
-function execCodex({ prompt, outputPath, model }) {
+function execCodex({ prompt, outputPath, model, timeoutMs = 5 * 60 * 1000 }) {
   return new Promise((resolve, reject) => {
     const args = [
       'exec',
@@ -198,6 +216,11 @@ function execCodex({ prompt, outputPath, model }) {
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
+    const timer = setTimeout(() => {
+      child.kill()
+      reject(new Error(`codex exec 타임아웃: ${timeoutMs / 1000}초 초과`))
+    }, timeoutMs)
+
     child.stdout.on('data', (chunk) => {
       process.stdout.write(chunk)
     })
@@ -207,10 +230,12 @@ function execCodex({ prompt, outputPath, model }) {
     })
 
     child.on('error', (error) => {
+      clearTimeout(timer)
       reject(error)
     })
 
     child.on('close', (code) => {
+      clearTimeout(timer)
       if (code === 0 && existsSync(outputPath)) {
         resolve()
         return
@@ -226,7 +251,6 @@ function parseArgs(argv) {
     ticker: '',
     request: '',
     model: '',
-    search: true,
     dryRun: false,
     help: false
   }
@@ -249,10 +273,6 @@ function parseArgs(argv) {
       options.model = argv[++i] ?? ''
       continue
     }
-    if (arg === '--no-search') {
-      options.search = false
-      continue
-    }
     if (arg === '--dry-run') {
       options.dryRun = true
       continue
@@ -270,7 +290,7 @@ function parseArgs(argv) {
 }
 
 function formatDate(date) {
-  const year = String(date.getFullYear()).slice(2)
+  const year = String(date.getFullYear())
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}${month}${day}`
@@ -284,14 +304,19 @@ function formatDateDisplay(date) {
 }
 
 function extractTicker(text) {
-  const match = text.match(/\b\d{6}\b/)
-  return match?.[0] ?? null
+  // 한국 종목코드 (6자리 숫자) 우선 매칭
+  const krMatch = text.match(/\b\d{6}\b/)
+  if (krMatch) return krMatch[0]
+  // 미국 티커 (2~5자리 대문자 알파벳, 단독 토큰)
+  const usMatch = text.match(/\b[A-Z]{2,5}\b/)
+  return usMatch?.[0] ?? null
 }
 
 function extractCompany(text) {
   const cleaned = text
     .replace(/\b\d{6}\b/g, ' ')
-    .replace(/(분석해줘|투자할 만해\?|종합 분석|리포트 만들어줘)/g, ' ')
+    .replace(/\b[A-Z]{2,5}\b/g, ' ')
+    .replace(/(분석해줘|투자할 만해\?|종합 분석|리포트 만들어줘|analyze|report|should I buy)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -307,19 +332,20 @@ function buildIdentifier(company) {
 }
 
 function parseJsonReport(raw) {
-  // 마크다운 코드 블록 제거 후 JSON 추출
-  const stripped = raw.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '')
+  // 마크다운 코드 블록 전체 제거 (여러 개 대응)
+  const stripped = raw.replace(/```(?:json)?\s*/g, '').replace(/```/g, '')
   const match = stripped.match(/\{[\s\S]*\}/)
   try {
     return JSON.parse(match?.[0] ?? stripped)
   } catch {
-    return { content: raw }
+    console.error('[parseJsonReport] JSON 파싱 실패. raw 응답을 확인하세요.')
+    return { raw }
   }
 }
 
 function buildAiInfo(model) {
   return {
-    model: model || 'gpt-5.5',
+    model: model || 'gpt-default',
     engine: 'gpt'
   }
 }
@@ -345,7 +371,6 @@ function printHelp() {
   --ticker      종목 코드
   --request     사용자 요청 원문
   --model       Codex 모델명
-  --no-search   웹 검색 비활성화
   --dry-run     실제 Codex 실행 없이 파라미터만 확인
   --help, -h    도움말 출력
 `)
