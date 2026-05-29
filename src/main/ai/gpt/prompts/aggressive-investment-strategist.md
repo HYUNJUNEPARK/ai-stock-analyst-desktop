@@ -96,18 +96,18 @@
   "analysis": {
     "financial": {
       "signal": "[방향, 예: 중립~약세]",
-      "content": "[재무 분석가 주요 포인트 인용 및 해석. 2~4문장]"
+      "content": "[재무 핵심 포인트. 1~2문장]"
     },
     "news": {
-      "signal": "[방향, 예: 중립~약강세]",
-      "content": "[뉴스 분석가 주요 포인트 인용 및 해석. 2~4문장]"
+      "signal": "[방향, 예: 긍정]",
+      "content": "[뉴스 핵심 포인트. 1~2문장]"
     },
     "sector": {
       "signal": "[방향, 예: 중립]",
-      "content": "[업종 리서처 주요 포인트 인용 및 해석. 2~4문장]"
+      "content": "[업종 핵심 포인트. 1~2문장]"
     },
     "price": {
-      "content": "[추세·모멘텀·지지저항 핵심 포인트 인용 및 해석. 2~4문장]"
+      "content": "[기술적 분석 핵심 포인트. 1~2문장]"
     },
     "strategist": "[네 분석의 충돌·합의 지점 정리 및 판정 기준 적용 근거 서술. 재무 등급과 업종 구조를 중심으로 기술적 진입 시점을 함께 고려한 균형적 최종 해석. 3~5문장]"
   },
@@ -117,8 +117,7 @@
     "targetPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원]",
     "stopLoss": "[-X%]",
     "stopLossPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원]",
-    "recommendedBuyPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원. 관망·비중 축소·매도 시 조건부 진입가 또는 재진입 고려가 제시]",
-    "recommendedBuyPriceBasis": "[매수 추천가 도출 근거. 사용한 밸류에이션 지표(PBR/PER), 기술적 할인율, 조건 등을 2~3문장으로 명시]"
+    "recommendedBuyPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원. 관망·비중 축소·매도 시 조건부 진입가 또는 재진입 고려가 제시]"
   },
   "valuation": {
     "securitiesTargetRange": "[증권사 목표주가 범위. 예: 25만~30만원. 확인 불가 시 '확실하지 않음']",
@@ -126,7 +125,7 @@
     "fairValueBase": "[기준 적정주가 범위]",
     "fairValueOptimistic": "[낙관 적정주가 범위]",
     "currentPricePosition": "[저평가 / 보수~기준 사이 / 기준 근처 / 기준~낙관 사이 / 낙관 근처 / 과열 중 하나]",
-    "valuationSummary": "[현재 주가가 어떤 시나리오를 반영하는지 2~3문장으로 요약]"
+    "valuationSummary": "[현재 주가가 어떤 시나리오를 반영하는지 1~2문장으로 요약]"
   },
   "risks": [
     "[리스크 1]",

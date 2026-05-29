@@ -41,6 +41,14 @@ type Report = {
     recommendedBuyPrice?: string
     recommendedBuyPriceBasis?: string
   }
+  valuation?: {
+    securitiesTargetRange?: string
+    fairValueConservative?: string
+    fairValueBase?: string
+    fairValueOptimistic?: string
+    currentPricePosition?: string
+    valuationSummary?: string
+  }
   risks: string[]
   monitoringPoints: string[]
 }
@@ -48,13 +56,13 @@ type Report = {
 type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'price' | 'valuation' | 'invest-type'
 
 const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
-  { key: 'summary', label: '종합 보고서' },
-  { key: 'financial', label: '재무 분석' },
-  { key: 'news', label: '뉴스 분석' },
-  { key: 'sector', label: '업종 리서치' },
-  { key: 'price', label: '기술적 분석' },
-  { key: 'valuation', label: '밸류에이션' },
-  { key: 'invest-type', label: '투자 유형' },
+  { key: 'summary', label: '종합' },
+  { key: 'financial', label: '재무' },
+  { key: 'news', label: '뉴스' },
+  { key: 'sector', label: '업종' },
+  { key: 'price', label: '기술적' },
+  { key: 'valuation', label: '밸류' },
+  { key: 'invest-type', label: '투자유형' },
 ]
 
 const VERDICT_COLORS: Record<string, string> = {
@@ -65,40 +73,24 @@ const VERDICT_COLORS: Record<string, string> = {
   '매도': '#1976d2'
 }
 
-function extractPriceVerdictText(markdown: string): string {
-  // [^\n]+\n 으로 헤더 한 줄만 소비하고 이후 내용을 캡처
-  const section8Match = markdown.match(/##\s*8[^\n]+\n([\s\S]*)/)
-  if (!section8Match) return ''
-  const section8 = section8Match[1]
-  const parts: string[] = []
-
-  const entryPriceMatch = section8.match(/\*\*기술적 진입 적합 가격대\*\*[:\s]*(.+)/)
-  if (entryPriceMatch) {
-    parts.push(entryPriceMatch[1].trim())
-  }
-
-  // 블록쿼트 여러 줄을 모두 합침
-  const blockquoteLines = section8.match(/^>\s*(.+)$/gm)
-  if (blockquoteLines) {
-    const blockquoteText = blockquoteLines
-      .map((line) => line.replace(/^>\s*/, '').trim())
-      .join(' ')
-    parts.push(blockquoteText)
-  }
-
-  return parts.join('\n\n')
-}
-
 function getSignalColor(signal: string | undefined): string {
   if (!signal) return '#f59e0b'
-  if (signal.includes('상승 추세')) return '#22c55e'  // 상승 추세 → 초록
-  if (signal.includes('하락 추세')) return '#ef4444'  // 하락 추세 → 빨강
-  const hasBullish = signal.includes('강세')
-  const hasBearish = signal.includes('약세')
-  if (hasBullish && hasBearish) return '#f97316' // 혼합 → 주황
-  if (hasBullish) return '#22c55e'               // 강세 → 초록
-  if (hasBearish) return '#ef4444'               // 약세 → 빨강
-  return '#f59e0b'                               // 중립/횡보 → 노랑/앰버
+  if (signal.includes('상승 추세')) return '#22c55e'
+  if (signal.includes('하락 추세')) return '#ef4444'
+  const hasBullish = signal.includes('강세') || signal.includes('긍정')
+  const hasBearish = signal.includes('약세') || signal.includes('부정')
+  if (hasBullish && hasBearish) return '#f97316'
+  if (hasBullish) return '#22c55e'
+  if (hasBearish) return '#ef4444'
+  return '#f59e0b'
+}
+
+function getValuationPositionColor(position: string): string {
+  if (position.includes('저평가')) return '#22c55e'
+  if (position.includes('과열')) return '#ef4444'
+  if (position.includes('낙관')) return '#f97316'
+  if (position.includes('기준 근처')) return '#f59e0b'
+  return '#f59e0b'
 }
 
 export default function ReportView({ data }: { data: Report }): React.JSX.Element {
@@ -121,28 +113,26 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   }, [data.artifactDir, artifacts])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* 종목 + 판정 */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* 헤더: 종목 + 판정 배지 */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
             {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
           </div>
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 3 }}>
-            {data.asOfDate}
-          </div>
-          {(aiModel || aiProvider) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
+            {(aiModel || aiProvider) && <>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>·</span>
               <img
                 src={modelIcon}
                 alt={isGpt ? 'GPT' : 'Claude'}
-                style={{ width: 22, height: 22, borderRadius: 3, objectFit: 'cover', flexShrink: 0 }}
+                style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
               />
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-                {[aiModel].filter(Boolean).join(' · ')}
-              </span>
-            </div>
-          )}
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
+            </>}
+          </div>
         </div>
         <div
           style={{
@@ -236,107 +226,40 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
         </div>
       )}
 
+      {/* 종합 보고서 탭 */}
       {activeTab === 'summary' && <>
 
-      {/* 한 줄 요약 */}
-      <div
-        style={{
-          padding: '16px 18px',
-          background: 'rgba(0, 122, 255, 0.08)',
-          border: '1px solid rgba(0, 122, 255, 0.2)',
-          borderRadius: 14,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8
-        }}
-      >
+        {/* 1. 결론 카드: 요약 + 전략가 종합 */}
         <div
           style={{
-            fontSize: 'var(--text-xs)',
-            fontWeight: 700,
-            color: 'var(--accent)',
-            letterSpacing: '0.04em'
+            padding: '16px 18px',
+            background: `${verdictColor}0d`,
+            border: `1px solid ${verdictColor}35`,
+            borderRadius: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
           }}
         >
-          한 줄 요약
-        </div>
-        <div
-          style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-primary)',
-            lineHeight: 1.65
-          }}
-        >
-          {data.summary}
-        </div>
-      </div>
-
-      {/* 투자 유형 */}
-      {data.investType && <InvestTypeSection investType={data.investType} />}
-
-      {/* 투자 실행 전략 */}
-      <div style={{ marginTop: 12 }}>
-        <SectionTitle>* 투자 실행 전략</SectionTitle>
-
-        {/* 매수 추천가 강조 카드 */}
-        {data.strategy.recommendedBuyPrice && (
-          <div
-            style={{
-              padding: '14px 16px',
-              background: `${verdictColor}10`,
-              border: `1px solid ${verdictColor}40`,
-              borderRadius: 10,
-              marginBottom: 8,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 6
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: verdictColor, letterSpacing: '0.04em' }}>
-                매수 추천가
-              </div>
-              <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: verdictColor }}>
-                {data.strategy.recommendedBuyPrice}
-              </div>
-            </div>
-            {data.strategy.recommendedBuyPriceBasis && (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: `1px solid ${verdictColor}25`, paddingTop: 8 }}>
-                {data.strategy.recommendedBuyPriceBasis}
-              </div>
-            )}
+          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            {data.summary}
           </div>
-        )}
-
-        {/* 기술적 종합 판정 */}
-        {data.analysis.price && (() => {
-          const priceSignalColor = getSignalColor(data.analysis.price.signal)
-          const verdictText = artifacts?.price ? extractPriceVerdictText(artifacts.price) : ''
-          return (
+          {data.analysis.strategist && (
             <div
               style={{
-                padding: '14px 16px',
-                background: `${priceSignalColor}10`,
-                border: `1px solid ${priceSignalColor}40`,
-                borderRadius: 10,
-                marginBottom: 8,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6
+                fontSize: 'var(--text-xs)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.75,
+                borderTop: `1px solid ${verdictColor}20`,
+                paddingTop: 10,
               }}
             >
-              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: priceSignalColor, letterSpacing: '0.04em' }}>
-                기술적 종합 판정
-              </div>
-              {verdictText && (
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: `1px solid ${priceSignalColor}25`, paddingTop: 8, whiteSpace: 'pre-line' }}>
-                  {verdictText}
-                </div>
-              )}
+              {data.analysis.strategist}
             </div>
-          )
-        })()}
+          )}
+        </div>
 
+        {/* 2. 투자 전략 수치: 현재가 · 추천가 · 목표가 · 손절가 */}
         <div
           style={{
             display: 'grid',
@@ -344,59 +267,118 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
             gap: 1,
             background: 'var(--border)',
             borderRadius: 10,
-            overflow: 'hidden'
+            overflow: 'hidden',
           }}
         >
-          {[
-            ['현재 주가', data.strategy.currentPrice],
-            ['목표 수익률', `${data.strategy.targetReturn} (${data.strategy.targetPrice})`],
-            ['손절 라인', `${data.strategy.stopLoss} (${data.strategy.stopLossPrice})`],
-            ['판정', data.verdict]
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              style={{
-                padding: '10px 14px',
-                background: 'var(--bg-primary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3
-              }}
-            >
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{label}</div>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                {value}
-              </div>
-            </div>
-          ))}
+          <StrategyCell label="현재 주가" value={data.strategy.currentPrice} />
+          <StrategyCell
+            label="매수 추천가"
+            value={data.strategy.recommendedBuyPrice ?? '-'}
+            color={verdictColor}
+          />
+          <StrategyCell
+            label={`목표가 ${data.strategy.targetReturn}`}
+            value={data.strategy.targetPrice}
+            color="#22c55e"
+          />
+          <StrategyCell
+            label={`손절가 ${data.strategy.stopLoss}`}
+            value={data.strategy.stopLossPrice}
+            color="#ef4444"
+          />
         </div>
-      </div>
 
-      {/* 분석 근거 */}
-      <div style={{ marginTop: 12 }}>
-        <SectionTitle>* 분석 근거</SectionTitle>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <AnalysisItem label="재무 분석" signal={data.analysis.financial.signal} content={data.analysis.financial.content} />
-          <AnalysisItem label="뉴스 분석" signal={data.analysis.news.signal} content={data.analysis.news.content} />
-          <AnalysisItem label="업종 리서치" signal={data.analysis.sector.signal} content={data.analysis.sector.content} />
-          {data.analysis.price && (
-            <AnalysisItem label="기술적 분석" content={data.analysis.price.content} />
+        {/* 3. 신호 요약: 재무 · 뉴스 · 업종 · 밸류에이션 포지션 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          <SignalCard label="재무" signal={data.analysis.financial.signal} />
+          <SignalCard label="뉴스" signal={data.analysis.news.signal} />
+          <SignalCard label="업종" signal={data.analysis.sector.signal} />
+          {data.valuation?.currentPricePosition ? (
+            <SignalCard
+              label="밸류에이션"
+              signal={data.valuation.currentPricePosition}
+              colorFn={getValuationPositionColor}
+            />
+          ) : (
+            <div />
           )}
-          <AnalysisItem label="전략가 종합" content={data.analysis.strategist} />
         </div>
-      </div>
 
-      {/* 리스크 + 모니터링 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <BulletSection title="* 핵심 리스크" items={data.risks} />
-        <BulletSection title="* 모니터링 포인트" items={data.monitoringPoints} />
-      </div>
+        {/* 4. 투자 유형 */}
+        {data.investType && <InvestTypeSection investType={data.investType} />}
 
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-        본 분석은 투자 참고용이며, 최종 투자 결정은 본인의 책임입니다.
-      </div>
+        {/* 5. 리스크 + 모니터링 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <BulletSection title="핵심 리스크" items={data.risks} />
+          <BulletSection title="모니터링 포인트" items={data.monitoringPoints} />
+        </div>
+
+        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+          본 분석은 투자 참고용이며, 최종 투자 결정은 본인의 책임입니다.
+        </div>
 
       </>}
+    </div>
+  )
+}
+
+function StrategyCell({
+  label,
+  value,
+  color,
+}: {
+  label: string
+  value: string
+  color?: string
+}): React.JSX.Element {
+  return (
+    <div
+      style={{
+        padding: '10px 14px',
+        background: 'var(--bg-primary)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}
+    >
+      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{label}</div>
+      <div
+        style={{
+          fontSize: 'var(--text-sm)',
+          fontWeight: 700,
+          color: color ?? 'var(--text-primary)',
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  )
+}
+
+function SignalCard({
+  label,
+  signal,
+  colorFn,
+}: {
+  label: string
+  signal: string
+  colorFn?: (s: string) => string
+}): React.JSX.Element {
+  const color = colorFn ? colorFn(signal) : getSignalColor(signal)
+  return (
+    <div
+      style={{
+        padding: '10px 12px',
+        background: `${color}0d`,
+        border: `1px solid ${color}35`,
+        borderRadius: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}
+    >
+      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{label}</div>
+      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color }}>{signal}</div>
     </div>
   )
 }
@@ -428,181 +410,105 @@ function InvestTypeSection({ investType }: { investType: InvestType }): React.JS
   const horizon = HORIZON_LABELS[investType.suitableHorizon] ?? { label: investType.suitableHorizon, color: '#6b7280' }
 
   return (
-    <div style={{ marginTop: 12 }}>
-      <SectionTitle>* 투자 유형 판단</SectionTitle>
+    <div
+      style={{
+        border: `1px solid ${primaryColor}40`,
+        borderRadius: 12,
+        overflow: 'hidden',
+      }}
+    >
+      {/* 유형 + 기간 */}
       <div
         style={{
-          border: `1px solid ${primaryColor}40`,
-          borderRadius: 12,
-          overflow: 'hidden',
+          padding: '10px 14px',
+          background: `${primaryColor}0d`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          borderBottom: `1px solid ${primaryColor}20`,
         }}
       >
-        {/* 헤더: 유형 + 기간 */}
-        <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {investType.type.split('+').map((part) => part.trim()).filter(Boolean).map((part) => (
+            <span
+              key={part}
+              style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 700,
+                color: getInvestTypeColor(part),
+                background: `${getInvestTypeColor(part)}15`,
+                border: `1px solid ${getInvestTypeColor(part)}50`,
+                borderRadius: 6,
+                padding: '2px 8px',
+              }}
+            >
+              {part}
+            </span>
+          ))}
+        </div>
+        <span
           style={{
-            padding: '12px 16px',
-            background: `${primaryColor}10`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 10,
-            borderBottom: `1px solid ${primaryColor}20`,
+            fontSize: 'var(--text-xs)',
+            fontWeight: 600,
+            color: horizon.color,
+            background: `${horizon.color}15`,
+            border: `1px solid ${horizon.color}40`,
+            borderRadius: 6,
+            padding: '2px 8px',
+            flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {investType.type.split('+').map((part) => part.trim()).filter(Boolean).map((part) => (
-              <span
-                key={part}
+          {horizon.label}
+        </span>
+      </div>
+
+      {/* 핵심 투자 아이디어 */}
+      <div style={{ padding: '12px 14px', background: 'var(--bg-primary)', borderBottom: `1px solid var(--border)` }}>
+        <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 5, letterSpacing: '0.03em' }}>
+          핵심 투자 아이디어
+        </div>
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', lineHeight: 1.65 }}>
+          {investType.coreIdea}
+        </div>
+      </div>
+
+      {/* 무효화 조건 */}
+      {investType.investmentThesisBreakers?.length > 0 && (
+        <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)' }}>
+          <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 6, letterSpacing: '0.03em' }}>
+            아이디어 무효화 조건
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {investType.investmentThesisBreakers.map((item, i) => (
+              <div
+                key={i}
                 style={{
                   fontSize: 'var(--text-xs)',
-                  fontWeight: 700,
-                  color: getInvestTypeColor(part),
-                  background: `${getInvestTypeColor(part)}15`,
-                  border: `1px solid ${getInvestTypeColor(part)}50`,
-                  borderRadius: 6,
-                  padding: '3px 10px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.6,
+                  paddingLeft: 12,
+                  position: 'relative',
                 }}
               >
-                {part}
-              </span>
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: '0.45em',
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    display: 'inline-block',
+                  }}
+                />
+                {item}
+              </div>
             ))}
           </div>
-          <span
-            style={{
-              fontSize: 'var(--text-xs)',
-              fontWeight: 600,
-              color: horizon.color,
-              background: `${horizon.color}15`,
-              border: `1px solid ${horizon.color}40`,
-              borderRadius: 6,
-              padding: '3px 10px',
-              flexShrink: 0,
-            }}
-          >
-            {horizon.label} 투자
-          </span>
         </div>
-
-        {/* 핵심 투자 아이디어 */}
-        <div
-          style={{
-            padding: '14px 16px',
-            background: 'var(--bg-primary)',
-            borderBottom: `1px solid var(--border)`,
-          }}
-        >
-          <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 6, letterSpacing: '0.03em' }}>
-            핵심 투자 아이디어
-          </div>
-          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)', lineHeight: 1.65 }}>
-            {investType.coreIdea}
-          </div>
-        </div>
-
-        {/* 아이디어 무효화 조건 */}
-        {investType.investmentThesisBreakers?.length > 0 && (
-          <div
-            style={{
-              padding: '12px 16px',
-              background: 'var(--bg-secondary)',
-            }}
-          >
-            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 8, letterSpacing: '0.03em' }}>
-              투자 아이디어 무효화 조건
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {investType.investmentThesisBreakers.map((item, i) => (
-                <div
-                  key={i}
-                  style={{
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.6,
-                    paddingLeft: 12,
-                    position: 'relative',
-                  }}
-                >
-                  <span
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: '0.45em',
-                      width: 5,
-                      height: 5,
-                      borderRadius: '50%',
-                      background: '#dc2626',
-                      display: 'inline-block',
-                    }}
-                  />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return (
-    <div
-      style={{
-        fontSize: 'var(--text-sm)',
-        fontWeight: 700,
-        color: 'var(--text-primary)',
-        marginBottom: 10
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
-function AnalysisItem({
-  label,
-  signal,
-  content
-}: {
-  label: string
-  signal?: string
-  content: string
-}): React.JSX.Element {
-  return (
-    <div
-      style={{
-        padding: '12px 14px',
-        background: 'var(--bg-secondary)',
-        borderRadius: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
-          {label}
-        </span>
-        {signal && (
-          <span
-            style={{
-              fontSize: 'var(--text-xs)',
-              fontWeight: 600,
-              color: getSignalColor(signal),
-              background: `${getSignalColor(signal)}18`,
-              border: `1px solid ${getSignalColor(signal)}50`,
-              borderRadius: 6,
-              padding: '2px 8px'
-            }}
-          >
-            {signal}
-          </span>
-        )}
-      </div>
-      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-        {content}
-      </div>
+      )}
     </div>
   )
 }
@@ -616,7 +522,7 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
         borderRadius: 10,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8
+        gap: 8,
       }}
     >
       <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
@@ -630,7 +536,7 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
             color: 'var(--text-secondary)',
             lineHeight: 1.6,
             paddingLeft: 10,
-            position: 'relative'
+            position: 'relative',
           }}
         >
           <span
@@ -642,7 +548,7 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
               height: 4,
               borderRadius: '50%',
               background: 'var(--text-tertiary)',
-              display: 'inline-block'
+              display: 'inline-block',
             }}
           />
           {item}
