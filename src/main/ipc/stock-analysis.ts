@@ -179,8 +179,8 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     if (analysisCompleted) return
     analysisCompleted = true
     try {
-      const reportJson = JSON.parse(readFileSync(reportPath, 'utf-8'))
-      safeSend(win,IPC.STOCK_ANALYSIS_CHUNK, JSON.stringify(reportJson))
+      const reportContent = readFileSync(reportPath, 'utf-8')
+      safeSend(win,IPC.STOCK_ANALYSIS_CHUNK, reportContent)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

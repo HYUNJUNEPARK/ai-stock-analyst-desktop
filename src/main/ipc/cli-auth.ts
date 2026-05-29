@@ -28,7 +28,6 @@ import { resolveCliCommand, streamLines } from '../utils/cli'
  * @param args - CLI에 전달할 추가 인수 (예: ['login'])
  */
 function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[] = []): void {
-  //const channel = name === 'claude' ? IPC.RUN_CLAUDE_LOGIN : IPC.RUN_GPT_LOGIN
   console.log(`[${name}] CLI 로그인 시작:`)
   const resolved = resolveCliCommand(name)
 

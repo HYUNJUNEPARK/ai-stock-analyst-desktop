@@ -22,6 +22,10 @@ export default function CliDownloadPage(): React.JSX.Element {
     console.log('[Page] CliDownloadPage 렌더링')
   }, [])
 
+  // [selectedModel, navigate] : selectedModel을 가드 조건과 startCliInstall 인수로
+  // 직접 사용한다. 빈 배열([])이면 마운트 시 selectedModel이 아직 null인 경우
+  // 가드를 통과하지 못하고, 이후 값이 채워져도 effect가 재실행되지 않아
+  // 설치가 시작되지 않는 버그가 발생한다.
   useEffect(() => {
     // 모델이 선택되지 않은 상태로 직접 접근하면 홈으로 리다이렉트
     if (!selectedModel) {
@@ -51,7 +55,7 @@ export default function CliDownloadPage(): React.JSX.Element {
 
     // CLI 설치 시작
     window.api.startCliInstall(selectedModel)
-  }, [])
+  }, [selectedModel, navigate])
 
   const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const command =
