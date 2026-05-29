@@ -1,13 +1,12 @@
 import type { AgentConfig } from './types'
 
 export const AGENT_CONFIG: AgentConfig[] = [
-  // Wave 1: 독립 에이전트 4개 동시 실행
+  // Wave 1: 독립 에이전트 5개 동시 실행
   { key: 'financial-analyst-kr', label: '재무 분석' },
   { key: 'sector-researcher', label: '업종 리서치' },
   { key: 'news-sentiment-analyst', label: '뉴스 분석' },
   { key: 'price-analyst', label: '기술 분석' },
-  // Wave 2: valuation-analyst (Wave 1 재무·업종 결과 주입 후 실행)
-  { key: 'valuation-analyst', label: '밸류에이션' },
+  { key: 'valuation-analyst', label: '증권사 목표주가' },
   // Phase 3: 투자 유형 분류
   { key: 'invest-type-classifier', label: '투자 유형 판단' },
   // Phase 4: 최종 투자 전략

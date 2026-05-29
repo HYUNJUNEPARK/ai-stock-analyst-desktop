@@ -89,28 +89,26 @@ export default function AnalysisProgressView({
 }
 
 // 에이전트 실행 흐름을 시각화하는 컴포넌트.
-// Wave 1 (4개 병렬) → Wave 2 (밸류에이션, Wave 1 결과 주입) → 투자 유형 판단 → 투자 전략 구조로 표시한다.
+// Wave 1 (5개 병렬) → 투자 유형 판단 → 투자 전략 구조로 표시한다.
 function AgentStatusBar({
   agentStatuses
 }: {
   agentStatuses: Record<string, AgentStatus>
 }): React.JSX.Element {
-  const wave1Agents = AGENT_CONFIG.slice(0, 4)
-  const wave2Agent = AGENT_CONFIG[4]
+  const wave1Agents = AGENT_CONFIG.slice(0, 5)
   const classifierAgent = AGENT_CONFIG[5]
   const strategyAgent = AGENT_CONFIG[6]
 
   const wave1Done = wave1Agents.every((agent) => agentStatuses[agent.key] === 'done')
-  const wave2Done = agentStatuses[wave2Agent?.key] === 'done'
   const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Wave 1: 독립 에이전트 4개 동시 실행 */}
+      {/* Wave 1: 독립 에이전트 5개 동시 실행 */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
           gap: 8
         }}
       >
@@ -126,25 +124,10 @@ function AgentStatusBar({
       {/* 화살표 1 */}
       <FlowArrow active={wave1Done} />
 
-      {/* Wave 2: 밸류에이션 — Wave 1 재무·업종 결과 주입 후 실행 */}
-      {wave2Agent && (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 'calc(50% - 4px)' }}>
-            <AgentStatusChip
-              label={wave2Agent.label}
-              status={agentStatuses[wave2Agent.key] ?? 'idle'}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 화살표 2 */}
-      <FlowArrow active={wave2Done} />
-
       {/* Phase 3: 투자 유형 판단 */}
       {classifierAgent && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 'calc(50% - 4px)' }}>
+          <div style={{ width: 'calc(40% - 4px)' }}>
             <AgentStatusChip
               label={classifierAgent.label}
               status={agentStatuses[classifierAgent.key] ?? 'idle'}
@@ -153,13 +136,13 @@ function AgentStatusBar({
         </div>
       )}
 
-      {/* 화살표 3 */}
+      {/* 화살표 2 */}
       <FlowArrow active={classifierDone} />
 
       {/* Phase 4: 투자 전략 */}
       {strategyAgent && (
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 'calc(50% - 4px)' }}>
+          <div style={{ width: 'calc(40% - 4px)' }}>
             <AgentStatusChip
               label={strategyAgent.label}
               status={agentStatuses[strategyAgent.key] ?? 'idle'}
@@ -224,7 +207,7 @@ function AgentStatusChip({
               ? 'var(--accent)'
               : 'var(--text-tertiary)',
         transition: 'all 0.2s',
-        whiteSpace: 'nowrap'
+        textAlign: 'center'
       }}
     >
       {status === 'running' && <div className="spinner" style={{ width: 10, height: 10 }} />}

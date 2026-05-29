@@ -76,14 +76,13 @@ async function main() {
     return
   }
 
-  // Wave 1: 독립 에이전트 4개 동시 실행
-  // - financial-analyst-kr, sector-researcher: 재무·업종 기초 분석
-  // - news-sentiment-analyst, price-analyst: 뉴스·기술 분석 (Phase 1 결과 불필요)
+  // Wave 1: 독립 에이전트 5개 동시 실행
   const wave1Roles = [
     'financial-analyst-kr',
     'sector-researcher',
     'news-sentiment-analyst',
-    'price-analyst'
+    'price-analyst',
+    'valuation-analyst'
   ]
 
   const wave1Results = await Promise.allSettled(
@@ -97,11 +96,6 @@ async function main() {
     .map((r, i) => (r.status === 'rejected' ? wave1Roles[i] : null))
     .filter(Boolean)
 
-  const phase1Roles = ['financial-analyst-kr', 'sector-researcher']
-  const phase1Failed = wave1Failed.filter((r) => phase1Roles.includes(r))
-  if (phase1Failed.length === phase1Roles.length) {
-    throw new Error('재무·업종 분석 에이전트가 모두 실패했습니다.')
-  }
   if (wave1Failed.length > 0) {
     for (const role of wave1Failed) {
       console.error(`[실패] ${role}`)
@@ -109,37 +103,17 @@ async function main() {
     console.warn(`[경고] Wave 1 실패 에이전트: ${wave1Failed.join(', ')}`)
   }
 
-  const wave1Map = Object.fromEntries(
+  const criticalRoles = ['financial-analyst-kr', 'sector-researcher']
+  const criticalFailed = wave1Failed.filter((r) => criticalRoles.includes(r))
+  if (criticalFailed.length === criticalRoles.length) {
+    throw new Error('재무·업종 분석 에이전트가 모두 실패했습니다.')
+  }
+
+  const resultMap = Object.fromEntries(
     wave1Results
       .filter((r) => r.status === 'fulfilled')
       .map((r) => [r.value.role, r.value.content])
   )
-
-  // Wave 2: valuation-analyst 단독 실행 — financial·sector 결과를 컨텍스트로 주입
-  const valuationContext = {
-    ...context,
-    FINANCIAL_ANALYSIS: wave1Map['financial-analyst-kr'] ?? '',
-    SECTOR_ANALYSIS: wave1Map['sector-researcher'] ?? ''
-  }
-
-  let valuationContent = ''
-  try {
-    const valuationOutputPath = path.join(artifactDir, 'valuation-analyst.md')
-    const valuationResult = await runRole({
-      role: 'valuation-analyst',
-      context: valuationContext,
-      outputPath: valuationOutputPath,
-      model: options.model
-    })
-    valuationContent = valuationResult.content
-  } catch {
-    console.warn('[경고] valuation-analyst 실패. 나머지 결과로 분석을 계속합니다.')
-  }
-
-  const resultMap = {
-    ...wave1Map,
-    ...(valuationContent ? { 'valuation-analyst': valuationContent } : {})
-  }
 
   const classifierContext = {
     ...context,
