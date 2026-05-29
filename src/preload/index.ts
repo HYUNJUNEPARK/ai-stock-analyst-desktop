@@ -15,6 +15,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { registerCliInstallListeners, cliInstallApi } from './ipc/cli-install'
 import { registerCliAuthListeners, cliAuthApi } from './ipc/cli-auth'
 import { cliStatsApi } from './ipc/cli-stats'
+import { reportFilesApi } from './ipc/report-files'
+import { windowsApi } from './ipc/windows'
 import { registerPromptListeners, promptApi } from './ipc/prompt'
 import { registerStockAnalysisListeners, stockAnalysisApi } from './ipc/stock-analysis'
 
@@ -34,7 +36,9 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('api', {
       ...cliInstallApi,    // CLI 설치 및 상태 확인
       ...cliAuthApi,       // CLI 로그인 인증
-      ...cliStatsApi,      // 사용 통계 및 보고서 파일 조회
+      ...cliStatsApi,      // CLI 사용 통계
+      ...reportFilesApi,   // 보고서 파일 CRUD + PDF 저장
+      ...windowsApi,       // 보조 창 열기, 외부 URL
       ...promptApi,        // 단발 프롬프트 실행
       ...stockAnalysisApi, // 주식 멀티 에이전트 분석
     })

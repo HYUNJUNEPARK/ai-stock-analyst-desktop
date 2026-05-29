@@ -9,6 +9,8 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerCliInstallHandlers } from './ipc/cli-install'
 import { registerCliStatsHandlers } from './ipc/cli-stats'
+import { registerReportFilesHandlers } from './ipc/report-files'
+import { registerWindowsHandlers } from './ipc/windows'
 import { registerCliAuthHandlers } from './ipc/cli-auth'
 import { registerPromptHandlers } from './ipc/prompt'
 import { registerStockAnalysisHandlers } from './ipc/stock-analysis'
@@ -70,7 +72,9 @@ export function createWindow(): BrowserWindow {
  */
 export function registerHandlers(win: BrowserWindow): void {
   registerCliInstallHandlers(win)    // CLI 설치, 설치/인증 상태 확인
-  registerCliStatsHandlers()         // CLI 사용 통계, GPT 보고서 목록 (win 불필요)
+  registerCliStatsHandlers()         // CLI 사용 통계
+  registerReportFilesHandlers()      // 보고서 파일 CRUD + PDF 저장
+  registerWindowsHandlers()          // 보조 창 열기, 외부 URL
   registerCliAuthHandlers(win)       // Claude/GPT 로그인
   registerPromptHandlers(win)        // 단발 프롬프트 실행
   registerStockAnalysisHandlers(win) // 주식 멀티 에이전트 분석

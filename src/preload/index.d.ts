@@ -17,7 +17,7 @@ declare global {
       /* CLI 설치/인증 상태 확인 */
       checkCliStatus: (model: string) => Promise<{ cliInstalled: boolean; authenticated: boolean }>
 
-      /* CLI stats 조회 */
+      /* CLI 사용 통계 */
       checkCliStats: (model: string) => Promise<
         | {
             success: true
@@ -33,6 +33,7 @@ declare global {
         | { success: false; error: string }
       >
 
+      /* 보고서 파일 CRUD + PDF */
       // GPT 리포트 파일 목록 조회
       listGptReportFiles: () => Promise<Array<{
         name: string
@@ -53,9 +54,6 @@ declare global {
       // artifact 역할별 분석 결과 읽기
       readArtifactFiles: (artifactDir: string) => Promise<{ financial: string; news: string; sector: string; investType: string }>
 
-      // 외부 URL을 시스템 기본 브라우저로 열기
-      openExternalUrl: (url: string) => Promise<void>
-
       // 선택된 모델의 구체적인 모델명 조회
       getModelInfo: (model: string) => Promise<{ modelName: string | null }>
 
@@ -67,11 +65,15 @@ declare global {
       // 보고서 폴더 삭제
       deleteGptReportFile: (name: string) => Promise<{ success: true } | { success: false; error: string }>
 
-      // 투자 가이드 새 창 열기
-      openGuideWindow: (guide: string) => Promise<{ success: true } | { success: false; error: string }>
+      /* 보조 창 열기 + 외부 URL */
+      // 외부 URL을 시스템 기본 브라우저로 열기
+      openExternalUrl: (url: string) => Promise<void>
 
       // 보고서 목록 새 창 열기
       openReportsWindow: () => Promise<{ success: true } | { success: false; error: string }>
+
+      // 투자 가이드 새 창 열기
+      openGuideWindow: (guide: string) => Promise<{ success: true } | { success: false; error: string }>
 
       /* CLI 로그인 */
       runClaudeLogin: () => void
