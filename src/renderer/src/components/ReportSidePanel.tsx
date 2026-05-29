@@ -96,7 +96,7 @@ export default function ReportSidePanel({
   }
 
   const deleteTargetLabel = deleteTarget
-    ? deleteTarget.ticker
+    ? deleteTarget.ticker && deleteTarget.ticker !== 'unknown'
       ? `${deleteTarget.company}(${deleteTarget.ticker})`
       : deleteTarget.company || deleteTarget.name
     : ''
@@ -236,7 +236,7 @@ function ReportRow({
   onDelete: (report: ReportFile) => void
 }): React.JSX.Element {
   const displayName = report.company || report.name
-  const label = report.ticker ? `${displayName}(${report.ticker})` : displayName
+  const label = report.ticker && report.ticker !== 'unknown' ? `${displayName}(${report.ticker})` : displayName
   const openReport = (): void => {
     void window.api.openReportDetailWindow(report.name, report.model)
   }

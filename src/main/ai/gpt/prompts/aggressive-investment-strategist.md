@@ -29,7 +29,11 @@
 ## Price Analysis
 {{PRICE_ANALYSIS}}
 
+## Valuation Analysis
+{{VALUATION_ANALYSIS}}
+
 지침:
+- **Valuation Analysis를 목표주가 및 매수 추천가 산정의 핵심 참고 자료로 활용한다**: 증권사 목표주가 범위, 자체 보수적·기준·낙관 적정주가를 strategy 수립 시 반드시 반영한다. Valuation Analysis가 비어있는 경우 Financial Analysis 기반으로 직접 산정한다.
 - **Investment Type Analysis를 최우선으로 참조한다**: 투자 유형 판단 결과(핵심 투자 아이디어, 투자 유형, 투자 기간 적합성)를 전략 수립의 출발점으로 사용한다.
 - 투자 유형이 "고위험 테마형" 또는 "모멘텀형"으로 분류된 경우, 목표 수익률과 손절 비율을 보수적으로 설정하고 리스크를 강조한다.
 - 투자 유형이 "배당·방어형" 또는 "저평가 가치형"으로 분류된 경우, 장기 보유 관점의 안정적인 진입가를 우선 제시한다.
@@ -115,6 +119,14 @@
     "stopLossPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원]",
     "recommendedBuyPrice": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원. 관망·비중 축소·매도 시 조건부 진입가 또는 재진입 고려가 제시]",
     "recommendedBuyPriceBasis": "[매수 추천가 도출 근거. 사용한 밸류에이션 지표(PBR/PER), 기술적 할인율, 조건 등을 2~3문장으로 명시]"
+  },
+  "valuation": {
+    "securitiesTargetRange": "[증권사 목표주가 범위. 예: 25만~30만원. 확인 불가 시 '확실하지 않음']",
+    "fairValueConservative": "[보수적 적정주가 범위]",
+    "fairValueBase": "[기준 적정주가 범위]",
+    "fairValueOptimistic": "[낙관 적정주가 범위]",
+    "currentPricePosition": "[저평가 / 보수~기준 사이 / 기준 근처 / 기준~낙관 사이 / 낙관 근처 / 과열 중 하나]",
+    "valuationSummary": "[현재 주가가 어떤 시나리오를 반영하는지 2~3문장으로 요약]"
   },
   "risks": [
     "[리스크 1]",

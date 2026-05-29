@@ -43,7 +43,7 @@ export default function AnalysisProgressView({
             lineHeight: 1.5
           }}
         >
-          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (4-8분 소요)
+          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (5-10분 소요)
         </div>
       </div>
 
@@ -89,22 +89,24 @@ export default function AnalysisProgressView({
 }
 
 // 에이전트 실행 흐름을 시각화하는 컴포넌트.
-// 3개 에이전트(병렬) → 화살표 → 투자 유형 판단 → 화살표 → 투자 전략 구조로 표시한다.
+// Wave 1 (4개 병렬) → Wave 2 (밸류에이션, Wave 1 결과 주입) → 투자 유형 판단 → 투자 전략 구조로 표시한다.
 function AgentStatusBar({
   agentStatuses
 }: {
   agentStatuses: Record<string, AgentStatus>
 }): React.JSX.Element {
-  const specialistAgents = AGENT_CONFIG.slice(0, 4)
-  const classifierAgent = AGENT_CONFIG[4]
-  const strategyAgent = AGENT_CONFIG[5]
+  const wave1Agents = AGENT_CONFIG.slice(0, 4)
+  const wave2Agent = AGENT_CONFIG[4]
+  const classifierAgent = AGENT_CONFIG[5]
+  const strategyAgent = AGENT_CONFIG[6]
 
-  const specialistsDone = specialistAgents.every((agent) => agentStatuses[agent.key] === 'done')
+  const wave1Done = wave1Agents.every((agent) => agentStatuses[agent.key] === 'done')
+  const wave2Done = agentStatuses[wave2Agent?.key] === 'done'
   const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* 1단계: 3개 전문가 에이전트 (병렬) */}
+      {/* Wave 1: 독립 에이전트 4개 동시 실행 */}
       <div
         style={{
           display: 'grid',
@@ -112,7 +114,7 @@ function AgentStatusBar({
           gap: 8
         }}
       >
-        {specialistAgents.map((agent) => (
+        {wave1Agents.map((agent) => (
           <AgentStatusChip
             key={agent.key}
             label={agent.label}
@@ -122,25 +124,48 @@ function AgentStatusBar({
       </div>
 
       {/* 화살표 1 */}
-      <FlowArrow active={specialistsDone} />
+      <FlowArrow active={wave1Done} />
 
-      {/* 2단계: 투자 유형 판단 */}
-      {classifierAgent && (
-        <AgentStatusChip
-          label={classifierAgent.label}
-          status={agentStatuses[classifierAgent.key] ?? 'idle'}
-        />
+      {/* Wave 2: 밸류에이션 — Wave 1 재무·업종 결과 주입 후 실행 */}
+      {wave2Agent && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 'calc(50% - 4px)' }}>
+            <AgentStatusChip
+              label={wave2Agent.label}
+              status={agentStatuses[wave2Agent.key] ?? 'idle'}
+            />
+          </div>
+        </div>
       )}
 
       {/* 화살표 2 */}
+      <FlowArrow active={wave2Done} />
+
+      {/* Phase 3: 투자 유형 판단 */}
+      {classifierAgent && (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 'calc(50% - 4px)' }}>
+            <AgentStatusChip
+              label={classifierAgent.label}
+              status={agentStatuses[classifierAgent.key] ?? 'idle'}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 화살표 3 */}
       <FlowArrow active={classifierDone} />
 
-      {/* 3단계: 투자 전략 */}
+      {/* Phase 4: 투자 전략 */}
       {strategyAgent && (
-        <AgentStatusChip
-          label={strategyAgent.label}
-          status={agentStatuses[strategyAgent.key] ?? 'idle'}
-        />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 'calc(50% - 4px)' }}>
+            <AgentStatusChip
+              label={strategyAgent.label}
+              status={agentStatuses[strategyAgent.key] ?? 'idle'}
+            />
+          </div>
+        </div>
       )}
     </div>
   )

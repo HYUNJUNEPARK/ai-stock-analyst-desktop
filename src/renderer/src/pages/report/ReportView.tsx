@@ -45,7 +45,7 @@ type Report = {
   monitoringPoints: string[]
 }
 
-type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'price' | 'invest-type'
+type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'price' | 'valuation' | 'invest-type'
 
 const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'summary', label: '종합 보고서' },
@@ -53,6 +53,7 @@ const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'news', label: '뉴스 분석' },
   { key: 'sector', label: '업종 리서치' },
   { key: 'price', label: '기술적 분석' },
+  { key: 'valuation', label: '밸류에이션' },
   { key: 'invest-type', label: '투자 유형' },
 ]
 
@@ -107,7 +108,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   const isGpt = (data.aiInfo?.provider === 'openai') || (typeof aiModel === 'string' && aiModel.toLowerCase().includes('gpt'))
   const modelIcon = isGpt ? gptIcon : claudeIcon
   const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
-  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; price: string; investType: string } | null>(null)
+  const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; price: string; valuation: string; investType: string } | null>(null)
   const [artifactLoading, setArtifactLoading] = useState(false)
 
   useEffect(() => {
@@ -125,7 +126,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {data.company} ({data.ticker})
+            {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 3 }}>
             {data.asOfDate}
@@ -213,6 +214,14 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
                     투자 유형 분석 데이터가 없습니다.
                   </div>
                 )
+          ) : activeTab === 'valuation' ? (
+            artifacts?.valuation
+              ? <MarkdownRenderer text={artifacts.valuation} isStreaming={false} />
+              : (
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
+                  밸류에이션 분석 데이터가 없습니다.
+                </div>
+              )
           ) : (
             <MarkdownRenderer
               text={

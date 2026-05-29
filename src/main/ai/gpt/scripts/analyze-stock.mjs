@@ -19,6 +19,7 @@ const ROLE_FILES = {
   'news-sentiment-analyst': 'news-sentiment-analyst.md',
   'sector-researcher': 'sector-researcher.md',
   'price-analyst': 'price-analyst.md',
+  'valuation-analyst': 'valuation-analyst.md',
   'invest-type-classifier': 'invest-type-classifier.md',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
 }
@@ -75,46 +76,78 @@ async function main() {
     return
   }
 
-  const specialistRoles = ['financial-analyst-kr', 'news-sentiment-analyst', 'sector-researcher', 'price-analyst']
+  // Wave 1: 독립 에이전트 4개 동시 실행
+  // - financial-analyst-kr, sector-researcher: 재무·업종 기초 분석
+  // - news-sentiment-analyst, price-analyst: 뉴스·기술 분석 (Phase 1 결과 불필요)
+  const wave1Roles = [
+    'financial-analyst-kr',
+    'sector-researcher',
+    'news-sentiment-analyst',
+    'price-analyst'
+  ]
 
-  const settledResults = await Promise.allSettled(
-    specialistRoles.map((role) => {
+  const wave1Results = await Promise.allSettled(
+    wave1Roles.map((role) => {
       const outputPath = path.join(artifactDir, `${role}.md`)
-      return runRole({
-        role,
-        context,
-        outputPath,
-        model: options.model
-      })
+      return runRole({ role, context, outputPath, model: options.model })
     })
   )
 
-  const failedRoles = settledResults
-    .map((r, i) => (r.status === 'rejected' ? specialistRoles[i] : null))
+  const wave1Failed = wave1Results
+    .map((r, i) => (r.status === 'rejected' ? wave1Roles[i] : null))
     .filter(Boolean)
 
-  if (failedRoles.length > 0) {
-    for (const role of failedRoles) {
+  const phase1Roles = ['financial-analyst-kr', 'sector-researcher']
+  const phase1Failed = wave1Failed.filter((r) => phase1Roles.includes(r))
+  if (phase1Failed.length === phase1Roles.length) {
+    throw new Error('재무·업종 분석 에이전트가 모두 실패했습니다.')
+  }
+  if (wave1Failed.length > 0) {
+    for (const role of wave1Failed) {
       console.error(`[실패] ${role}`)
     }
-    if (failedRoles.length === specialistRoles.length) {
-      throw new Error('모든 전문가 에이전트가 실패했습니다.')
-    }
-    console.warn(`[경고] ${failedRoles.length}개 에이전트 실패. 나머지 결과로 분석을 계속합니다.`)
+    console.warn(`[경고] Wave 1 실패 에이전트: ${wave1Failed.join(', ')}`)
   }
 
-  const resultMap = Object.fromEntries(
-    settledResults
+  const wave1Map = Object.fromEntries(
+    wave1Results
       .filter((r) => r.status === 'fulfilled')
       .map((r) => [r.value.role, r.value.content])
   )
 
+  // Wave 2: valuation-analyst 단독 실행 — financial·sector 결과를 컨텍스트로 주입
+  const valuationContext = {
+    ...context,
+    FINANCIAL_ANALYSIS: wave1Map['financial-analyst-kr'] ?? '',
+    SECTOR_ANALYSIS: wave1Map['sector-researcher'] ?? ''
+  }
+
+  let valuationContent = ''
+  try {
+    const valuationOutputPath = path.join(artifactDir, 'valuation-analyst.md')
+    const valuationResult = await runRole({
+      role: 'valuation-analyst',
+      context: valuationContext,
+      outputPath: valuationOutputPath,
+      model: options.model
+    })
+    valuationContent = valuationResult.content
+  } catch {
+    console.warn('[경고] valuation-analyst 실패. 나머지 결과로 분석을 계속합니다.')
+  }
+
+  const resultMap = {
+    ...wave1Map,
+    ...(valuationContent ? { 'valuation-analyst': valuationContent } : {})
+  }
+
   const classifierContext = {
     ...context,
-    FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
-    NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
-    SECTOR_ANALYSIS: resultMap['sector-researcher'],
-    PRICE_ANALYSIS: resultMap['price-analyst']
+    FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'] ?? '',
+    NEWS_ANALYSIS: resultMap['news-sentiment-analyst'] ?? '',
+    SECTOR_ANALYSIS: resultMap['sector-researcher'] ?? '',
+    PRICE_ANALYSIS: resultMap['price-analyst'] ?? '',
+    VALUATION_ANALYSIS: resultMap['valuation-analyst'] ?? ''
   }
 
   const classifierOutputPath = path.join(artifactDir, 'invest-type-classifier.md')
@@ -127,10 +160,11 @@ async function main() {
 
   const strategistContext = {
     ...context,
-    FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'],
-    NEWS_ANALYSIS: resultMap['news-sentiment-analyst'],
-    SECTOR_ANALYSIS: resultMap['sector-researcher'],
-    PRICE_ANALYSIS: resultMap['price-analyst'],
+    FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'] ?? '',
+    NEWS_ANALYSIS: resultMap['news-sentiment-analyst'] ?? '',
+    SECTOR_ANALYSIS: resultMap['sector-researcher'] ?? '',
+    PRICE_ANALYSIS: resultMap['price-analyst'] ?? '',
+    VALUATION_ANALYSIS: resultMap['valuation-analyst'] ?? '',
     INVEST_TYPE_ANALYSIS: classifierResult.content
   }
 
