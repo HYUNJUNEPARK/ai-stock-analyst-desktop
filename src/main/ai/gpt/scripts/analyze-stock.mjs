@@ -253,7 +253,11 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 5 * 60 * 1000 }) {
         resolve()
         return
       }
-      reject(new Error(`codex exec 실패: ${code ?? 'unknown'}`))
+      if (code !== 0) {
+        reject(new Error(`codex exec 비정상 종료 (exit code: ${code ?? 'unknown'})`))
+        return
+      }
+      reject(new Error(`codex exec 완료했으나 출력 파일이 생성되지 않았습니다: ${outputPath}`))
     })
   })
 }
@@ -329,7 +333,35 @@ function extractCompany(text) {
   const cleaned = text
     .replace(/\b\d{6}\b/g, ' ')
     .replace(/\b[A-Z]{2,5}\b/g, ' ')
-    .replace(/(분석해줘|투자할 만해\?|종합 분석|리포트 만들어줘|analyze|report|should I buy)/gi, ' ')
+    .replace(
+      /(분석해\s*줘|분석\s*부탁해|분석\s*해줘요?|분석\s*해주세요|종합\s*분석|주가\s*분석|재무\s*분석)/gi,
+      ' '
+    )
+    .replace(
+      /(투자할\s*만해\??|투자해도\s*될까\??|투자해도\s*돼\??|투자\s*의견|투자\s*추천|투자\s*해줘)/gi,
+      ' '
+    )
+    .replace(
+      /(살\s*만해\??|살\s*만해요\??|사도\s*될까\??|사도\s*돼\??|지금\s*사도\s*돼\??|지금\s*살까\??)/gi,
+      ' '
+    )
+    .replace(
+      /(들어가도\s*될까\??|들어가도\s*돼\??|지금\s*들어가도\s*될까\??|매수\s*해도\s*될까\??|매수\s*타이밍)/gi,
+      ' '
+    )
+    .replace(
+      /(전망\s*알려줘|전망은\??|전망\s*어때\??|전망\s*어떻게\s*봐\??|주가\s*전망)/gi,
+      ' '
+    )
+    .replace(
+      /(지금\s*어때\??|어때요\??|어떻게\s*생각해\??|의견\s*줘|알려줘|알려주세요)/gi,
+      ' '
+    )
+    .replace(
+      /(리포트\s*만들어줘|리포트\s*작성해줘|종합\s*리포트|분석\s*리포트)/gi,
+      ' '
+    )
+    .replace(/(analyze|report|should\s*i\s*buy|buy\s*or\s*sell)/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
