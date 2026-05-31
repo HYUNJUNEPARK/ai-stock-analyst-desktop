@@ -25,6 +25,9 @@
 ## Price Analysis
 {{PRICE_ANALYSIS}}
 
+## Valuation Analysis
+{{VALUATION_ANALYSIS}}
+
 ---
 
 판단 순서:

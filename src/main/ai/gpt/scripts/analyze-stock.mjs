@@ -103,10 +103,15 @@ async function main() {
     console.warn(`[경고] Wave 1 실패 에이전트: ${wave1Failed.join(', ')}`)
   }
 
-  const criticalRoles = ['financial-analyst-kr', 'sector-researcher']
+  if (wave1Failed.includes('financial-analyst-kr')) {
+    //throw new Error('재무 분석 에이전트(financial-analyst-kr)가 실패했습니다. 판정 가중치 1순위 데이터 없이 분석을 진행할 수 없습니다.')
+    console.warn(`[경고] 재무 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.`)
+  }
+
+  const criticalRoles = ['sector-researcher']
   const criticalFailed = wave1Failed.filter((r) => criticalRoles.includes(r))
-  if (criticalFailed.length === criticalRoles.length) {
-    throw new Error('재무·업종 분석 에이전트가 모두 실패했습니다.')
+  if (criticalFailed.length > 0) {
+    console.warn(`[경고] 업종 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.`)
   }
 
   const resultMap = Object.fromEntries(
