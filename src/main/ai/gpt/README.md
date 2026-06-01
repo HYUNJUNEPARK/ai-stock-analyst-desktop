@@ -73,9 +73,10 @@ node scripts/analyze-stock.mjs --company "삼성전자" --ticker "005930" --requ
 `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`가 동시에 실행됩니다.
 각 에이전트는 서로 독립적으로 웹 검색을 통해 데이터를 수집하고 분석합니다.
 
-### Wave 1b — valuation-analyst 순차 실행
+### Wave 1b — valuation-analyst 부분 순차 실행
 
-Wave 1 완료 후 `valuation-analyst`가 실행됩니다.
+Chain A(`financial-analyst-kr`, `sector-researcher`) 완료 후 `valuation-analyst`가 즉시 실행됩니다.
+이때 Chain B(`news-sentiment-analyst`, `price-analyst`)는 아직 실행 중일 수 있으며, `valuation-analyst`와 병렬로 진행될 수 있습니다.
 `financial-analyst-kr`과 `sector-researcher`의 결과를 컨텍스트로 받아 적정주가를 산출합니다.
 두 분석이 이미 정리한 PER, PBR, ROE, 업종 멀티플 등을 재활용하므로 수치 일관성이 보장됩니다.
 

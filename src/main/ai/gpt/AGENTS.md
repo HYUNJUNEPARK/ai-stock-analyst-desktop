@@ -9,7 +9,7 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 1. **Wave 1** (4 agents in parallel):
    - Chain A: `financial-analyst-kr` and `sector-researcher` run in parallel
    - Chain B: `news-sentiment-analyst` and `price-analyst` run in parallel
-2. **Wave 1b**: `valuation-analyst` runs after Wave 1 completes, receiving `financial-analyst-kr` and `sector-researcher` outputs as context
+2. **Wave 1b**: `valuation-analyst` runs as soon as Chain A completes, receiving `financial-analyst-kr` and `sector-researcher` outputs as context. Chain B may still be running in parallel.
 3. **Wave 2 – Step 1**: `invest-type-classifier` runs after Wave 1b completes, using all 5 specialist outputs as context
 4. **Wave 2 – Step 2**: `aggressive-investment-strategist` runs after `invest-type-classifier`, using all prior outputs as context
 5. save the final report as JSON under `reports/{YYYYMMDD}/{company}/`
@@ -29,7 +29,7 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 ## Execution Rules
 
 - Wave 1 runs 4 agents in parallel via `Promise.allSettled`: `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`.
-- `valuation-analyst` runs after Wave 1 completes. It receives `financial-analyst-kr` and `sector-researcher` outputs as context.
+- `valuation-analyst` runs after Chain A (`financial-analyst-kr` + `sector-researcher`) completes. It receives those two outputs as context and may run in parallel with Chain B (`news-sentiment-analyst` + `price-analyst`).
 - `invest-type-classifier` runs only after `valuation-analyst` completes. It receives all 5 specialist outputs as context.
 - `aggressive-investment-strategist` runs only after `invest-type-classifier` is complete.
 - If `financial-analyst-kr` or `sector-researcher` fails, `valuation-analyst` continues with the available data and logs a warning.
