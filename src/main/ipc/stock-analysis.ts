@@ -112,7 +112,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    */
   ipcMain.on(
     IPC.RUN_STOCK_ANALYSIS,
-    (_event, { model, prompt }: { model: string; prompt: string; apiKey: string }) => {
+    (_event, { model, prompt }: { model: string; prompt: string }) => {
       console.log(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
       const env: NodeJS.ProcessEnv = { ...process.env }
 

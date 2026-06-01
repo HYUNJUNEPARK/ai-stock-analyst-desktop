@@ -30,7 +30,15 @@ export default function PromptPage(): React.JSX.Element {
     if (!trimmed) return
 
     if (selectedModel === 'gpt') {
-      const files = await window.api.listGptReportFiles()
+      let files: Awaited<ReturnType<typeof window.api.listGptReportFiles>>
+      try {
+        files = await window.api.listGptReportFiles()
+      } catch (error) {
+        console.error('[prompt] 보고서 목록 조회 실패:', error instanceof Error ? error.message : String(error))
+        setCurrentPrompt(trimmed)
+        navigate(ROUTES.RESPONSE)
+        return
+      }
       const keyword = trimmed.toLowerCase()
       const today = new Date()
       const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
