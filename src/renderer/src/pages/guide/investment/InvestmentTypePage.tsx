@@ -71,6 +71,13 @@ export default function InvestmentTypePage(): React.JSX.Element {
                   </div>
                 </div>
 
+                {/* 설명 */}
+                {'description' in type && typeof type.description === 'string' && (
+                  <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 14px', lineHeight: 1.6 }}>
+                    {type.description}
+                  </p>
+                )}
+
                 {/* 분류 기준 */}
                 <div style={{ marginBottom: 12 }}>
                   <Label>분류 기준</Label>
