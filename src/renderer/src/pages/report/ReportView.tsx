@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
-import gptIcon from '../../assets/gpt.jpg'
-import claudeIcon from '../../assets/claude.png'
+import { gptIcon, claudeIcon } from '../../assets'
 
 type InvestType = {
   type: string

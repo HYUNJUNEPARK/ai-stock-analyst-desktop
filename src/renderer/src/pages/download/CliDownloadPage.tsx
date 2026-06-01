@@ -19,7 +19,7 @@ export default function CliDownloadPage(): React.JSX.Element {
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    console.log('[Page] CliDownloadPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] CliDownloadPage 렌더링')
   }, [])
 
   // [selectedModel, navigate] : selectedModel을 가드 조건과 startCliInstall 인수로

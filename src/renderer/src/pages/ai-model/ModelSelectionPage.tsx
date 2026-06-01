@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import ComingSoonDialog from '../../components/ComingSoonDialog'
-import gptIcon from '../../assets/gpt.jpg'
-import claudeIcon from '../../assets/claude.png'
+import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
 
 const models = [
@@ -31,7 +30,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
   const [showComingSoonPopup, setShowComingSoonPopup] = useState(false)
 
   useEffect(() => {
-    console.log('[Page] ModelSelectionPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] ModelSelectionPage 렌더링')
   }, [])
 
   // 선택한 모델을 전역 상태에 저장하고 CLI 설치 화면으로 이동

@@ -8,7 +8,7 @@ export default function LandingPage(): React.JSX.Element {
   const { selectedModel } = useApp()
 
   useEffect(() => {
-    console.log('[Page] LandingPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] LandingPage 렌더링')
   }, [])
 
   // [selectedModel, navigate] : checkCliStatus 호출과 리다이렉트 분기가 모두

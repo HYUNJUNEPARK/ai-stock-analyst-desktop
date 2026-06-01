@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
-import claudeImg from '../../assets/claude.png'
+import { claudeIcon as claudeImg, gptIcon as gptImg } from '../../assets'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
-import gptImg from '../../assets/gpt.jpg'
 import { useApp } from '../../context/AppContext'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
@@ -37,7 +36,7 @@ export default function ResponsePage(): React.JSX.Element {
   const hasStartedRef = useRef(false)
 
   useEffect(() => {
-    console.log('[Page] ResponsePage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] ResponsePage 렌더링')
   }, [])
 
   useEffect(() => {

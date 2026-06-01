@@ -21,7 +21,7 @@ export default function ReportDetailPage(): React.JSX.Element {
   const [savingPdf, setSavingPdf] = useState(false)
 
   useEffect(() => {
-    console.log('[Page] ReportDetailPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] ReportDetailPage 렌더링')
   }, [])
 
   useEffect(() => {

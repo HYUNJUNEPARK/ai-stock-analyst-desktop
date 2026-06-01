@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import gptImg from '../../assets/gpt.jpg'
+import { gptIcon as gptImg } from '../../assets'
 import PageFooter from '../../components/PageFooter'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
@@ -11,7 +11,7 @@ export default function GptAuthPage(): React.JSX.Element {
   const { cliStatus, cliError, handleCliLogin } = useGptLogin()
 
   useEffect(() => {
-    console.log('[Page] GptAuthPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] GptAuthPage 렌더링')
   }, [])
 
   return (

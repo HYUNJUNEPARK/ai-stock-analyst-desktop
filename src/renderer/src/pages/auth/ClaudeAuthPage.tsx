@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import claudeImg from '../../assets/claude.png'
+import { claudeIcon as claudeImg } from '../../assets'
 import PageFooter from '../../components/PageFooter'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
@@ -13,7 +13,7 @@ export default function ClaudeAuthPage(): React.JSX.Element {
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    console.log('[Page] ClaudeAuthPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] ClaudeAuthPage 렌더링')
   }, [])
 
   function handleCliLogin(): void {

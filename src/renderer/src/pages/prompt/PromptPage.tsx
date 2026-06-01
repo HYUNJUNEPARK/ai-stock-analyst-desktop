@@ -2,8 +2,7 @@
 import { useNavigate } from 'react-router-dom'
 import { FaCircleInfo } from 'react-icons/fa6'
 import { useApp } from '../../context/AppContext'
-import gptImg from '../../assets/gpt.jpg'
-import claudeImg from '../../assets/claude.png'
+import { gptIcon as gptImg, claudeIcon as claudeImg } from '../../assets'
 import RecentReportModal, { RecentReport } from './components/RecentReportModal'
 import PromptInput from './components/PromptInput'
 import { ROUTES } from '../../routes'
@@ -17,7 +16,7 @@ export default function PromptPage(): React.JSX.Element {
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
 
   useEffect(() => {
-    console.log('[Page] PromptPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] PromptPage 렌더링')
   }, [])
 
   function handleChange(value: string): void {

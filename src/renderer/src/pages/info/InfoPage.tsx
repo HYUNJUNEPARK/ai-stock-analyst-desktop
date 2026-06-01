@@ -16,7 +16,7 @@ export default function InfoPage(): React.JSX.Element {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
   useEffect(() => {
-    console.log('[Page] SettingsPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] SettingsPage 렌더링')
   }, [])
 
   useEffect(() => {

@@ -3,8 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import gptIcon from '../../assets/gpt.jpg'
-import claudeIcon from '../../assets/claude.png'
+import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
 import { useReportList } from '../../hooks/useReportList'
 import type { ReportFile } from '../../hooks/useReportList'
@@ -20,7 +19,7 @@ export default function RecentReportPage(): React.JSX.Element {
     useReportDeletion({ onSuccess: removeReport })
 
   useEffect(() => {
-    console.log('[Page] RecentReportPage 렌더링')
+    if (import.meta.env.DEV) console.log('[Page] RecentReportPage 렌더링')
   }, [])
 
   const handleReportClick = (name: string, model: string): void => {
@@ -100,11 +99,18 @@ function reportCard(
   const label = report.ticker && report.ticker !== 'unknown' ? `${displayName}(${report.ticker})` : displayName
 
   return (
-    <button
+    <div
       key={report.name}
-      type="button"
+      role="button"
+      tabIndex={0}
       className="report-list-row"
       onClick={() => onClick(report.name, report.model)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick(report.name, report.model)
+        }
+      }}
     >
       <img
         src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}
@@ -126,6 +132,6 @@ function reportCard(
         <FiTrash2 size={15} />
       </button>
       <FiChevronRight className="report-list-chevron" aria-hidden="true" />
-    </button>
+    </div>
   )
 }
