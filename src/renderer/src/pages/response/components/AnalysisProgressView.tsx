@@ -42,10 +42,6 @@ export default function AnalysisProgressView({
     agentStatuses[price.key] === 'done'
   const classifierDone = agentStatuses[classifier?.key] === 'done'
 
-  const wave1DoneCount = AGENT_CONFIG.slice(0, 5).filter(
-    (a) => agentStatuses[a.key] === 'done'
-  ).length
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* 헤더 */}
@@ -61,7 +57,7 @@ export default function AnalysisProgressView({
           투자 리포트 생성 중
         </div>
         <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (4~8분 소요)
+          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다.
         </div>
       </div>
 
@@ -99,20 +95,7 @@ export default function AnalysisProgressView({
                     데이터 분석 및 밸류에이션
                   </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: '#3B82F6',
-                    background: '#EFF6FF',
-                    borderRadius: 10,
-                    padding: '2px 7px',
-                    flexShrink: 0,
-                    marginLeft: 4
-                  }}
-                >
-                  {wave1DoneCount}/5 완료
-                </span>
+
               </div>
               <div
                 style={{
@@ -125,7 +108,7 @@ export default function AnalysisProgressView({
               </div>
 
               {/* 2×2 그리드 + → + 밸류에이션 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
                 <div
                   style={{
                     display: 'grid',
@@ -160,20 +143,10 @@ export default function AnalysisProgressView({
                   />
                 </div>
 
-                <div
-                  style={{
-                    color: chainADone ? 'var(--accent)' : 'var(--text-tertiary)',
-                    flexShrink: 0,
-                    transition: 'color 0.3s'
-                  }}
-                >
-                  <FiArrowRight size={14} />
-                </div>
-
-                <AgentCard
-                  icon={<FiBarChart2 size={14} />}
+                <ValuationCard
+                  icon={<FiBarChart2 size={24} />}
                   label="밸류에이션"
-                  description={'재무 + 업종 분석 결과 기반\n적정가치 산출'}
+                  description={'재무 + 업종 분석\n결과 기반\n적정가치 산출'}
                   status={agentStatuses[valuation.key] ?? 'idle'}
                 />
               </div>
@@ -495,30 +468,49 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
   return (
     <div
       style={{
-        border: `1px solid ${isDone ? 'var(--success)' : isRunning ? 'var(--accent)' : 'var(--border)'}`,
+        border: '1px solid var(--border)',
         borderRadius: 10,
         padding: '8px 9px',
-        background: isDone
-          ? 'rgba(16, 185, 129, 0.06)'
-          : isRunning
-            ? 'var(--accent-light)'
-            : 'var(--bg-primary)',
+        background: 'var(--bg-primary)',
         position: 'relative',
-        transition: 'border-color 0.2s, background 0.2s'
+        transition: 'border-color 0.2s'
       }}
     >
       {isDone && (
-        <div style={{ position: 'absolute', top: 5, right: 5, color: 'var(--success)' }}>
-          <FiCheck size={10} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <FiCheck size={9} color="#fff" />
         </div>
       )}
       <div
         style={{
-          color: isDone ? 'var(--success)' : isRunning ? 'var(--accent)' : 'var(--text-secondary)',
-          marginBottom: 3
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: isRunning ? 'var(--accent-light)' : '#EFF6FF',
+          marginBottom: 5
         }}
       >
-        {isRunning ? <div className="spinner" style={{ width: 14, height: 14 }} /> : icon}
+        {isRunning ? (
+          <div className="spinner" style={{ width: 13, height: 13 }} />
+        ) : (
+          <div style={{ color: isDone ? 'var(--accent)' : '#60A5FA' }}>{icon}</div>
+        )}
       </div>
       <div
         style={{
@@ -535,6 +527,87 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
         style={{
           fontSize: 10,
           color: 'var(--text-tertiary)',
+          lineHeight: 1.3
+        }}
+      >
+        {description}
+      </div>
+    </div>
+  )
+}
+
+function ValuationCard({ icon, label, description, status }: AgentCardProps): React.JSX.Element {
+  const isDone = status === 'done'
+  const isRunning = status === 'running'
+
+  return (
+    <div
+      style={{
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 8px',
+        background: 'var(--bg-primary)',
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        minWidth: 88,
+        transition: 'border-color 0.2s'
+      }}
+    >
+      {isDone && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <FiCheck size={9} color="#fff" />
+        </div>
+      )}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          background: isRunning ? 'var(--accent-light)' : '#EFF6FF'
+        }}
+      >
+        {isRunning ? (
+          <div className="spinner" style={{ width: 18, height: 18 }} />
+        ) : (
+          <div style={{ color: isDone ? 'var(--accent)' : '#93C5FD' }}>{icon}</div>
+        )}
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          textAlign: 'center',
+          lineHeight: 1.2
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 10,
+          color: 'var(--text-tertiary)',
+          textAlign: 'center',
           lineHeight: 1.3,
           whiteSpace: 'pre-line'
         }}
