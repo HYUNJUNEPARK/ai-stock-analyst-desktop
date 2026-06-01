@@ -243,18 +243,21 @@ export default function AnalysisProgressView({
               }}
             >
               <FiClock size={12} />
-              <span>예상 완료 시간 약 3~5분</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span>예상 완료 시간</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>약 3~5분</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
               <span
                 style={{
                   fontSize: 'var(--text-xs)',
-                  color: 'var(--text-tertiary)',
-                  flexShrink: 0
+                  color: 'var(--text-tertiary)'
                 }}
               >
                 전체 진행률
               </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div
                 style={{
                   flex: 1,
@@ -285,12 +288,19 @@ export default function AnalysisProgressView({
               >
                 {progressPct}%
               </span>
+              </div>
             </div>
             <button
               className="btn-ghost"
               onClick={() => setShowConfirm(true)}
               aria-label="분석 취소"
-              style={{ flexShrink: 0 }}
+              style={{
+                flexShrink: 0,
+                width: 'auto',
+                height: 'auto',
+                padding: '5px 12px',
+                borderRadius: 8
+              }}
             >
               분석 취소
             </button>
