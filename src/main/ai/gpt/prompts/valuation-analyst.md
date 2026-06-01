@@ -10,6 +10,14 @@
 - 사용자 요청: {{REQUEST}}
 - 기준일: {{AS_OF_DATE}}
 
+사전 분석 입력:
+
+## Financial Analysis
+{{FINANCIAL_ANALYSIS}}
+
+## Sector Research
+{{SECTOR_ANALYSIS}}
+
 지침:
 - 확인 불가능한 수치(증권사 목표주가 등)는 반드시 **확실하지 않음** 또는 **추정**으로 표시한다.
 - 출처가 불분명한 목표주가는 사용하지 않는다.

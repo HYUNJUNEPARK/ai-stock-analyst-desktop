@@ -61,7 +61,7 @@ const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'news', label: '뉴스' },
   { key: 'sector', label: '업종' },
   { key: 'price', label: '기술적' },
-  { key: 'valuation', label: '밸류' },
+  { key: 'valuation', label: '밸류에이션' },
   { key: 'invest-type', label: '투자유형' },
 ]
 

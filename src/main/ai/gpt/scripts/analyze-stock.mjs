@@ -76,49 +76,84 @@ async function main() {
     return
   }
 
-  // Wave 1: 독립 에이전트 5개 동시 실행
-  const wave1Roles = [
-    'financial-analyst-kr',
-    'sector-researcher',
-    'news-sentiment-analyst',
-    'price-analyst',
-    'valuation-analyst'
-  ]
+  // Wave 1: 4개 동시 시작
+  // Chain A (financial + sector): 완료 즉시 valuation 시작
+  // Chain B (news + price): Chain A와 독립적으로 실행
+  const financialPromise = runRole({
+    role: 'financial-analyst-kr',
+    context,
+    outputPath: path.join(artifactDir, 'financial-analyst-kr.md'),
+    model: options.model
+  })
+  const sectorPromise = runRole({
+    role: 'sector-researcher',
+    context,
+    outputPath: path.join(artifactDir, 'sector-researcher.md'),
+    model: options.model
+  })
+  const newsPromise = runRole({
+    role: 'news-sentiment-analyst',
+    context,
+    outputPath: path.join(artifactDir, 'news-sentiment-analyst.md'),
+    model: options.model
+  })
+  const pricePromise = runRole({
+    role: 'price-analyst',
+    context,
+    outputPath: path.join(artifactDir, 'price-analyst.md'),
+    model: options.model
+  })
 
-  const wave1Results = await Promise.allSettled(
-    wave1Roles.map((role) => {
-      const outputPath = path.join(artifactDir, `${role}.md`)
-      return runRole({ role, context, outputPath, model: options.model })
-    })
-  )
+  // Chain A 완료 대기 → valuation 즉시 시작 (Chain B는 계속 병렬 실행 중)
+  const [financialOutcome, sectorOutcome] = await Promise.allSettled([financialPromise, sectorPromise])
 
-  const wave1Failed = wave1Results
-    .map((r, i) => (r.status === 'rejected' ? wave1Roles[i] : null))
-    .filter(Boolean)
-
-  if (wave1Failed.length > 0) {
-    for (const role of wave1Failed) {
-      console.error(`[실패] ${role}`)
-    }
-    console.warn(`[경고] Wave 1 실패 에이전트: ${wave1Failed.join(', ')}`)
+  if (financialOutcome.status === 'rejected') {
+    console.error('[실패] financial-analyst-kr')
+    console.warn('[경고] 재무 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
+  }
+  if (sectorOutcome.status === 'rejected') {
+    console.error('[실패] sector-researcher')
+    console.warn('[경고] 업종 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
   }
 
-  if (wave1Failed.includes('financial-analyst-kr')) {
-    //throw new Error('재무 분석 에이전트(financial-analyst-kr)가 실패했습니다. 판정 가중치 1순위 데이터 없이 분석을 진행할 수 없습니다.')
-    console.warn(`[경고] 재무 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.`)
+  // Wave 1b: valuation — Chain A 결과 즉시 주입, Chain B와 병렬 실행
+  const valuationPromise = runRole({
+    role: 'valuation-analyst',
+    context: {
+      ...context,
+      FINANCIAL_ANALYSIS: financialOutcome.status === 'fulfilled' ? financialOutcome.value.content : '',
+      SECTOR_ANALYSIS: sectorOutcome.status === 'fulfilled' ? sectorOutcome.value.content : ''
+    },
+    outputPath: path.join(artifactDir, 'valuation-analyst.md'),
+    model: options.model
+  })
+
+  // Chain B + valuation 모두 완료 대기
+  const [newsOutcome, priceOutcome, valuationOutcome] = await Promise.allSettled([
+    newsPromise,
+    pricePromise,
+    valuationPromise
+  ])
+
+  if (newsOutcome.status === 'rejected') {
+    console.error('[실패] news-sentiment-analyst')
+    console.warn('[경고] 뉴스 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
+  }
+  if (priceOutcome.status === 'rejected') {
+    console.error('[실패] price-analyst')
+    console.warn('[경고] 기술 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
+  }
+  if (valuationOutcome.status === 'rejected') {
+    console.warn(`[경고] valuation-analyst 실패. 해당 데이터 없이 계속 진행합니다. (${valuationOutcome.reason?.message ?? 'unknown'})`)
   }
 
-  const criticalRoles = ['sector-researcher']
-  const criticalFailed = wave1Failed.filter((r) => criticalRoles.includes(r))
-  if (criticalFailed.length > 0) {
-    console.warn(`[경고] 업종 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.`)
+  const resultMap = {
+    'financial-analyst-kr': financialOutcome.status === 'fulfilled' ? financialOutcome.value.content : undefined,
+    'sector-researcher': sectorOutcome.status === 'fulfilled' ? sectorOutcome.value.content : undefined,
+    'news-sentiment-analyst': newsOutcome.status === 'fulfilled' ? newsOutcome.value.content : undefined,
+    'price-analyst': priceOutcome.status === 'fulfilled' ? priceOutcome.value.content : undefined,
+    'valuation-analyst': valuationOutcome.status === 'fulfilled' ? valuationOutcome.value.content : undefined
   }
-
-  const resultMap = Object.fromEntries(
-    wave1Results
-      .filter((r) => r.status === 'fulfilled')
-      .map((r) => [r.value.role, r.value.content])
-  )
 
   const classifierContext = {
     ...context,

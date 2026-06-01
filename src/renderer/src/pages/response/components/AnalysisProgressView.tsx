@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FiArrowDown, FiCheck } from 'react-icons/fi'
+import { FiArrowRight, FiCheck } from 'react-icons/fi'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus } from '../types'
@@ -89,66 +89,79 @@ export default function AnalysisProgressView({
 }
 
 // 에이전트 실행 흐름을 시각화하는 컴포넌트.
-// Wave 1 (5개 병렬) → 투자 유형 판단 → 투자 전략 구조로 표시한다.
+// Chain A (재무+업종 → 밸류에이션) / Chain B (뉴스+기술) 병렬 진행 후 합류 → 투자 유형 판단 → 투자 전략
 function AgentStatusBar({
   agentStatuses
 }: {
   agentStatuses: Record<string, AgentStatus>
 }): React.JSX.Element {
-  const wave1Agents = AGENT_CONFIG.slice(0, 5)
+  const chainAAgents = [AGENT_CONFIG[0], AGENT_CONFIG[1]] // 재무, 업종
+  const chainBAgents = [AGENT_CONFIG[2], AGENT_CONFIG[3]] // 뉴스, 기술
+  const valuationAgent = AGENT_CONFIG[4]
   const classifierAgent = AGENT_CONFIG[5]
   const strategyAgent = AGENT_CONFIG[6]
 
-  const wave1Done = wave1Agents.every((agent) => agentStatuses[agent.key] === 'done')
+  const chainADone = chainAAgents.every((a) => agentStatuses[a.key] === 'done')
+  const valuationDone = agentStatuses[valuationAgent?.key] === 'done'
+  const chainBDone = chainBAgents.every((a) => agentStatuses[a.key] === 'done')
+  // 두 체인 모두 완료돼야 classifier 진입 가능
+  const readyForClassifier = valuationDone && chainBDone
   const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Wave 1: 독립 에이전트 5개 동시 실행 */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-          gap: 8
-        }}
-      >
-        {wave1Agents.map((agent) => (
-          <AgentStatusChip
-            key={agent.key}
-            label={agent.label}
-            status={agentStatuses[agent.key] ?? 'idle'}
-          />
-        ))}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto' }}>
+      {/* 두 체인을 세로로 배치 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+        {/* Chain A: 재무+업종 → 밸류에이션 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {chainAAgents.map((agent) => (
+            <AgentStatusChip
+              key={agent.key}
+              label={agent.label}
+              status={agentStatuses[agent.key] ?? 'idle'}
+            />
+          ))}
+          <FlowArrow active={chainADone} />
+          {valuationAgent && (
+            <AgentStatusChip
+              label={valuationAgent.label}
+              status={agentStatuses[valuationAgent.key] ?? 'idle'}
+            />
+          )}
+        </div>
+
+        {/* Chain B: 뉴스+기술 (밸류에이션 너비만큼 패딩으로 정렬) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {chainBAgents.map((agent) => (
+            <AgentStatusChip
+              key={agent.key}
+              label={agent.label}
+              status={agentStatuses[agent.key] ?? 'idle'}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* 화살표 1 */}
-      <FlowArrow active={wave1Done} />
+      {/* → (두 체인 모두 완료 시 활성화) */}
+      <FlowArrow active={readyForClassifier} />
 
-      {/* Phase 3: 투자 유형 판단 */}
+      {/* Wave 2 Step 1: 투자 유형 판단 */}
       {classifierAgent && (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 'calc(40% - 4px)' }}>
-            <AgentStatusChip
-              label={classifierAgent.label}
-              status={agentStatuses[classifierAgent.key] ?? 'idle'}
-            />
-          </div>
-        </div>
+        <AgentStatusChip
+          label={classifierAgent.label}
+          status={agentStatuses[classifierAgent.key] ?? 'idle'}
+        />
       )}
 
-      {/* 화살표 2 */}
+      {/* → */}
       <FlowArrow active={classifierDone} />
 
-      {/* Phase 4: 투자 전략 */}
+      {/* Wave 2 Step 2: 투자 전략 */}
       {strategyAgent && (
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: 'calc(40% - 4px)' }}>
-            <AgentStatusChip
-              label={strategyAgent.label}
-              status={agentStatuses[strategyAgent.key] ?? 'idle'}
-            />
-          </div>
-        </div>
+        <AgentStatusChip
+          label={strategyAgent.label}
+          status={agentStatuses[strategyAgent.key] ?? 'idle'}
+        />
       )}
     </div>
   )
@@ -159,16 +172,13 @@ function FlowArrow({ active }: { active: boolean }): React.JSX.Element {
     <div
       aria-hidden="true"
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
+        display: 'flex',
         alignItems: 'center',
-        columnGap: 8,
-        color: active ? 'var(--accent)' : 'var(--text-tertiary)'
+        color: active ? 'var(--accent)' : 'var(--text-tertiary)',
+        flexShrink: 0
       }}
     >
-      <div style={{ height: 1, background: active ? 'var(--accent)' : 'var(--border)' }} />
-      <FiArrowDown size={18} />
-      <div style={{ height: 1, background: active ? 'var(--accent)' : 'var(--border)' }} />
+      <FiArrowRight size={16} />
     </div>
   )
 }
