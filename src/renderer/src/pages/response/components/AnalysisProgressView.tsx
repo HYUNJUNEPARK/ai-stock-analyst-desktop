@@ -1,5 +1,16 @@
 import { useState } from 'react'
-import { FiArrowRight, FiCheck } from 'react-icons/fi'
+import {
+  FiArrowRight,
+  FiBarChart2,
+  FiCheck,
+  FiClock,
+  FiFileText,
+  FiRadio,
+  FiSliders,
+  FiTarget,
+  FiTrendingUp,
+  FiUsers
+} from 'react-icons/fi'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus } from '../types'
@@ -17,14 +28,27 @@ export default function AnalysisProgressView({
 }: AnalysisProgressViewProps): React.JSX.Element {
   const [showConfirm, setShowConfirm] = useState(false)
 
+  const [financial, sector, news, price, valuation, classifier, strategy] = AGENT_CONFIG
+
+  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
+  const progressPct = Math.round((doneCount / AGENT_CONFIG.length) * 100)
+
+  const chainADone =
+    agentStatuses[financial.key] === 'done' && agentStatuses[sector.key] === 'done'
+  const wave1Done =
+    chainADone &&
+    agentStatuses[valuation.key] === 'done' &&
+    agentStatuses[news.key] === 'done' &&
+    agentStatuses[price.key] === 'done'
+  const classifierDone = agentStatuses[classifier?.key] === 'done'
+
+  const wave1DoneCount = AGENT_CONFIG.slice(0, 5).filter(
+    (a) => agentStatuses[a.key] === 'done'
+  ).length
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100%'
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* 헤더 */}
       <div>
         <div
           style={{
@@ -36,43 +60,256 @@ export default function AnalysisProgressView({
         >
           투자 리포트 생성 중
         </div>
-        <div
-          style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-tertiary)',
-            lineHeight: 1.5
-          }}
-        >
-          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (4-8분 소요)
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+          에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다. (4~8분 소요)
         </div>
       </div>
 
-      {showAgentFlow && (
+      {showAgentFlow ? (
+        <>
+          {/* 3단계 카드 레이아웃 */}
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
+            {/* 1단계 카드 */}
+            <div
+              style={{
+                flex: '0 0 340px',
+                border: '2px solid var(--accent)',
+                borderRadius: 14,
+                padding: 14,
+                background: 'var(--bg-secondary)'
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 4
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <StageBadge num={1} color="#3B82F6" />
+                  <span
+                    style={{
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 700,
+                      color: 'var(--text-primary)'
+                    }}
+                  >
+                    데이터 분석 및 밸류에이션
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: '#3B82F6',
+                    background: '#EFF6FF',
+                    borderRadius: 10,
+                    padding: '2px 7px',
+                    flexShrink: 0,
+                    marginLeft: 4
+                  }}
+                >
+                  {wave1DoneCount}/5 완료
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--text-tertiary)',
+                  marginBottom: 12
+                }}
+              >
+                기업 및 시장 데이터 분석 → 적정가치 산출
+              </div>
+
+              {/* 2×2 그리드 + → + 밸류에이션 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 6,
+                    flex: 1
+                  }}
+                >
+                  <AgentCard
+                    icon={<FiFileText size={14} />}
+                    label="재무 분석"
+                    description="기업 재무제표 및 재무 건전성 분석"
+                    status={agentStatuses[financial.key] ?? 'idle'}
+                  />
+                  <AgentCard
+                    icon={<FiUsers size={14} />}
+                    label="업종 리서치"
+                    description="산업 동향 및 경쟁사 분석"
+                    status={agentStatuses[sector.key] ?? 'idle'}
+                  />
+                  <AgentCard
+                    icon={<FiRadio size={14} />}
+                    label="뉴스 분석"
+                    description="뉴스 수집 및 감성 분석"
+                    status={agentStatuses[news.key] ?? 'idle'}
+                  />
+                  <AgentCard
+                    icon={<FiTrendingUp size={14} />}
+                    label="기술 분석"
+                    description="주가 흐름 및 기술적 지표 분석"
+                    status={agentStatuses[price.key] ?? 'idle'}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    color: chainADone ? 'var(--accent)' : 'var(--text-tertiary)',
+                    flexShrink: 0,
+                    transition: 'color 0.3s'
+                  }}
+                >
+                  <FiArrowRight size={14} />
+                </div>
+
+                <AgentCard
+                  icon={<FiBarChart2 size={14} />}
+                  label="밸류에이션"
+                  description={'재무 + 업종 분석 결과 기반\n적정가치 산출'}
+                  status={agentStatuses[valuation.key] ?? 'idle'}
+                />
+              </div>
+            </div>
+
+            {/* → 화살표 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: wave1Done ? 'var(--accent)' : 'var(--text-tertiary)',
+                flexShrink: 0,
+                transition: 'color 0.3s'
+              }}
+            >
+              <FiArrowRight size={16} />
+            </div>
+
+            {/* 2단계 카드 */}
+            <StageCard
+              num={2}
+              color="#10B981"
+              title="투자 유형 판단"
+              description="뉴스 + 기술 + 밸류에이션 결과를 종합하여 판단"
+              icon={<FiSliders size={28} />}
+              status={agentStatuses[classifier?.key] ?? 'idle'}
+              active={wave1Done}
+              waitingMsg="모든 분석 결과가 완료되면 자동으로 진행됩니다."
+            />
+
+            {/* → 화살표 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                color: classifierDone ? 'var(--accent)' : 'var(--text-tertiary)',
+                flexShrink: 0,
+                transition: 'color 0.3s'
+              }}
+            >
+              <FiArrowRight size={16} />
+            </div>
+
+            {/* 3단계 카드 */}
+            <StageCard
+              num={3}
+              color="#8B5CF6"
+              title="투자 전략 생성"
+              description="최종 투자 전략 및 제안"
+              icon={<FiTarget size={28} />}
+              status={agentStatuses[strategy?.key] ?? 'idle'}
+              active={classifierDone}
+              waitingMsg="투자 유형 판단 완료 후 자동으로 진행됩니다."
+            />
+          </div>
+
+          {/* 진행률 + 취소 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                color: 'var(--text-tertiary)',
+                fontSize: 'var(--text-xs)',
+                flexShrink: 0
+              }}
+            >
+              <FiClock size={12} />
+              <span>예상 완료 시간 약 3~5분</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--text-tertiary)',
+                  flexShrink: 0
+                }}
+              >
+                전체 진행률
+              </span>
+              <div
+                style={{
+                  flex: 1,
+                  height: 6,
+                  background: 'var(--border)',
+                  borderRadius: 3,
+                  overflow: 'hidden'
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${progressPct}%`,
+                    background: 'var(--accent)',
+                    borderRadius: 3,
+                    transition: 'width 0.4s ease'
+                  }}
+                />
+              </div>
+              <span
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  color: 'var(--accent)',
+                  minWidth: 28,
+                  textAlign: 'right'
+                }}
+              >
+                {progressPct}%
+              </span>
+            </div>
+            <button
+              className="btn-ghost"
+              onClick={() => setShowConfirm(true)}
+              aria-label="분석 취소"
+              style={{ flexShrink: 0 }}
+            >
+              분석 취소
+            </button>
+          </div>
+        </>
+      ) : (
         <div
           style={{
-            margin: '28px 0 24px',
-            padding: 14,
-            borderRadius: 14,
-            border: '1px solid var(--border)',
-            background: 'var(--bg-secondary)'
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: 'auto',
+            paddingTop: 8
           }}
         >
-          <AgentStatusBar agentStatuses={agentStatuses} />
+          <button className="btn-ghost" onClick={() => setShowConfirm(true)} aria-label="분석 취소">
+            분석 취소
+          </button>
         </div>
       )}
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          marginTop: 'auto',
-          paddingTop: 8
-        }}
-      >
-        <button className="btn-ghost" onClick={() => setShowConfirm(true)} aria-label="분석 취소">
-          분석 취소
-        </button>
-      </div>
 
       {showConfirm && (
         <ConfirmDialog
@@ -88,141 +325,212 @@ export default function AnalysisProgressView({
   )
 }
 
-// 에이전트 실행 흐름을 시각화하는 컴포넌트.
-// Chain A (재무+업종 → 밸류에이션) / Chain B (뉴스+기술) 병렬 진행 후 합류 → 투자 유형 판단 → 투자 전략
-function AgentStatusBar({
-  agentStatuses
-}: {
-  agentStatuses: Record<string, AgentStatus>
-}): React.JSX.Element {
-  const chainAAgents = [AGENT_CONFIG[0], AGENT_CONFIG[1]] // 재무, 업종
-  const chainBAgents = [AGENT_CONFIG[2], AGENT_CONFIG[3]] // 뉴스, 기술
-  const valuationAgent = AGENT_CONFIG[4]
-  const classifierAgent = AGENT_CONFIG[5]
-  const strategyAgent = AGENT_CONFIG[6]
+// ─── 서브 컴포넌트 ───────────────────────────────────────────
 
-  const chainADone = chainAAgents.every((a) => agentStatuses[a.key] === 'done')
-  const valuationDone = agentStatuses[valuationAgent?.key] === 'done'
-  const chainBDone = chainBAgents.every((a) => agentStatuses[a.key] === 'done')
-  // 두 체인 모두 완료돼야 classifier 진입 가능
-  const readyForClassifier = valuationDone && chainBDone
-  const classifierDone = agentStatuses[classifierAgent?.key] === 'done'
-
+function StageBadge({ num, color }: { num: number; color: string }): React.JSX.Element {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto' }}>
-      {/* 두 체인을 세로로 배치 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-        {/* Chain A: 재무+업종 → 밸류에이션 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {chainAAgents.map((agent) => (
-            <AgentStatusChip
-              key={agent.key}
-              label={agent.label}
-              status={agentStatuses[agent.key] ?? 'idle'}
-            />
-          ))}
-          <FlowArrow active={chainADone} />
-          {valuationAgent && (
-            <AgentStatusChip
-              label={valuationAgent.label}
-              status={agentStatuses[valuationAgent.key] ?? 'idle'}
-            />
-          )}
-        </div>
-
-        {/* Chain B: 뉴스+기술 (밸류에이션 너비만큼 패딩으로 정렬) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {chainBAgents.map((agent) => (
-            <AgentStatusChip
-              key={agent.key}
-              label={agent.label}
-              status={agentStatuses[agent.key] ?? 'idle'}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* → (두 체인 모두 완료 시 활성화) */}
-      <FlowArrow active={readyForClassifier} />
-
-      {/* Wave 2 Step 1: 투자 유형 판단 */}
-      {classifierAgent && (
-        <AgentStatusChip
-          label={classifierAgent.label}
-          status={agentStatuses[classifierAgent.key] ?? 'idle'}
-        />
-      )}
-
-      {/* → */}
-      <FlowArrow active={classifierDone} />
-
-      {/* Wave 2 Step 2: 투자 전략 */}
-      {strategyAgent && (
-        <AgentStatusChip
-          label={strategyAgent.label}
-          status={agentStatuses[strategyAgent.key] ?? 'idle'}
-        />
-      )}
-    </div>
-  )
-}
-
-function FlowArrow({ active }: { active: boolean }): React.JSX.Element {
-  return (
-    <div
-      aria-hidden="true"
+    <span
       style={{
-        display: 'flex',
+        display: 'inline-flex',
         alignItems: 'center',
-        color: active ? 'var(--accent)' : 'var(--text-tertiary)',
+        justifyContent: 'center',
+        fontSize: 10,
+        fontWeight: 700,
+        color: '#fff',
+        background: color,
+        borderRadius: 6,
+        padding: '2px 6px',
         flexShrink: 0
       }}
     >
-      <FiArrowRight size={16} />
+      {num}단계
+    </span>
+  )
+}
+
+type StageCardProps = {
+  num: number
+  color: string
+  title: string
+  description: string
+  icon: React.ReactNode
+  status: AgentStatus
+  active: boolean
+  waitingMsg: string
+}
+
+function StageCard({
+  num,
+  color,
+  title,
+  description,
+  icon,
+  status,
+  active,
+  waitingMsg
+}: StageCardProps): React.JSX.Element {
+  return (
+    <div
+      style={{
+        flex: 1,
+        border: `1.5px solid ${active ? color : 'var(--border)'}`,
+        borderRadius: 14,
+        padding: 14,
+        background: 'var(--bg-secondary)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        transition: 'border-color 0.3s'
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <StageBadge num={num} color={color} />
+          <span
+            style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}
+          >
+            {title}
+          </span>
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+          {description}
+        </div>
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8
+        }}
+      >
+        <div
+          style={{
+            color: active ? color : 'var(--text-tertiary)',
+            opacity: active ? 1 : 0.4,
+            transition: 'color 0.3s, opacity 0.3s'
+          }}
+        >
+          {icon}
+        </div>
+        <StageStatusIndicator status={status} waitingMsg={waitingMsg} />
+      </div>
     </div>
   )
 }
 
-// 개별 에이전트의 상태(idle / running / done)를 칩 형태로 표시하는 컴포넌트.
-function AgentStatusChip({
-  label,
-  status
+function StageStatusIndicator({
+  status,
+  waitingMsg
 }: {
-  label: string
   status: AgentStatus
+  waitingMsg: string
 }): React.JSX.Element {
+  if (status === 'done') {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 12,
+          color: 'var(--success)',
+          fontWeight: 600
+        }}
+      >
+        <FiCheck size={12} />
+        완료
+      </div>
+    )
+  }
+  if (status === 'running') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--accent)' }}>
+        <div className="spinner" style={{ width: 12, height: 12 }} />
+        분석 중
+      </div>
+    )
+  }
   return (
     <div
       style={{
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
         gap: 6,
-        minHeight: 30,
-        padding: '5px 10px',
-        borderRadius: 20,
-        fontSize: 'var(--text-xs)',
-        fontWeight: 500,
-        border: '1px solid var(--border)',
-        background:
-          status === 'done'
-            ? 'var(--success)'
-            : status === 'running'
-              ? 'var(--accent-light)'
-              : 'var(--bg-secondary)',
-        color:
-          status === 'done'
-            ? '#fff'
-            : status === 'running'
-              ? 'var(--accent)'
-              : 'var(--text-tertiary)',
-        transition: 'all 0.2s',
         textAlign: 'center'
       }}
     >
-      {status === 'running' && <div className="spinner" style={{ width: 10, height: 10 }} />}
-      {status === 'done' && <FiCheck size={10} />}
-      {label}
+      <div className="spinner" style={{ width: 14, height: 14, opacity: 0.25 }} />
+      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>대기 중</div>
+      <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>{waitingMsg}</div>
+    </div>
+  )
+}
+
+type AgentCardProps = {
+  icon: React.ReactNode
+  label: string
+  description: string
+  status: AgentStatus
+}
+
+function AgentCard({ icon, label, description, status }: AgentCardProps): React.JSX.Element {
+  const isDone = status === 'done'
+  const isRunning = status === 'running'
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${isDone ? 'var(--success)' : isRunning ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: 10,
+        padding: '8px 9px',
+        background: isDone
+          ? 'rgba(16, 185, 129, 0.06)'
+          : isRunning
+            ? 'var(--accent-light)'
+            : 'var(--bg-primary)',
+        position: 'relative',
+        transition: 'border-color 0.2s, background 0.2s'
+      }}
+    >
+      {isDone && (
+        <div style={{ position: 'absolute', top: 5, right: 5, color: 'var(--success)' }}>
+          <FiCheck size={10} />
+        </div>
+      )}
+      <div
+        style={{
+          color: isDone ? 'var(--success)' : isRunning ? 'var(--accent)' : 'var(--text-secondary)',
+          marginBottom: 3
+        }}
+      >
+        {isRunning ? <div className="spinner" style={{ width: 14, height: 14 }} /> : icon}
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          marginBottom: 2,
+          lineHeight: 1.2
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 10,
+          color: 'var(--text-tertiary)',
+          lineHeight: 1.3,
+          whiteSpace: 'pre-line'
+        }}
+      >
+        {description}
+      </div>
     </div>
   )
 }

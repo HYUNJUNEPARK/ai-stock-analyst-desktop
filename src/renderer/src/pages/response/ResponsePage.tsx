@@ -168,7 +168,7 @@ export default function ResponsePage(): React.JSX.Element {
       <NavBar onBack={() => navigate(ROUTES.PROMPT)} disabled={status === 'streaming'} />
 
       <div className="page-content">
-        <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20, maxWidth: 560 }}>
+        <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20, maxWidth: 760 }}>
           {/* 사용자가 입력한 프롬프트를 말풍선 형태로 오른쪽에 표시 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
             <div
