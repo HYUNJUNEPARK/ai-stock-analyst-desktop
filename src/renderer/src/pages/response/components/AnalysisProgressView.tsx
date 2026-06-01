@@ -1,19 +1,23 @@
 import { useState } from 'react'
 import {
   FiArrowRight,
-  FiBarChart2,
   FiCheck,
   FiClock,
-  FiFileText,
-  FiRadio,
   FiSliders,
   FiTarget,
-  FiTrendingUp,
-  FiUsers
+  FiUsers,
+
 } from 'react-icons/fi'
+import {
+  IoNewspaperOutline,
+  IoDiamondOutline,
+  IoDocumentTextOutline
+} from "react-icons/io5";
+import { FaChartLine } from "react-icons/fa6";
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import { AGENT_CONFIG } from '../constants'
 import type { AgentStatus } from '../types'
+import { LuScale } from "react-icons/lu";
 
 type AnalysisProgressViewProps = {
   agentStatuses: Record<string, AgentStatus>
@@ -118,7 +122,7 @@ export default function AnalysisProgressView({
                   }}
                 >
                   <AgentCard
-                    icon={<FiFileText size={14} />}
+                    icon={<IoDocumentTextOutline size={14} />}
                     label="재무 분석"
                     description="기업 재무제표 및 재무 건전성 분석"
                     status={agentStatuses[financial.key] ?? 'idle'}
@@ -130,13 +134,13 @@ export default function AnalysisProgressView({
                     status={agentStatuses[sector.key] ?? 'idle'}
                   />
                   <AgentCard
-                    icon={<FiRadio size={14} />}
+                    icon={<IoNewspaperOutline size={14} />}
                     label="뉴스 분석"
                     description="뉴스 수집 및 감성 분석"
                     status={agentStatuses[news.key] ?? 'idle'}
                   />
                   <AgentCard
-                    icon={<FiTrendingUp size={14} />}
+                    icon={<FaChartLine size={14} />}
                     label="기술 분석"
                     description="주가 흐름 및 기술적 지표 분석"
                     status={agentStatuses[price.key] ?? 'idle'}
@@ -144,7 +148,7 @@ export default function AnalysisProgressView({
                 </div>
 
                 <ValuationCard
-                  icon={<FiBarChart2 size={24} />}
+                  icon={<IoDiamondOutline size={24} />}
                   label="밸류에이션"
                   description={'재무 + 업종 분석\n결과 기반\n적정가치 산출'}
                   status={agentStatuses[valuation.key] ?? 'idle'}
@@ -171,7 +175,7 @@ export default function AnalysisProgressView({
               color="#10B981"
               title="투자 유형 판단"
               description="뉴스 + 기술 + 밸류에이션 결과를 종합하여 판단"
-              icon={<FiSliders size={28} />}
+              icon={<LuScale size={28} />}
               status={agentStatuses[classifier?.key] ?? 'idle'}
               active={wave1Done}
               waitingMsg="모든 분석 결과가 완료되면 자동으로 진행됩니다."
@@ -231,36 +235,36 @@ export default function AnalysisProgressView({
                 전체 진행률
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div
-                style={{
-                  flex: 1,
-                  height: 6,
-                  background: 'var(--border)',
-                  borderRadius: 3,
-                  overflow: 'hidden'
-                }}
-              >
                 <div
                   style={{
-                    height: '100%',
-                    width: `${progressPct}%`,
-                    background: 'var(--accent)',
+                    flex: 1,
+                    height: 6,
+                    background: 'var(--border)',
                     borderRadius: 3,
-                    transition: 'width 0.4s ease'
+                    overflow: 'hidden'
                   }}
-                />
-              </div>
-              <span
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 700,
-                  color: 'var(--accent)',
-                  minWidth: 28,
-                  textAlign: 'right'
-                }}
-              >
-                {progressPct}%
-              </span>
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${progressPct}%`,
+                      background: 'var(--accent)',
+                      borderRadius: 3,
+                      transition: 'width 0.4s ease'
+                    }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    fontWeight: 700,
+                    color: 'var(--accent)',
+                    minWidth: 28,
+                    textAlign: 'right'
+                  }}
+                >
+                  {progressPct}%
+                </span>
               </div>
             </div>
             <button
@@ -516,12 +520,12 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
           justifyContent: 'center',
           width: 28,
           height: 28,
-          borderRadius: 8,
-          background: isRunning ? 'var(--accent-light)' : '#EFF6FF',
+          borderRadius: 6,
+          background: '#e2eef9',
           marginBottom: 5
         }}
       >
-        <div style={{ color: isDone ? 'var(--accent)' : isRunning ? 'var(--accent)' : '#60A5FA' }}>
+        <div style={{ color: '#93C5FD' }}>
           {icon}
         </div>
       </div>
@@ -610,11 +614,11 @@ function ValuationCard({ icon, label, description, status }: AgentCardProps): Re
           justifyContent: 'center',
           width: 44,
           height: 44,
-          borderRadius: '50%',
-          background: isRunning ? 'var(--accent-light)' : '#EFF6FF'
+          borderRadius: '20%',
+          background: '#e2eef9',
         }}
       >
-        <div style={{ color: isDone ? 'var(--accent)' : isRunning ? 'var(--accent)' : '#93C5FD' }}>
+        <div style={{ color: '#93C5FD' }}>
           {icon}
         </div>
       </div>
