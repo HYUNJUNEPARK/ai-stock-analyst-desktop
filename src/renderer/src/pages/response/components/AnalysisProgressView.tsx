@@ -471,7 +471,7 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
         border: '1px solid var(--border)',
         borderRadius: 10,
         padding: '8px 9px',
-        background: 'var(--bg-primary)',
+        background: '#f5f9fd',
         position: 'relative',
         transition: 'border-color 0.2s'
       }}
@@ -494,6 +494,21 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
           <FiCheck size={9} color="#fff" />
         </div>
       )}
+      {isRunning && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            border: '2px solid var(--bg-tertiary)',
+            borderTopColor: 'var(--accent)',
+            animation: 'spin 0.8s linear infinite'
+          }}
+        />
+      )}
       <div
         style={{
           display: 'inline-flex',
@@ -506,11 +521,9 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
           marginBottom: 5
         }}
       >
-        {isRunning ? (
-          <div className="spinner" style={{ width: 13, height: 13 }} />
-        ) : (
-          <div style={{ color: isDone ? 'var(--accent)' : '#60A5FA' }}>{icon}</div>
-        )}
+        <div style={{ color: isDone ? 'var(--accent)' : isRunning ? 'var(--accent)' : '#60A5FA' }}>
+          {icon}
+        </div>
       </div>
       <div
         style={{
@@ -546,7 +559,7 @@ function ValuationCard({ icon, label, description, status }: AgentCardProps): Re
         border: '1px solid var(--border)',
         borderRadius: 10,
         padding: '10px 8px',
-        background: 'var(--bg-primary)',
+        background: '#f5f9fd',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -575,6 +588,21 @@ function ValuationCard({ icon, label, description, status }: AgentCardProps): Re
           <FiCheck size={9} color="#fff" />
         </div>
       )}
+      {isRunning && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            border: '2px solid var(--bg-tertiary)',
+            borderTopColor: 'var(--accent)',
+            animation: 'spin 0.8s linear infinite'
+          }}
+        />
+      )}
       <div
         style={{
           display: 'flex',
@@ -586,11 +614,9 @@ function ValuationCard({ icon, label, description, status }: AgentCardProps): Re
           background: isRunning ? 'var(--accent-light)' : '#EFF6FF'
         }}
       >
-        {isRunning ? (
-          <div className="spinner" style={{ width: 18, height: 18 }} />
-        ) : (
-          <div style={{ color: isDone ? 'var(--accent)' : '#93C5FD' }}>{icon}</div>
-        )}
+        <div style={{ color: isDone ? 'var(--accent)' : isRunning ? 'var(--accent)' : '#93C5FD' }}>
+          {icon}
+        </div>
       </div>
       <div
         style={{

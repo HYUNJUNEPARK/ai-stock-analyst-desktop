@@ -1,36 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import gptImg from '../../assets/gpt.jpg'
 import PageFooter from '../../components/PageFooter'
 import NavBar from '../../components/NavBar'
 import { ROUTES } from '../../routes'
+import { useGptLogin } from './hooks/useGptLogin'
 
 export default function GptAuthPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const [cliStatus, setCliStatus] = useState<'idle' | 'running' | 'done'>('idle')
-  const [cliError, setCliError] = useState('')
+  const { cliStatus, cliError, handleCliLogin } = useGptLogin()
 
   useEffect(() => {
     console.log('[Page] GptAuthPage 렌더링')
   }, [])
-
-  function handleCliLogin(): void {
-    setCliStatus('running')
-    setCliError('')
-
-    window.api.onCliLoginComplete((result: { success: boolean; error?: string }) => {
-      if (result.success) {
-        setCliStatus('done')
-        setTimeout(() => navigate(ROUTES.PROMPT), 1000)
-        return
-      }
-
-      setCliStatus('idle')
-      setCliError(result.error ?? '로그인에 실패했습니다.')
-    })
-
-    window.api.runGptLogin()
-  }
 
   return (
     <div className="page">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
@@ -6,84 +6,26 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import gptIcon from '../../assets/gpt.jpg'
 import claudeIcon from '../../assets/claude.png'
 import { ROUTES } from '../../routes'
-
-type ReportFile = {
-  name: string
-  company: string
-  ticker: string
-  asOfDate: string
-  model: string
-  createdAt: string
-  updatedAt: string
-}
-
-type ReportSection = {
-  date: string
-  reports: ReportFile[]
-}
+import { useReportList } from '../../hooks/useReportList'
+import type { ReportFile } from '../../hooks/useReportList'
+import { useReportDeletion } from '../../hooks/useReportDeletion'
 
 export default function RecentReportPage(): React.JSX.Element {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const isWindow = searchParams.get('mode') === 'window'
-  const [reports, setReports] = useState<ReportFile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [deleteTarget, setDeleteTarget] = useState<ReportFile | null>(null)
-  const sections = groupReportsByDate(reports)
 
-  const handleReportClick = (name: string, model: string): void => {
-    void window.api.openReportDetailWindow(name, model)
-  }
-
-  const handleDeleteRequest = (report: ReportFile): void => {
-    setDeleteTarget(report)
-  }
-
-  const handleDeleteCancel = (): void => {
-    setDeleteTarget(null)
-  }
-
-  const handleDeleteConfirm = (): void => {
-    if (!deleteTarget) return
-    const target = deleteTarget
-    setDeleteTarget(null)
-    window.api.deleteGptReportFile(target.name)
-      .then((result) => {
-        if (result.success) {
-          setReports((prev) => prev.filter((r) => r.name !== target.name))
-        } else {
-          console.error('[delete] 삭제 실패:', result.error)
-        }
-      })
-      .catch((err: Error) => {
-        console.error('[delete] IPC 오류 (main 프로세스 재시작 필요):', err.message)
-      })
-  }
+  const { loading, sections, removeReport } = useReportList()
+  const { deleteTarget, deleteTargetLabel, handleDeleteRequest, handleDeleteCancel, handleDeleteConfirm } =
+    useReportDeletion({ onSuccess: removeReport })
 
   useEffect(() => {
     console.log('[Page] RecentReportPage 렌더링')
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-
-    window.api.listGptReportFiles().then((files) => {
-      if (!cancelled) {
-        setReports(files)
-        setLoading(false)
-      }
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const deleteTargetLabel = deleteTarget
-    ? deleteTarget.ticker && deleteTarget.ticker !== 'unknown'
-      ? `${deleteTarget.company}(${deleteTarget.ticker})`
-      : deleteTarget.company || deleteTarget.name
-    : ''
+  const handleReportClick = (name: string, model: string): void => {
+    void window.api.openReportDetailWindow(name, model)
+  }
 
   return (
     <div className="page">
@@ -107,7 +49,7 @@ export default function RecentReportPage(): React.JSX.Element {
             </div>
           )}
 
-          {!loading && reports.length === 0 && (
+          {!loading && sections.length === 0 && (
             <div className="card status-card">
               <div className="status-card-title">저장된 보고서가 없습니다</div>
               <p className="status-card-copy">
@@ -116,7 +58,7 @@ export default function RecentReportPage(): React.JSX.Element {
             </div>
           )}
 
-          {!loading && reports.length > 0 && (
+          {!loading && sections.length > 0 && (
             <div className="report-sections">
               {sections.map((section) => (
                 <section key={section.date} className="report-section">
@@ -186,36 +128,4 @@ function reportCard(
       <FiChevronRight className="report-list-chevron" aria-hidden="true" />
     </button>
   )
-}
-
-function formatSectionDate(asOfDate: string): string {
-  if (!asOfDate) return '날짜 미상'
-  const d = new Date(asOfDate)
-  if (isNaN(d.getTime())) return asOfDate
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(d)
-}
-
-function groupReportsByDate(reports: ReportFile[]): ReportSection[] {
-  const grouped = new Map<string, ReportFile[]>()
-
-  for (const report of reports) {
-    const key = report.asOfDate || report.createdAt.slice(0, 10)
-    const section = grouped.get(key)
-    if (section) {
-      section.push(report)
-    } else {
-      grouped.set(key, [report])
-    }
-  }
-
-  return Array.from(grouped.entries())
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, sectionReports]) => ({
-      date: formatSectionDate(date),
-      reports: sectionReports
-    }))
 }

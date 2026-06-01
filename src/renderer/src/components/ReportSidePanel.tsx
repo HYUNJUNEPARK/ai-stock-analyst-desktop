@@ -3,21 +3,9 @@ import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import ConfirmDialog from './ConfirmDialog'
 import gptIcon from '../assets/gpt.jpg'
 import claudeIcon from '../assets/claude.png'
-
-type ReportFile = {
-  name: string
-  company: string
-  ticker: string
-  asOfDate: string
-  model: string
-  createdAt: string
-  updatedAt: string
-}
-
-type ReportSection = {
-  date: string
-  reports: ReportFile[]
-}
+import { useReportList } from '../hooks/useReportList'
+import type { ReportFile } from '../hooks/useReportList'
+import { useReportDeletion } from '../hooks/useReportDeletion'
 
 type ReportSidePanelProps = {
   isOpen: boolean
@@ -29,34 +17,15 @@ export default function ReportSidePanel({
   onClose
 }: ReportSidePanelProps): React.JSX.Element | null {
   const [panelVisible, setPanelVisible] = useState(false)
-  const [reports, setReports] = useState<ReportFile[]>([])
-  const [reportsLoading, setReportsLoading] = useState(true)
-  const [deleteTarget, setDeleteTarget] = useState<ReportFile | null>(null)
 
+  const { loading: reportsLoading, sections, removeReport, resetLoading } = useReportList({ enabled: isOpen })
+  const { deleteTarget, deleteTargetLabel, handleDeleteRequest, handleDeleteCancel, handleDeleteConfirm } =
+    useReportDeletion({ onSuccess: removeReport })
+
+  // 패널이 열릴 때 슬라이드 인 애니메이션을 트리거한다
   useEffect(() => {
     if (!isOpen) return
-
-    let cancelled = false
-
     requestAnimationFrame(() => setPanelVisible(true))
-    window.api
-      .listGptReportFiles()
-      .then((files) => {
-        if (!cancelled) {
-          setReports(files)
-          setReportsLoading(false)
-        }
-      })
-      .catch((err: Error) => {
-        if (!cancelled) {
-          console.error('[reports] 목록 조회 실패:', err.message)
-          setReportsLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
   }, [isOpen])
 
   if (!isOpen) return null
@@ -64,42 +33,10 @@ export default function ReportSidePanel({
   function closePanel(): void {
     setPanelVisible(false)
     setTimeout(() => {
-      setReportsLoading(true)
+      resetLoading()
       onClose()
     }, 280)
   }
-
-  function handleDeleteRequest(report: ReportFile): void {
-    setDeleteTarget(report)
-  }
-
-  function handleDeleteCancel(): void {
-    setDeleteTarget(null)
-  }
-
-  function handleDeleteConfirm(): void {
-    if (!deleteTarget) return
-    const target = deleteTarget
-    setDeleteTarget(null)
-    window.api
-      .deleteGptReportFile(target.name)
-      .then((result) => {
-        if (result.success) {
-          setReports((prev) => prev.filter((r) => r.name !== target.name))
-        } else {
-          console.error('[delete] 삭제 실패:', result.error)
-        }
-      })
-      .catch((err: Error) => {
-        console.error('[delete] IPC 오류:', err.message)
-      })
-  }
-
-  const deleteTargetLabel = deleteTarget
-    ? deleteTarget.ticker && deleteTarget.ticker !== 'unknown'
-      ? `${deleteTarget.company}(${deleteTarget.ticker})`
-      : deleteTarget.company || deleteTarget.name
-    : ''
 
   return (
     <>
@@ -182,7 +119,7 @@ export default function ReportSidePanel({
             <div className="card status-card">보고서 목록을 불러오는 중입니다...</div>
           )}
 
-          {!reportsLoading && reports.length === 0 && (
+          {!reportsLoading && sections.length === 0 && (
             <div className="card status-card">
               <div className="status-card-title">저장된 보고서가 없습니다</div>
               <p className="status-card-copy">
@@ -191,9 +128,9 @@ export default function ReportSidePanel({
             </div>
           )}
 
-          {!reportsLoading && reports.length > 0 && (
+          {!reportsLoading && sections.length > 0 && (
             <div className="report-sections">
-              {groupReportsByDate(reports).map((section) => (
+              {sections.map((section) => (
                 <section key={section.date} className="report-section">
                   <div className="report-section-heading">{section.date}</div>
                   <div className="card report-list-card">
@@ -276,36 +213,4 @@ function ReportRow({
       <FiChevronRight className="report-list-chevron" aria-hidden="true" />
     </div>
   )
-}
-
-function formatSectionDate(asOfDate: string): string {
-  if (!asOfDate) return '날짜 미상'
-  const d = new Date(asOfDate)
-  if (isNaN(d.getTime())) return asOfDate
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(d)
-}
-
-function groupReportsByDate(reports: ReportFile[]): ReportSection[] {
-  const grouped = new Map<string, ReportFile[]>()
-
-  for (const report of reports) {
-    const key = report.asOfDate || report.createdAt.slice(0, 10)
-    const section = grouped.get(key)
-    if (section) {
-      section.push(report)
-    } else {
-      grouped.set(key, [report])
-    }
-  }
-
-  return Array.from(grouped.entries())
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, sectionReports]) => ({
-      date: formatSectionDate(date),
-      reports: sectionReports
-    }))
 }

@@ -147,21 +147,6 @@ export default function ResponsePage(): React.JSX.Element {
   const contentMinHeight = status === 'done' ? 216 : 260
   const isCancelled = status === 'cancelled'
   const isError = status === 'error'
-  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
-  const totalCount = AGENT_CONFIG.length
-  const progressPct = Math.round((doneCount / totalCount) * 100)
-  const showProgress = status === 'streaming' && progressPct < 100
-
-  const circleSize = 28
-  const radius = 10
-  const progressColor =
-    doneCount === 0
-      ? 'var(--text-tertiary)'
-      : doneCount === 1
-        ? '#4A90E2'
-        : doneCount === 2
-          ? '#9B59B6'
-          : '#E67E22'
 
   return (
     <div className="page">
@@ -221,36 +206,6 @@ export default function ResponsePage(): React.JSX.Element {
               >
                 {modelLabel}
               </span>
-
-              {showProgress && (
-                <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
-                  <svg
-                    width={circleSize}
-                    height={circleSize}
-                    style={{ animation: 'spin 1s linear infinite', display: 'block' }}
-                  >
-                    <circle
-                      cx={circleSize / 2}
-                      cy={circleSize / 2}
-                      r={radius}
-                      fill="none"
-                      stroke="var(--border)"
-                      strokeWidth={3}
-                    />
-                    <circle
-                      cx={circleSize / 2}
-                      cy={circleSize / 2}
-                      r={radius}
-                      fill="none"
-                      stroke={progressColor}
-                      strokeWidth={3}
-                      strokeDasharray={`${2 * Math.PI * radius * 0.25} ${2 * Math.PI * radius * 0.75}`}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke 0.4s ease' }}
-                    />
-                  </svg>
-                </div>
-              )}
             </div>
 
             <div
