@@ -122,7 +122,7 @@ export default function ReportDetailPage(): React.JSX.Element {
 
               {!loading && error && (
                 <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                  보고서를 불러올 수 없습니다: {error}
+                  보고서를 불러올 수 없습니다. 
                 </div>
               )}
 

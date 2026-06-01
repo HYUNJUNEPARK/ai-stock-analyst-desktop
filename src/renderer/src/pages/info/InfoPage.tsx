@@ -240,8 +240,11 @@ export default function InfoPage(): React.JSX.Element {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={settingsRowTitleStyle}>버전</div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
-                v{__APP_VERSION__}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={testBadgeStyle}>TEST</span>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+                  v{__APP_VERSION__}
+                </div>
               </div>
             </div>
           </section>
@@ -312,4 +315,16 @@ const settingsRowDescStyle: React.CSSProperties = {
   fontSize: 'var(--text-sm)',
   color: 'var(--text-secondary)',
   lineHeight: 1.5
+}
+
+const testBadgeStyle: React.CSSProperties = {
+  fontSize: 'var(--text-xs)',
+  fontWeight: 600,
+  color: '#3b82f6',
+  background: 'rgba(59, 130, 246, 0.1)',
+  border: '1px solid rgba(59, 130, 246, 0.3)',
+  borderRadius: 6,
+  padding: '2px 7px',
+  fontFamily: "'SF Mono', 'Menlo', monospace",
+  letterSpacing: '0.04em'
 }

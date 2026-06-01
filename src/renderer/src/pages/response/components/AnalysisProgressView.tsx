@@ -3,7 +3,6 @@ import {
   FiArrowRight,
   FiCheck,
   FiClock,
-  FiSliders,
   FiTarget,
   FiUsers,
 
@@ -173,11 +172,12 @@ export default function AnalysisProgressView({
             <StageCard
               num={2}
               color="#10B981"
+              iconBg="#D1FAE5"
+              iconColor="#34D399"
               title="투자 유형 판단"
               description="뉴스 + 기술 + 밸류에이션 결과를 종합하여 판단"
               icon={<LuScale size={28} />}
               status={agentStatuses[classifier?.key] ?? 'idle'}
-              active={wave1Done}
               waitingMsg="모든 분석 결과가 완료되면 자동으로 진행됩니다."
             />
 
@@ -198,11 +198,12 @@ export default function AnalysisProgressView({
             <StageCard
               num={3}
               color="#8B5CF6"
+              iconBg="#EDE9FE"
+              iconColor="#A78BFA"
               title="투자 전략 생성"
               description="최종 투자 전략 및 제안"
               icon={<FiTarget size={28} />}
               status={agentStatuses[strategy?.key] ?? 'idle'}
-              active={classifierDone}
               waitingMsg="투자 유형 판단 완료 후 자동으로 진행됩니다."
             />
           </div>
@@ -222,7 +223,7 @@ export default function AnalysisProgressView({
               <FiClock size={12} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <span>예상 완료 시간</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>약 3~5분</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>약 4~8분</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
@@ -338,36 +339,37 @@ function StageBadge({ num, color }: { num: number; color: string }): React.JSX.E
 type StageCardProps = {
   num: number
   color: string
+  iconBg: string
+  iconColor: string
   title: string
   description: string
   icon: React.ReactNode
   status: AgentStatus
-  active: boolean
   waitingMsg: string
 }
 
 function StageCard({
   num,
   color,
+  iconBg,
+  iconColor,
   title,
   description,
   icon,
   status,
-  active,
   waitingMsg
 }: StageCardProps): React.JSX.Element {
   return (
     <div
       style={{
         flex: 1,
-        border: `1.5px solid ${active ? color : 'var(--border)'}`,
+        border: `1.5px solid ${color}`,
         borderRadius: 14,
         padding: 14,
         background: 'var(--bg-secondary)',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10,
-        transition: 'border-color 0.3s'
+        gap: 10
       }}
     >
       <div>
@@ -396,14 +398,20 @@ function StageCard({
       >
         <div
           style={{
-            color: active ? color : 'var(--text-tertiary)',
-            opacity: active ? 1 : 0.4,
-            transition: 'color 0.3s, opacity 0.3s'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 52,
+            height: 52,
+            borderRadius: 14,
+            background: iconBg
           }}
         >
-          {icon}
+          <div style={{ color: iconColor }}>
+            {icon}
+          </div>
         </div>
-        <StageStatusIndicator status={status} waitingMsg={waitingMsg} />
+        <StageStatusIndicator status={status} color={color} waitingMsg={waitingMsg} />
       </div>
     </div>
   )
@@ -411,9 +419,11 @@ function StageCard({
 
 function StageStatusIndicator({
   status,
+  color,
   waitingMsg
 }: {
   status: AgentStatus
+  color: string
   waitingMsg: string
 }): React.JSX.Element {
   if (status === 'done') {
@@ -435,8 +445,8 @@ function StageStatusIndicator({
   }
   if (status === 'running') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--accent)' }}>
-        <div className="spinner" style={{ width: 12, height: 12 }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color, fontWeight: 600 }}>
+        <div className="spinner" style={{ width: 12, height: 12, borderTopColor: color }} />
         분석 중
       </div>
     )
@@ -447,11 +457,10 @@ function StageStatusIndicator({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 6,
+        gap: 4,
         textAlign: 'center'
       }}
     >
-      <div className="spinner" style={{ width: 14, height: 14, opacity: 0.25 }} />
       <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>대기 중</div>
       <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>{waitingMsg}</div>
     </div>
