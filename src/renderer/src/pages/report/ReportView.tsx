@@ -73,16 +73,18 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <div style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-              {(aiModel || aiProvider) && <>
-                <img
-                  src={modelIcon}
-                  alt={isGpt ? 'GPT' : 'Claude'}
-                  style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
-                />
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
-              </>}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 6 }}>
               <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
+              {(aiModel || aiProvider) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <img
+                    src={modelIcon}
+                    alt={isGpt ? 'GPT' : 'Claude'}
+                    style={{ width: 12, height: 12, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
+                </div>
+              )}
             </div>
           </div>
           <div
@@ -94,7 +96,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
               background: `${verdictColor}18`,
               border: `1px solid ${verdictColor}50`,
               borderRadius: 10,
-              flexShrink: 0
+              flexShrink: 0,
             }}
           >
             <span style={{ fontSize: 18 }}>{data.verdictEmoji}</span>

@@ -72,7 +72,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
           <div
             style={{
               padding: '12px 16px',
-              background: 'var(--bg-secondary)',
+              background: '#fff',
               borderRadius: 10,
               border: '1px solid var(--border)',
             }}
@@ -184,7 +184,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
             <FiAlertTriangle size={15} />
             리스크 요인
           </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: 'var(--bg-primary)' }}>
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
             {data.risks.map((risk, i) => (
               <div
                 key={i}
@@ -223,7 +223,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
           overflow: 'hidden',
         }}
       >
-        <div style={{ padding: '8px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)' }}>
+        <div style={{ padding: '8px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)' }}>
           등급 기준
         </div>
         {Object.entries(data.grade.criteria).map(([grade, desc]) => (
@@ -235,7 +235,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              background: grade === data.grade.rating ? `${GRADE_COLORS[grade] ?? '#6b7280'}08` : 'var(--bg-primary)',
+              background: grade === data.grade.rating ? `${GRADE_COLORS[grade] ?? '#6b7280'}08` : '#fff',
             }}
           >
             <span
@@ -281,7 +281,7 @@ function FinancialTableCard({
       <div
         style={{
           padding: '10px 14px',
-          background: 'var(--bg-secondary)',
+          background: '#fff',
           borderBottom: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
@@ -294,7 +294,7 @@ function FinancialTableCard({
           {title}
         </div>
         {badge && (
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', background: '#fff', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
             {badge}
           </span>
         )}
@@ -312,7 +312,7 @@ function FinancialTableCard({
                   color: 'var(--text-tertiary)',
                   textAlign: 'left',
                   borderBottom: '1px solid var(--border)',
-                  background: 'var(--bg-primary)',
+                  background: '#fff',
                 }}
               >
                 {col}
@@ -332,7 +332,7 @@ function FinancialTableCard({
                     color: j === 0 ? 'var(--text-secondary)' : 'var(--text-primary)',
                     fontWeight: j === 0 ? 400 : 600,
                     borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none',
-                    background: 'var(--bg-primary)',
+                    background: '#fff',
                   }}
                 >
                   {cell}
@@ -350,7 +350,7 @@ function FinancialTableCard({
             color: 'var(--text-secondary)',
             lineHeight: 1.65,
             borderTop: '1px solid var(--border)',
-            background: '#f8fafc',
+            background: '#fff',
           }}
         >
           <LinkText>{interpretation}</LinkText>
@@ -373,10 +373,10 @@ function FinancialMetricCard({
 }): React.JSX.Element {
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+      <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
         {title}
       </div>
-      <div style={{ padding: '14px', background: 'var(--bg-primary)' }}>
+      <div style={{ padding: '14px', background: '#fff' }}>
         <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>{value}</div>
         {sub && (
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>{sub}</div>
@@ -390,7 +390,7 @@ function FinancialMetricCard({
             color: 'var(--text-secondary)',
             lineHeight: 1.65,
             borderTop: '1px solid var(--border)',
-            background: '#f8fafc',
+            background: '#fff',
           }}
         >
           <LinkText>{interpretation}</LinkText>

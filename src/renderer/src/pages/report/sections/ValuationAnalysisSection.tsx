@@ -49,7 +49,7 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
           <div style={{ fontSize: 'var(--text-lg)', fontWeight: 900, color: judgmentStyle.color }}>{data.finalVerdict.judgment}</div>
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <div style={{ padding: '12px 16px', background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>현재 주가</div>
             <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>{data.currentPriceAnalysis.currentPrice}</div>
           </div>
@@ -82,29 +82,29 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
       {/* 증권사 리포트 */}
       {data.securitiesReports?.length > 0 && (
         <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
             증권사 목표주가
           </div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['증권사', '발행일', '의견', '목표가', '근거'].map((h) => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.securitiesReports.map((r, i) => (
                 <tr key={i}>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>
                     {r.url ? (
                       <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(r.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{r.firm}</a>
                     ) : r.firm}{r.note && <span style={{ fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 4 }}>({r.note})</span>}
                   </td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.date}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.opinion}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.targetPrice}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{r.rationale}</LinkText></td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{r.date}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{r.opinion}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{r.targetPrice}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{r.rationale}</LinkText></td>
                 </tr>
               ))}
             </tbody>
@@ -115,11 +115,11 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
       {/* 시나리오별 적정주가 */}
       {data.fairValueScenarios?.length > 0 && (
         <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>시나리오별 적정주가</div>
+          <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>시나리오별 적정주가</div>
           {data.fairValueScenarios.map((s, i) => {
             const scenarioColor = s.scenario.includes('보수') ? '#d97706' : s.scenario.includes('낙관') ? '#16a34a' : '#2563eb'
             return (
-              <div key={i} style={{ padding: '12px 14px', borderBottom: i < data.fairValueScenarios.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>
+              <div key={i} style={{ padding: '12px 14px', borderBottom: i < data.fairValueScenarios.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: scenarioColor, background: `${scenarioColor}15`, border: `1px solid ${scenarioColor}40`, borderRadius: 6, padding: '2px 8px' }}>{s.scenario}</span>
                   <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--text-primary)' }}>{s.priceRange}</span>
@@ -135,22 +135,22 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
       {/* 가격대별 투자 판단 */}
       {data.priceZones?.length > 0 && (
         <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>가격대별 투자 판단</div>
+          <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>가격대별 투자 판단</div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['구간', '판단', '해석', '전략'].map((h) => (
-                  <th key={h} style={{ padding: '8px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)' }}>{h}</th>
+                  <th key={h} style={{ padding: '8px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.priceZones.map((z, i) => (
                 <tr key={i}>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.zone}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: getJudgmentStyle(z.judgment).color, borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.judgment}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{z.interpretation}</LinkText></td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{z.strategy}</LinkText></td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{z.zone}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: getJudgmentStyle(z.judgment).color, borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{z.judgment}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{z.interpretation}</LinkText></td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{z.strategy}</LinkText></td>
                 </tr>
               ))}
             </tbody>
@@ -183,7 +183,7 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
 
 function PriceCard({ label, value, color }: { label: string; value: string; color?: string }): React.JSX.Element {
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px', background: 'var(--bg-primary)', textAlign: 'center' }}>
+    <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px', background: '#fff', textAlign: 'center' }}>
       <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: color ?? 'var(--text-primary)' }}>{value}</div>
     </div>

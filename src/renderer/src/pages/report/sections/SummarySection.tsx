@@ -37,7 +37,7 @@ export default function SummarySection({ data }: { data: Report }): React.JSX.El
       <div
         style={{
           padding: '18px 20px',
-          background: '#eff6ff',
+          background: '#f3f6fa',
           border: '1px solid #bfdbfe',
           borderRadius: 14,
           display: 'flex',
@@ -94,15 +94,19 @@ export default function SummarySection({ data }: { data: Report }): React.JSX.El
         >
           투자 전략
         </div>
+
+          {/* background: '#f3f6fa',
+          border: '1px solid #bfdbfe', */}
+
         {/* 현재 주가 */}
-        <div style={{ padding: '16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '16px', background: '#f3f6fa', borderBottom: '1px solid var(--border)' }}>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>현재 주가</div>
           <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>
             {data.strategy.currentPrice}
           </div>
         </div>
         {/* 시나리오 테이블 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'var(--bg-primary)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#f3f6fa' }}>
           <div style={{ padding: '14px 16px', borderRight: '1px solid var(--border)' }}>
             {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

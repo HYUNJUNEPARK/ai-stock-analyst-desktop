@@ -97,7 +97,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
           <div
             style={{
               padding: '12px 16px',
-              background: 'var(--bg-secondary)',
+              background: '#fff',
               borderRadius: 10,
               border: '1px solid var(--border)',
             }}
@@ -126,7 +126,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
         <div
           style={{
             padding: '10px 14px',
-            background: 'var(--bg-secondary)',
+            background: '#fff',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
@@ -147,7 +147,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
               style={{
                 padding: '12px 14px',
                 borderBottom: i < data.articles.length - 1 ? '1px solid var(--border)' : 'none',
-                background: 'var(--bg-primary)',
+                background: '#fff',
               }}
             >
               {/* 제목 + 태그 */}
@@ -230,7 +230,7 @@ function SentimentCountCard({
         border: '1px solid var(--border)',
         borderRadius: 10,
         padding: '10px 12px',
-        background: 'var(--bg-primary)',
+        background: '#fff',
         textAlign: 'center',
       }}
     >

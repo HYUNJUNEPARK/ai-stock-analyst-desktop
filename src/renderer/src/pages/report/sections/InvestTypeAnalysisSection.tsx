@@ -82,7 +82,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border)' }}>
+          <div style={{ padding: '12px 16px', background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>핵심 투자 아이디어</div>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', lineHeight: 1.65 }}><LinkText>{data.coreIdea}</LinkText></div>
           </div>
@@ -96,7 +96,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
 
       {/* 유형 판단 근거 */}
       <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+        <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
           유형 판단 근거
         </div>
         {([
@@ -106,7 +106,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
           ['기술적 분석', data.rationale.price],
           ['밸류에이션', data.rationale.valuation],
         ] as [string, string][]).map(([label, content]) => (
-          <div key={label} style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)', display: 'flex', gap: 10 }}>
+          <div key={label} style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: '#fff', display: 'flex', gap: 10 }}>
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0, width: 80 }}>{label}</span>
             <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}><LinkText>{content}</LinkText></span>
           </div>
@@ -122,10 +122,10 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
       {/* 주요 확인 지표 */}
       {data.keyIndicators?.length > 0 && (
         <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+          <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
             주요 확인 지표
           </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: 'var(--bg-primary)' }}>
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
             {data.keyIndicators.map((item, i) => (
               <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#2563eb', display: 'inline-block' }} />
@@ -143,7 +143,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
             <FiAlertTriangle size={15} />
             주요 리스크
           </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: 'var(--bg-primary)' }}>
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
             {data.risks.map((risk, i) => (
               <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
