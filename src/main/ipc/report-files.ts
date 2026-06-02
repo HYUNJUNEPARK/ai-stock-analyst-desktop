@@ -50,7 +50,7 @@ export function registerReportFilesHandlers(): void {
           })
           .map((stockFolder) => {
             const stockPath = join(datePath, stockFolder)
-            const jsonPath = join(stockPath, `${stockFolder}.json`)
+            const jsonPath = join(stockPath, 'aggressive-investment-strategist.json')
             const stats = statSync(stockPath)
             const createdAt =
               stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : stats.mtime.toISOString()
@@ -93,9 +93,8 @@ export function registerReportFilesHandlers(): void {
   ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
     console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
-      const stockName = name.split('/').pop() ?? name
       const stockDir = join(STOCK_GPT_REPORTS_DIR, name)
-      const filePath = join(stockDir, `${stockName}.json`)
+      const filePath = join(stockDir, 'aggressive-investment-strategist.json')
       const content = readFileSync(filePath, 'utf-8')
       const data = JSON.parse(content)
       // artifactDir이 없는 기존 보고서에 대해 폴더 경로를 동적으로 주입

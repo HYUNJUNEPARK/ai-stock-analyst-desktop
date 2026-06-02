@@ -33,6 +33,7 @@ const ROLE_OUTPUT_FILES = {
   'price-analyst': 'price-analyst.json',
   'valuation-analyst': 'valuation-analyst.json',
   'invest-type-classifier': 'invest-type-classifier.json',
+  'aggressive-investment-strategist': 'aggressive-investment-strategist.json',
 }
 
 /** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */
@@ -80,7 +81,7 @@ async function main() {
   const identifier = buildIdentifier(company)
   const dateDir = path.join(reportsDir, asOfDateFile)
   const artifactDir = resolveUniqueFolderPath(dateDir, identifier)
-  const finalReportPath = path.join(artifactDir, `${path.basename(artifactDir)}.json`)
+  const finalReportPath = path.join(artifactDir, getOutputFileName('aggressive-investment-strategist'))
   const aiInfo = buildAiInfo(options.model)
 
   await mkdir(artifactDir, { recursive: true })
