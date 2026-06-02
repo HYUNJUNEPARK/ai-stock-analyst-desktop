@@ -11,7 +11,7 @@ export type SectorData = {
   asOfDate: string
   sectorOverview: string
   globalTrends: string[]
-  competitors: { name: string; url?: string; recentPerformance: string; comment: string }[]
+  competitors: { name: string; url?: string; marketCap?: string; revenue?: string; operatingMargin?: string; per?: string; recentPerformance: string; comment: string }[]
   policyChanges: string[]
   outlook: { verdict: string; rationale: string }
 }
@@ -95,8 +95,8 @@ export default function SectorAnalysisSection({ data }: { data: SectorData }): R
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['기업명', '최근 실적', '코멘트'].map((h) => (
-                  <th key={h} style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff' }}>
+                {['기업명', '시가총액', '매출', '영업이익률', 'PER', '최근 실적', '코멘트'].map((h) => (
+                  <th key={h} style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff', whiteSpace: 'nowrap' }}>
                     {h}
                   </th>
                 ))}
@@ -105,11 +105,15 @@ export default function SectorAnalysisSection({ data }: { data: SectorData }): R
             <tbody>
               {data.competitors.map((c, i) => (
                 <tr key={i}>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>
                     {c.url ? (
                       <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(c.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{c.name}</a>
                     ) : c.name}
                   </td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.marketCap || '-'}</td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.revenue || '-'}</td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.operatingMargin || '-'}</td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.per || '-'}</td>
                   <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{c.recentPerformance}</LinkText></td>
                   <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{c.comment}</LinkText></td>
                 </tr>

@@ -11,7 +11,7 @@ export type FinancialData = {
   asOfDate: string
   currentPrice: { price: string; interpretation: string }
   revenue: { data: { year: string; amount: string; yoyGrowth: string }[]; interpretation: string }
-  operatingMargin: { data: { year: string; margin: string }[]; industryAvg: string; interpretation: string }
+  operatingProfit: { data: { year: string; amount: string; margin: string }[]; industryAvg: string; interpretation: string }
   netMargin: { data: { year: string; margin: string }[]; interpretation: string }
   per: { current: string; industryAvg: string; interpretation: string }
   eps: { data: { year: string; eps: string; yoyChange: string }[]; interpretation: string }
@@ -99,11 +99,11 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       {/* 수익성 지표 (영업이익률 + 순이익률) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <FinancialTableCard
-          title="영업이익률"
-          columns={['연도', '이익률']}
-          rows={data.operatingMargin.data.map((d) => [d.year, d.margin])}
-          badge={data.operatingMargin.industryAvg ? `업종 ${data.operatingMargin.industryAvg}` : undefined}
-          interpretation={data.operatingMargin.interpretation}
+          title="영업이익"
+          columns={['연도', '금액', '이익률']}
+          rows={data.operatingProfit.data.map((d) => [d.year, d.amount, d.margin])}
+          badge={data.operatingProfit.industryAvg ? `업종 ${data.operatingProfit.industryAvg}` : undefined}
+          interpretation={data.operatingProfit.interpretation}
         />
         <FinancialTableCard
           title="순이익률"
