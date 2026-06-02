@@ -13,6 +13,7 @@ export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [modelName, setModelName] = useState<string | null>(null)
+  const [modelLoading, setModelLoading] = useState(false)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
   useEffect(() => {
@@ -21,9 +22,11 @@ export default function InfoPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!selectedModel) return
-    window.api.getModelInfo(selectedModel).then((result) => {
-      setModelName(result.modelName)
-    })
+    setModelLoading(true)
+    setModelName(null)
+    window.api.getModelInfo(selectedModel)
+      .then((result) => setModelName(result.modelName))
+      .finally(() => setModelLoading(false))
   }, [selectedModel])
 
   useEffect(() => {
@@ -89,19 +92,19 @@ export default function InfoPage(): React.JSX.Element {
     verticalAlign: 'middle'
   }
 
-  const modelDescription = isGpt ? (
+  const modelLabel = isGpt ? 'GPT' : 'Claude'
+  const modelDescription = modelLoading ? (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      <span style={spinnerStyle} />
+      모델 정보를 확인하고 있습니다...
+    </span>
+  ) : modelName ? (
     <span>
-      {modelName ? (
-        <>
-          <span style={modelNameBadgeStyle}>{modelName}</span>
-          {' 기반으로 분석을 실행합니다.'}
-        </>
-      ) : (
-        'GPT 기반으로 분석을 실행합니다.'
-      )}
+      <span style={modelNameBadgeStyle}>{modelName}</span>
+      {' 기반으로 분석을 실행합니다.'}
     </span>
   ) : (
-    'Claude 기반으로 분석을 실행합니다.'
+    `${modelLabel} 기반으로 분석을 실행합니다.`
   )
 
   return (
@@ -327,4 +330,14 @@ const testBadgeStyle: React.CSSProperties = {
   padding: '2px 7px',
   fontFamily: "'SF Mono', 'Menlo', monospace",
   letterSpacing: '0.04em'
+}
+
+const spinnerStyle: React.CSSProperties = {
+  display: 'inline-block',
+  width: 14,
+  height: 14,
+  border: '2px solid var(--border)',
+  borderTopColor: 'var(--text-tertiary)',
+  borderRadius: '50%',
+  animation: 'spin 0.8s linear infinite'
 }

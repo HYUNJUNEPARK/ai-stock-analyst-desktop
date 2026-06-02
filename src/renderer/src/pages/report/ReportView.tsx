@@ -277,11 +277,18 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           )}
         </div>
 
-        {/* 2. 투자 전략 수치: 현재가 · 추천가 */}
+        {/* 2. 분석 요약 (신호 + 에이전트 판정 통합) */}
+        <AnalysisSummarySection
+          analysis={data.analysis}
+          valuation={data.valuation}
+          agentVerdicts={data.agentVerdicts}
+        />
+
+        {/* 3. 현재 주가 */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: '1fr',
             gap: 1,
             background: 'var(--border)',
             borderRadius: 10,
@@ -289,69 +296,37 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           }}
         >
           <StrategyCell label="현재 주가" value={data.strategy.currentPrice} />
-          <StrategyCell
-            label="매수 추천가"
-            value={data.strategy.recommendedBuyPrice ?? '-'}
-            color={verdictColor}
-          />
         </div>
-        {data.strategy.buyPriceRationale && (
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', lineHeight: 1.6, padding: '0 4px' }}>
-            {data.strategy.buyPriceRationale}
-          </div>
-        )}
-
-        {/* 2-1. 목표가 목록 */}
-        {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
-          <PricePointList
-            title="목표가"
-            items={data.strategy.targetPrices}
-            color="#22c55e"
-            currentPrice={data.strategy.currentPrice}
-          />
-        ) : data.strategy.targetPrice ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-            <StrategyCell label={`목표가 ${data.strategy.targetReturn}`} value={data.strategy.targetPrice} color="#22c55e" />
-          </div>
-        ) : null}
-
-        {/* 2-2. 손절가 목록 */}
-        {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
-          <PricePointList
-            title="손절가"
-            items={data.strategy.stopLossPrices}
-            color="#ef4444"
-            currentPrice={data.strategy.currentPrice}
-          />
-        ) : data.strategy.stopLossPrice ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-            <StrategyCell label={`손절가 ${data.strategy.stopLoss}`} value={data.strategy.stopLossPrice} color="#ef4444" />
-          </div>
-        ) : null}
-
-        {/* 3. 신호 요약: 재무 · 뉴스 · 업종 · 밸류에이션 포지션 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-          <SignalCard label="재무" signal={data.analysis.financial.signal} />
-          <SignalCard label="뉴스" signal={data.analysis.news.signal} />
-          <SignalCard label="업종" signal={data.analysis.sector.signal} />
-          {data.valuation?.currentPricePosition ? (
-            <SignalCard
-              label="밸류에이션"
-              signal={data.valuation.currentPricePosition}
-              colorFn={getValuationPositionColor}
+        {/* 3-1. 목표가 + 손절가 (가로 배치) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
+            <PricePointList
+              title="목표가"
+              items={data.strategy.targetPrices}
+              color="#ef4444"
+              currentPrice={data.strategy.currentPrice}
             />
-          ) : (
-            <div />
-          )}
+          ) : data.strategy.targetPrice ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+              <StrategyCell label={`목표가 ${data.strategy.targetReturn}`} value={data.strategy.targetPrice} color="#ef4444" />
+            </div>
+          ) : <div />}
+
+          {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
+            <PricePointList
+              title="손절가"
+              items={data.strategy.stopLossPrices}
+              color="#1976d2"
+              currentPrice={data.strategy.currentPrice}
+            />
+          ) : data.strategy.stopLossPrice ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+              <StrategyCell label={`손절가 ${data.strategy.stopLoss}`} value={data.strategy.stopLossPrice} color="#1976d2" />
+            </div>
+          ) : <div />}
         </div>
 
-        {/* 4. 에이전트 판정 요약 */}
-        {data.agentVerdicts && <AgentVerdictsSection verdicts={data.agentVerdicts} />}
-
-        {/* 5. 투자 유형 */}
-        {data.investType && <InvestTypeSection investType={data.investType} />}
-
-        {/* 6. 리스크 + 모니터링 */}
+        {/* 5. 리스크 + 모니터링 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <BulletSection title="핵심 리스크" items={data.risks} />
           <BulletSection title="모니터링 포인트" items={data.monitoringPoints} />
@@ -399,33 +374,6 @@ function StrategyCell({
   )
 }
 
-function SignalCard({
-  label,
-  signal,
-  colorFn,
-}: {
-  label: string
-  signal: string
-  colorFn?: (s: string) => string
-}): React.JSX.Element {
-  const color = colorFn ? colorFn(signal) : getSignalColor(signal)
-  return (
-    <div
-      style={{
-        padding: '10px 12px',
-        background: `${color}0d`,
-        border: `1px solid ${color}35`,
-        borderRadius: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}
-    >
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{label}</div>
-      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color }}>{signal}</div>
-    </div>
-  )
-}
 
 const INVEST_TYPE_COLORS: { keyword: string; color: string }[] = [
   { keyword: '실적 성장형', color: '#16a34a' },
@@ -640,11 +588,11 @@ function PricePointList({
   )
 }
 
-const AGENT_VERDICT_CONFIG: { key: keyof AgentVerdicts; label: string }[] = [
-  { key: 'financial', label: '재무' },
-  { key: 'news', label: '뉴스' },
-  { key: 'sector', label: '업종' },
-  { key: 'price', label: '기술적' },
+const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; analysisKey?: 'financial' | 'news' | 'sector' | 'price' }[] = [
+  { key: 'financial', label: '재무', analysisKey: 'financial' },
+  { key: 'news', label: '뉴스', analysisKey: 'news' },
+  { key: 'sector', label: '업종', analysisKey: 'sector' },
+  { key: 'price', label: '기술적', analysisKey: 'price' },
   { key: 'valuation', label: '밸류에이션' },
   { key: 'investType', label: '투자유형' },
 ]
@@ -661,11 +609,6 @@ function getAgentVerdictValue(verdicts: AgentVerdicts, key: keyof AgentVerdicts)
   return ''
 }
 
-function getAgentVerdictSummary(verdicts: AgentVerdicts, key: keyof AgentVerdicts): string {
-  const v = verdicts[key]
-  return v?.summary ?? ''
-}
-
 function getAgentVerdictColor(value: string): string {
   if (!value || value === '데이터 없음') return '#6b7280'
   const lower = value.toLowerCase()
@@ -677,7 +620,42 @@ function getAgentVerdictColor(value: string): string {
   return '#f59e0b'
 }
 
-function AgentVerdictsSection({ verdicts }: { verdicts: AgentVerdicts }): React.JSX.Element {
+function AnalysisSummarySection({
+  analysis,
+  valuation,
+  agentVerdicts,
+}: {
+  analysis: Report['analysis']
+  valuation?: Report['valuation']
+  agentVerdicts?: AgentVerdicts
+}): React.JSX.Element {
+  // 각 카테고리별로 signal(분석 신호)과 verdict(에이전트 판정)를 통합
+  const rows = ANALYSIS_CATEGORIES.map(({ key, label, analysisKey }) => {
+    // signal: analysis에서 가져오기 (밸류에이션은 valuation에서)
+    let signal = ''
+    if (analysisKey && analysis[analysisKey]) {
+      signal = ('signal' in analysis[analysisKey]! ? analysis[analysisKey]!.signal : '') ?? ''
+    } else if (key === 'valuation' && valuation?.currentPricePosition) {
+      signal = valuation.currentPricePosition
+    }
+
+    // verdict: agentVerdicts에서 가져오기
+    const verdictValue = agentVerdicts ? getAgentVerdictValue(agentVerdicts, key) : ''
+    const verdictSummary = agentVerdicts?.[key]?.summary ?? ''
+
+    // 표시할 신호 결정: verdict가 있으면 verdict 우선, 없으면 signal 사용
+    const displaySignal = verdictValue || signal
+    if (!displaySignal) return null
+
+    const color = key === 'valuation' && !verdictValue
+      ? getValuationPositionColor(signal)
+      : verdictValue
+        ? getAgentVerdictColor(verdictValue)
+        : getSignalColor(signal)
+
+    return { key, label, displaySignal, verdictSummary, color }
+  }).filter(Boolean) as { key: string; label: string; displaySignal: string; verdictSummary: string; color: string }[]
+
   return (
     <div
       style={{
@@ -696,39 +674,59 @@ function AgentVerdictsSection({ verdicts }: { verdicts: AgentVerdicts }): React.
           color: 'var(--text-primary)',
         }}
       >
-        에이전트 판정 요약
+        분석 요약
       </div>
-      {AGENT_VERDICT_CONFIG.map(({ key, label }) => {
-        const value = getAgentVerdictValue(verdicts, key)
-        const summary = getAgentVerdictSummary(verdicts, key)
-        if (!value) return null
-        const color = getAgentVerdictColor(value)
-        return (
-          <div
-            key={key}
-            style={{
-              padding: '8px 14px',
-              background: 'var(--bg-primary)',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: 8,
-            }}
-          >
+      {rows.map(({ key, label, displaySignal, verdictSummary, color }) => (
+        <div
+          key={key}
+          style={{
+            padding: '8px 14px',
+            background: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', flexShrink: 0, width: 52 }}>
               {label}
             </span>
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color, flexShrink: 0 }}>
-              {value}
-            </span>
-            {summary && (
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                {summary}
+            {key === 'investType' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                {displaySignal.split('+').map((part) => part.trim()).filter(Boolean).map((part) => {
+                  const c = getInvestTypeColor(part)
+                  return (
+                    <span
+                      key={part}
+                      style={{
+                        fontSize: 'var(--text-xs)',
+                        fontWeight: 700,
+                        color: c,
+                        background: `${c}15`,
+                        border: `1px solid ${c}50`,
+                        borderRadius: 6,
+                        padding: '2px 8px',
+                      }}
+                    >
+                      {part}
+                    </span>
+                  )
+                })}
+              </div>
+            ) : (
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color, flexShrink: 0 }}>
+                {displaySignal}
               </span>
             )}
           </div>
-        )
-      })}
+          {verdictSummary && (
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 60 }}>
+              {verdictSummary}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

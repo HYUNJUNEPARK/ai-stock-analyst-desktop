@@ -12,7 +12,9 @@ import { join } from 'path'
 import { homedir } from 'os'
 import { readFileSync } from 'fs'
 import { spawnSync } from 'child_process'
-import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
+import { STOCK_CLAUDE_DIR } from '../constants'
+import { resolveCliCommand } from '../utils/cli'
+import { spawnCommand } from '../utils/spawn'
 
 /**
  * 이번 주 월요일 ~ 오늘 날짜 범위를 계산한다.
@@ -50,7 +52,8 @@ export function registerCliStatsHandlers(): void {
    * 용도: 선택된 모델의 구체적인 모델명을 반환
    *
    * Claude: 에이전트 .md 파일의 frontmatter에서 model 필드 파싱
-   * GPT   : analyze-stock.mjs의 buildAiInfo 기본값에서 파싱
+   * GPT   : Codex CLI를 실행해 세션 시작 시 stderr로 출력되는 모델 정보를 파싱
+   *          (예: "model: gpt-5.5" → "gpt-5.5" 반환)
    */
   ipcMain.handle(IPC.GET_MODEL_INFO, (_event, model: string) => {
     try {
@@ -61,10 +64,54 @@ export function registerCliStatsHandlers(): void {
         return { modelName: match?.[1]?.trim() ?? 'claude' }
       }
       if (model === 'gpt') {
-        const scriptPath = join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs')
-        const content = readFileSync(scriptPath, 'utf-8')
-        const match = content.match(/model:\s*model\s*\|\|\s*['"]([^'"]+)['"]/)
-        return { modelName: match?.[1]?.trim() ?? 'gpt' }
+        // Codex CLI 실행 파일 경로를 확인한다 (로컬 설치 → 시스템 PATH 순서로 탐색)
+        const resolved = resolveCliCommand('codex')
+        if (!resolved.command) return { modelName: null }
+
+        /**
+         * Codex CLI를 가벼운 프롬프트("1+1")로 실행해 세션 메타데이터를 가져온다.
+         *
+         * Codex는 세션 시작 시 stderr에 다음과 같은 키-값 쌍을 출력한다:
+         *   model: gpt-5.5
+         *   provider: openai
+         *   sandbox: danger-full-access
+         *   ...
+         *
+         * 이 중 "model:" 라인을 파싱해 실제 사용 중인 모델명을 추출한다.
+         * 모델 정보를 감지하면 즉시 프로세스를 종료해 불필요한 LLM 추론을 방지한다.
+         */
+        return new Promise<{ modelName: string | null }>((resolve) => {
+          /** 중복 resolve 방지 플래그 (stderr 파싱 / close / timeout 중 먼저 도달하는 쪽이 결과를 반환) */
+          let settled = false
+          const finish = (modelName: string | null): void => {
+            if (settled) return
+            settled = true
+            clearTimeout(timer)
+            child.kill()
+            resolve({ modelName })
+          }
+
+          const child = spawnCommand(resolved.command!, [
+            'exec', '--skip-git-repo-check', '--color', 'never', '1+1'
+          ], {
+            stdio: ['ignore', 'pipe', 'pipe']
+          })
+
+          // 10초 안에 모델 정보를 받지 못하면 null로 응답 (CLI 미응답 방지)
+          const timer = setTimeout(() => finish(null), 10_000)
+
+          // stderr 스트림에서 "model: <모델명>" 패턴을 줄 단위로 탐색
+          let buf = ''
+          child.stderr.on('data', (data: Buffer) => {
+            buf += data.toString()
+            const match = buf.match(/^model:\s*(.+)$/m)
+            if (match) finish(match[1].trim())
+          })
+
+          // 모델 정보 없이 프로세스가 종료되거나 실행 오류가 발생한 경우 null 반환
+          child.on('close', () => finish(null))
+          child.on('error', () => finish(null))
+        })
       }
       return { modelName: null }
     } catch {
