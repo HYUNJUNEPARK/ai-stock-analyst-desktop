@@ -353,10 +353,10 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
           >
             투자 전략
           </div>
-          {/* 목표 주가 */}
+          {/* 현재 주가 */}
           <div style={{ padding: '16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>현재 주가</div>
-            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>
+            <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>
               {data.strategy.targetPrice || data.strategy.currentPrice}
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <div style={{ padding: '14px 16px', borderRight: '1px solid var(--border)' }}>
               {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 2 }}>목표가 시나리오</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: '#ef4444', marginBottom: 2 }}>목표가 시나리오</div>
                   {data.strategy.targetPrices.map((item, i) => {
                     const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
                     return (
@@ -379,7 +379,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                 </div>
               ) : data.strategy.targetPrice ? (
                 <div>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 6 }}>목표가 시나리오</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: '#ef4444', marginBottom: 6 }}>목표가 시나리오</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{data.strategy.targetPrice}</span>
                     {data.strategy.targetReturn && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#ef4444' }}>{data.strategy.targetReturn}</span>}
@@ -392,7 +392,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <div style={{ padding: '14px 16px' }}>
               {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 2 }}>손절가 시나리오</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: '#1976d2', marginBottom: 2 }}>손절가 시나리오</div>
                   {data.strategy.stopLossPrices.map((item, i) => {
                     const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
                     return (
@@ -406,7 +406,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                 </div>
               ) : data.strategy.stopLossPrice ? (
                 <div>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 6 }}>손절가 시나리오</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color: '#1976d2', marginBottom: 6 }}>손절가 시나리오</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{data.strategy.stopLossPrice}</span>
                     {data.strategy.stopLoss && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#1976d2' }}>{data.strategy.stopLoss}</span>}
@@ -592,8 +592,8 @@ const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; fullLabel:
   { key: 'sector', label: '업종', fullLabel: '업종 리서치', analysisKey: 'sector' },
   { key: 'news', label: '뉴스', fullLabel: '뉴스 분석', analysisKey: 'news' },
   { key: 'price', label: '기술적', fullLabel: '기술 분석', analysisKey: 'price' },
-  { key: 'valuation', label: '밸류에이션', fullLabel: '밸류에이션 분석' },
   { key: 'investType', label: '투자유형', fullLabel: '투자유형' },
+  { key: 'valuation', label: '밸류에이션', fullLabel: '밸류에이션 분석' },
 ]
 
 function getAgentVerdictValue(verdicts: AgentVerdicts, key: keyof AgentVerdicts): string {
@@ -701,54 +701,43 @@ function AnalysisSummarySection({
           }}>
             {ANALYSIS_ICONS[key]}
           </div>
-          {/* 내용 */}
+          {/* 레이블 */}
+          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0, alignSelf: 'flex-start', width: 100 }}>
+            {fullLabel}
+          </span>
+          {/* 판정 + 설명 (세로 정렬) */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {fullLabel}
+            {key === 'investType' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                {displaySignal.split('+').map((part) => part.trim()).filter(Boolean).map((part) => {
+                  const c = getInvestTypeColor(part)
+                  return (
+                    <span
+                      key={part}
+                      style={{
+                        fontSize: 'var(--text-xs)',
+                        fontWeight: 700,
+                        color: c,
+                        background: `${c}15`,
+                        border: `1px solid ${c}50`,
+                        borderRadius: 6,
+                        padding: '2px 8px',
+                      }}
+                    >
+                      {part}
+                    </span>
+                  )
+                })}
+              </div>
+            ) : (
+              <span style={{
+                fontSize: 'var(--text-xs)',
+                fontWeight: 800,
+                color,
+              }}>
+                {displaySignal}
               </span>
-              {key === 'investType' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                  {displaySignal.split('+').map((part) => part.trim()).filter(Boolean).map((part) => {
-                    const c = getInvestTypeColor(part)
-                    return (
-                      <span
-                        key={part}
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          fontWeight: 700,
-                          color: c,
-                          background: `${c}15`,
-                          border: `1px solid ${c}50`,
-                          borderRadius: 6,
-                          padding: '2px 8px',
-                        }}
-                      >
-                        {part}
-                      </span>
-                    )
-                  })}
-                </div>
-              ) : (
-                <span style={{
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 600,
-                  color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}>
-                  {displaySignal}
-                  <span style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: color,
-                    display: 'inline-block',
-                  }} />
-                </span>
-              )}
-            </div>
+            )}
             {verdictSummary && (
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
                 {verdictSummary}
