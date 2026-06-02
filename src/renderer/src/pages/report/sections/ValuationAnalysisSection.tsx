@@ -21,8 +21,9 @@ export type ValuationData = {
 
 export function tryParseValuationJson(text: string): ValuationData | null {
   if (!text.trim()) return null
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.finalVerdict && parsed.fairValueScenarios) return parsed as ValuationData
     return null
   } catch {

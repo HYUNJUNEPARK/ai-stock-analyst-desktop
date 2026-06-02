@@ -32,8 +32,9 @@ export type NewsData = {
 
 export function tryParseNewsJson(text: string): NewsData | null {
   if (!text.trim()) return null
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.articles && parsed.verdict) return parsed as NewsData
     return null
   } catch {

@@ -18,8 +18,10 @@ export type SectorData = {
 
 export function tryParseSectorJson(text: string): SectorData | null {
   if (!text.trim()) return null
+  // 마크다운 코드 블록(```json ... ```)으로 감싸진 경우 제거
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.outlook && parsed.competitors) return parsed as SectorData
     return null
   } catch {
@@ -75,51 +77,57 @@ export default function SectorAnalysisSection({ data }: { data: SectorData }): R
 
       {/* 경쟁사 실적 */}
       {data.competitors?.length > 0 && (
-        <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div
-            style={{
-              padding: '10px 14px',
-              background: '#fff',
-              borderBottom: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 'var(--text-sm)',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-            }}
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)', padding: '0 2px' }}>
             <FiUsers size={15} />
             주요 경쟁사
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                {['기업명', '시가총액', '매출', '영업이익률', 'PER', '최근 실적', '코멘트'].map((h) => (
-                  <th key={h} style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff', whiteSpace: 'nowrap' }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.competitors.map((c, i) => (
-                <tr key={i}>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>
-                    {c.url ? (
-                      <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(c.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{c.name}</a>
-                    ) : c.name}
-                  </td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.marketCap || '-'}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.revenue || '-'}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.operatingMargin || '-'}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff', whiteSpace: 'nowrap' }}>{c.per || '-'}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{c.recentPerformance}</LinkText></td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}><LinkText>{c.comment}</LinkText></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {data.competitors.map((c, i) => {
+            const metrics = [
+              { label: '시가총액', value: c.marketCap },
+              { label: '매출', value: c.revenue },
+              { label: '영업이익률', value: c.operatingMargin },
+              { label: 'PER', value: c.per },
+            ].filter((m) => m.value)
+            return (
+              <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', background: '#fff' }}>
+                {/* 기업명 헤더 */}
+                <div style={{ padding: '10px 14px', borderBottom: metrics.length > 0 ? '1px solid var(--border)' : 'none', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {c.url ? (
+                    <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(c.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{c.name}</a>
+                  ) : c.name}
+                </div>
+                {/* 지표 그리드 */}
+                {metrics.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: `repeat(${metrics.length}, 1fr)`, borderBottom: '1px solid var(--border)' }}>
+                    {metrics.map((m, j) => (
+                      <div
+                        key={m.label}
+                        style={{
+                          padding: '10px 14px',
+                          borderRight: j < metrics.length - 1 ? '1px solid var(--border)' : 'none',
+                        }}
+                      >
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 3 }}>{m.label}</div>
+                        <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }}>{m.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* 최근 실적 + 코멘트 */}
+                <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                    <LinkText>{c.recentPerformance}</LinkText>
+                  </div>
+                  {c.comment && (
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                      <LinkText>{c.comment}</LinkText>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 

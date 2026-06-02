@@ -25,8 +25,9 @@ export type FinancialData = {
 
 export function tryParseFinancialJson(text: string): FinancialData | null {
   if (!text.trim()) return null
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.currentPrice && parsed.grade) return parsed as FinancialData
     return null
   } catch {

@@ -38,9 +38,7 @@ app.whenReady().then(() => {
   })
 })
 
-// 모든 창이 닫히면 앱 종료 (macOS 제외 — macOS는 창 없이 백그라운드 유지가 관례)
+// 모든 창이 닫히면 앱 종료
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  app.quit()
 })

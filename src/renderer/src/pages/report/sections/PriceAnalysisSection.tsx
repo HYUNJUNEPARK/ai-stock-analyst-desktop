@@ -38,8 +38,9 @@ export type PriceData = {
 
 export function tryParsePriceJson(text: string): PriceData | null {
   if (!text.trim()) return null
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.technicalSummary && parsed.movingAverages) return parsed as PriceData
     return null
   } catch {

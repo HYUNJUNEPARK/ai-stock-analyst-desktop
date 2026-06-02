@@ -27,8 +27,9 @@ export type InvestTypeData = {
 
 export function tryParseInvestTypeJson(text: string): InvestTypeData | null {
   if (!text.trim()) return null
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
   try {
-    const parsed = JSON.parse(text.trim())
+    const parsed = JSON.parse(stripped)
     if (parsed && parsed.investType && parsed.rationale) return parsed as InvestTypeData
     return null
   } catch {
