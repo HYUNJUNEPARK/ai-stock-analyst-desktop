@@ -24,6 +24,15 @@ type AgentVerdicts = {
   investType?: { type: string; summary: string }
 }
 
+type InvestmentStrategy = {
+  entryStrategy: string
+  positionSizing: string
+  actionPlan: string[]
+  exitStrategy: string
+  timeHorizon: string
+  caution: string
+}
+
 type Report = {
   company: string
   ticker: string
@@ -59,6 +68,7 @@ type Report = {
     recommendedBuyPriceBasis?: string
     buyPriceRationale?: string
   }
+  investmentStrategy?: InvestmentStrategy
   valuation?: {
     securitiesTargetRange?: string
     fairValueConservative?: string
@@ -133,41 +143,43 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   return (
     <div className="report-view" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* 헤더: 종목 + 판정 배지 */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
+      {/* 헤더: 종목 + 판정 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+              {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
+              {(aiModel || aiProvider) && <>
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>·</span>
+                <img
+                  src={modelIcon}
+                  alt={isGpt ? 'GPT' : 'Claude'}
+                  style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
+              </>}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
-            {(aiModel || aiProvider) && <>
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>·</span>
-              <img
-                src={modelIcon}
-                alt={isGpt ? 'GPT' : 'Claude'}
-                style={{ width: 14, height: 14, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
-              />
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
-            </>}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 14px',
+              background: `${verdictColor}18`,
+              border: `1px solid ${verdictColor}50`,
+              borderRadius: 10,
+              flexShrink: 0
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{data.verdictEmoji}</span>
+            <span style={{ fontSize: 'var(--text-base)', fontWeight: 800, color: verdictColor }}>
+              {data.verdict}
+            </span>
           </div>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            background: `${verdictColor}18`,
-            border: `1px solid ${verdictColor}50`,
-            borderRadius: 10,
-            flexShrink: 0
-          }}
-        >
-          <span style={{ fontSize: 15 }}>{data.verdictEmoji}</span>
-          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: verdictColor }}>
-            {data.verdict}
-          </span>
         </div>
       </div>
 
@@ -284,51 +296,94 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
           agentVerdicts={data.agentVerdicts}
         />
 
-        {/* 3. 현재 주가 */}
+        {/* 3. 가격 전략 통합 카드 */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: 1,
-            background: 'var(--border)',
-            borderRadius: 10,
+            border: '1px solid var(--border)',
+            borderRadius: 12,
             overflow: 'hidden',
           }}
         >
-          <StrategyCell label="현재 주가" value={data.strategy.currentPrice} />
-        </div>
-        {/* 3-1. 목표가 + 손절가 (가로 배치) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
-            <PricePointList
-              title="목표가"
-              items={data.strategy.targetPrices}
-              color="#ef4444"
-              currentPrice={data.strategy.currentPrice}
-            />
-          ) : data.strategy.targetPrice ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-              <StrategyCell label={`목표가 ${data.strategy.targetReturn}`} value={data.strategy.targetPrice} color="#ef4444" />
+          <div
+            style={{
+              padding: '8px 14px',
+              background: 'var(--bg-secondary)',
+              borderBottom: '1px solid var(--border)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+            }}
+          >
+            투자 전략
+          </div>
+          <div style={{ padding: '12px 14px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>현재 주가</div>
+            <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>
+              {data.strategy.currentPrice}
             </div>
-          ) : <div />}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'var(--bg-primary)' }}>
+            <div style={{ padding: '12px 14px', borderRight: '1px solid var(--border)' }}>
+              {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444' }}>목표가</div>
+                  {data.strategy.targetPrices.map((item, i) => {
+                    const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
+                    return (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{item.price}</span>
+                          {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#ef4444' }}>{pct}</span>}
+                        </div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : data.strategy.targetPrice ? (
+                <div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 4 }}>목표가 {data.strategy.targetReturn}</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{data.strategy.targetPrice}</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>목표가 없음</div>
+              )}
+            </div>
+            <div style={{ padding: '12px 14px' }}>
+              {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2' }}>손절가</div>
+                  {data.strategy.stopLossPrices.map((item, i) => {
+                    const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
+                    return (
+                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{item.price}</span>
+                          {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#1976d2' }}>{pct}</span>}
+                        </div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : data.strategy.stopLossPrice ? (
+                <div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 4 }}>손절가 {data.strategy.stopLoss}</div>
+                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{data.strategy.stopLossPrice}</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>손절가 없음</div>
+              )}
+            </div>
+          </div>
+        </div>
 
-          {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
-            <PricePointList
-              title="손절가"
-              items={data.strategy.stopLossPrices}
-              color="#1976d2"
-              currentPrice={data.strategy.currentPrice}
-            />
-          ) : data.strategy.stopLossPrice ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, background: 'var(--border)', borderRadius: 10, overflow: 'hidden' }}>
-              <StrategyCell label={`손절가 ${data.strategy.stopLoss}`} value={data.strategy.stopLossPrice} color="#1976d2" />
-            </div>
-          ) : <div />}
-        </div>
+        {/* 4. 실전 투자 가이드 */}
+        {data.investmentStrategy && <InvestmentStrategySection strategy={data.investmentStrategy} verdictColor={verdictColor} />}
 
         {/* 5. 리스크 + 모니터링 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <BulletSection title="핵심 리스크" items={data.risks} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <BulletSection title="핵심 리스크" items={data.risks} color="#ef4444" />
           <BulletSection title="모니터링 포인트" items={data.monitoringPoints} />
         </div>
 
@@ -337,39 +392,6 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
         </div>
 
       </>}
-    </div>
-  )
-}
-
-function StrategyCell({
-  label,
-  value,
-  color,
-}: {
-  label: string
-  value: string
-  color?: string
-}): React.JSX.Element {
-  return (
-    <div
-      style={{
-        padding: '10px 14px',
-        background: 'var(--bg-primary)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}
-    >
-      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{label}</div>
-      <div
-        style={{
-          fontSize: 'var(--text-sm)',
-          fontWeight: 700,
-          color: color ?? 'var(--text-primary)',
-        }}
-      >
-        {value}
-      </div>
     </div>
   )
 }
@@ -511,7 +533,7 @@ function parsePriceToNumber(price: string): number | null {
   return isNaN(num) ? null : num
 }
 
-function calcPctFromCurrent(itemPrice: string, currentPrice: string, isTarget: boolean): string | null {
+function calcPctFromCurrent(itemPrice: string, currentPrice: string): string | null {
   const current = parsePriceToNumber(currentPrice)
   const target = parsePriceToNumber(itemPrice)
   if (current == null || target == null || current === 0) return null
@@ -520,73 +542,6 @@ function calcPctFromCurrent(itemPrice: string, currentPrice: string, isTarget: b
   return `${sign}${pct.toFixed(1)}%`
 }
 
-function PricePointList({
-  title,
-  items,
-  color,
-  currentPrice,
-}: {
-  title: string
-  items: PricePoint[]
-  color: string
-  currentPrice?: string
-}): React.JSX.Element {
-  return (
-    <div
-      style={{
-        border: `1px solid ${color}35`,
-        borderRadius: 10,
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          padding: '8px 14px',
-          background: `${color}0d`,
-          borderBottom: `1px solid ${color}20`,
-          fontSize: 'var(--text-xs)',
-          fontWeight: 700,
-          color,
-        }}
-      >
-        {title}
-      </div>
-      {items.map((item, i) => {
-        const pct = currentPrice ? calcPctFromCurrent(item.price, currentPrice, color === '#22c55e') : null
-        return (
-          <div
-            key={i}
-            style={{
-              padding: '8px 14px',
-              background: 'var(--bg-primary)',
-              borderBottom: i < items.length - 1 ? '1px solid var(--border)' : 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color, flexShrink: 0 }}>
-                {item.price}
-              </span>
-              {pct && (
-                <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color, flexShrink: 0 }}>
-                  {pct}
-                </span>
-              )}
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', flexShrink: 0 }}>
-                {item.source}
-              </span>
-            </div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5, paddingLeft: 2 }}>
-              {item.rationale}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; analysisKey?: 'financial' | 'news' | 'sector' | 'price' }[] = [
   { key: 'financial', label: '재무', analysisKey: 'financial' },
@@ -689,7 +644,7 @@ function AnalysisSummarySection({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', flexShrink: 0, width: 52 }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', flexShrink: 0, width: 62 }}>
               {label}
             </span>
             {key === 'investType' ? (
@@ -721,7 +676,7 @@ function AnalysisSummarySection({
             )}
           </div>
           {verdictSummary && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 60 }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 70 }}>
               {verdictSummary}
             </div>
           )}
@@ -731,7 +686,106 @@ function AnalysisSummarySection({
   )
 }
 
-function BulletSection({ title, items }: { title: string; items: string[] }): React.JSX.Element {
+function InvestmentStrategySection({ strategy, verdictColor }: { strategy: InvestmentStrategy; verdictColor: string }): React.JSX.Element {
+  const rows: { label: string; content: string | string[]; icon: string }[] = [
+    { label: '진입 전략', content: strategy.entryStrategy, icon: '🎯' },
+    { label: '포지션 비중', content: strategy.positionSizing, icon: '⚖️' },
+    { label: '실행 계획', content: strategy.actionPlan, icon: '📋' },
+    { label: '익절/손절 전략', content: strategy.exitStrategy, icon: '🚪' },
+    { label: '권장 보유 기간', content: strategy.timeHorizon, icon: '⏱️' },
+  ]
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${verdictColor}35`,
+        borderRadius: 12,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 14px',
+          background: `${verdictColor}0d`,
+          borderBottom: `1px solid ${verdictColor}25`,
+          fontSize: 'var(--text-xs)',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        실전 투자 가이드
+      </div>
+      {rows.map(({ label, content, icon }) => {
+        if (!content || (Array.isArray(content) && content.length === 0)) return null
+        return (
+          <div
+            key={label}
+            style={{
+              padding: '10px 14px',
+              background: 'var(--bg-primary)',
+              borderBottom: '1px solid var(--border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12 }}>{icon}</span>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {label}
+              </span>
+            </div>
+            {Array.isArray(content) ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 22 }}>
+                {content.map((step, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      fontSize: 'var(--text-xs)',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1.65,
+                      display: 'flex',
+                      gap: 6,
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: verdictColor, flexShrink: 0 }}>{i + 1}.</span>
+                    <span>{step}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, paddingLeft: 22 }}>
+                {content}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      {strategy.caution && (
+        <div
+          style={{
+            padding: '10px 14px',
+            background: '#fef3c7',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 6,
+          }}
+        >
+          <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+          <span style={{ fontSize: 'var(--text-xs)', color: '#92400e', lineHeight: 1.65, fontWeight: 500 }}>
+            {strategy.caution}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BulletSection({ title, items, color }: { title: string; items: string[]; color?: string }): React.JSX.Element {
+  const bulletColor = color ?? 'var(--text-tertiary)'
   return (
     <div
       style={{
@@ -740,7 +794,7 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
         borderRadius: 10,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 6,
       }}
     >
       <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
@@ -753,7 +807,7 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
             fontSize: 'var(--text-xs)',
             color: 'var(--text-secondary)',
             lineHeight: 1.6,
-            paddingLeft: 10,
+            paddingLeft: 12,
             position: 'relative',
           }}
         >
@@ -761,11 +815,11 @@ function BulletSection({ title, items }: { title: string; items: string[] }): Re
             style={{
               position: 'absolute',
               left: 0,
-              top: '0.4em',
+              top: '0.45em',
               width: 4,
               height: 4,
               borderRadius: '50%',
-              background: 'var(--text-tertiary)',
+              background: bulletColor,
               display: 'inline-block',
             }}
           />

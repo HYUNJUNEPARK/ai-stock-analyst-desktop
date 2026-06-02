@@ -175,7 +175,7 @@ export default function AnalysisProgressView({
               iconBg="#D1FAE5"
               iconColor="#34D399"
               title="투자 유형 판단"
-              description="뉴스 + 기술 + 밸류에이션 결과를 종합하여 판단"
+              description="1단계 분석 결과 종합하여 투자 유형 판단"
               icon={<LuScale size={28} />}
               status={agentStatuses[classifier?.key] ?? 'idle'}
               waitingMsg="모든 분석 결과가 완료되면 자동으로 진행됩니다."
