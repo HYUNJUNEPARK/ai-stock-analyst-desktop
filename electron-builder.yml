@@ -14,8 +14,14 @@ asarUnpack:
 extraResources:
   - from: src/main/ai/claude
     to: ai/claude
+    filter:
+      - "**/*"
+      - "!reports/**"
   - from: src/main/ai/gpt
     to: ai/gpt
+    filter:
+      - "**/*"
+      - "!reports/**"
 win:
   executableName: ai-stock-analytics
 nsis:
