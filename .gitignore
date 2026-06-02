@@ -4,6 +4,7 @@ out
 .DS_Store
 .eslintcache
 *.log*
+*.tsbuildinfo
 
 # 멀티 에이전트 생성 파일 (에이전트 메모리, 분석 리포트)
 src/main/ai/claude/.claude/agent-memory/

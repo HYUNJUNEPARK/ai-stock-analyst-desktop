@@ -744,3 +744,9 @@
   color: inherit;
   font-size: 13px;
 }
+
+/* ── 보고서 텍스트 선택 허용 ── */
+.report-view {
+  user-select: text;
+  cursor: auto;
+}
