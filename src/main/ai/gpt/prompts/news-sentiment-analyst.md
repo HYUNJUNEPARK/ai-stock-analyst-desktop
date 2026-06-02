@@ -42,10 +42,10 @@
     }
   ],
   "sentimentSummary": {
-    "bullish": "[호재 건수. 숫자]",
-    "bearish": "[악재 건수. 숫자]",
-    "unconfirmed": "[미확인 건수. 숫자]",
-    "total": "[총계. 숫자]"
+    "bullish": 0,
+    "bearish": 0,
+    "unconfirmed": 0,
+    "total": 0
   },
   "verdict": {
     "sentiment": "[긍정|중립|부정]",
