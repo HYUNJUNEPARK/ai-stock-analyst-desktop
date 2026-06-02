@@ -94,9 +94,15 @@ export function registerReportFilesHandlers(): void {
     console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
       const stockName = name.split('/').pop() ?? name
-      const filePath = join(STOCK_GPT_REPORTS_DIR, name, `${stockName}.json`)
+      const stockDir = join(STOCK_GPT_REPORTS_DIR, name)
+      const filePath = join(stockDir, `${stockName}.json`)
       const content = readFileSync(filePath, 'utf-8')
-      return { success: true, data: JSON.parse(content) }
+      const data = JSON.parse(content)
+      // artifactDir이 없는 기존 보고서에 대해 폴더 경로를 동적으로 주입
+      if (!data.artifactDir) {
+        data.artifactDir = stockDir
+      }
+      return { success: true, data }
     } catch (error) {
       console.error('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
       return { success: false, error: (error as Error).message }

@@ -77,8 +77,6 @@ type Report = {
     currentPricePosition?: string
     valuationSummary?: string
   }
-  risks: string[]
-  monitoringPoints: string[]
 }
 
 type ArtifactTab = 'summary' | 'financial' | 'news' | 'sector' | 'price' | 'valuation' | 'invest-type'
@@ -399,12 +397,6 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
         {/* 4. 실전 투자 가이드 */}
         {data.investmentStrategy && <InvestmentStrategySection strategy={data.investmentStrategy} verdictColor={verdictColor} />}
 
-        {/* 5. 리스크 + 모니터링 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <BulletSection title="핵심 리스크" items={data.risks} color="#ef4444" />
-          <BulletSection title="모니터링 포인트" items={data.monitoringPoints} />
-        </div>
-
         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
           본 분석은 투자 참고용이며, 최종 투자 결정은 본인의 책임입니다.
         </div>
@@ -705,12 +697,12 @@ function AnalysisSummarySection({
 }
 
 function InvestmentStrategySection({ strategy, verdictColor }: { strategy: InvestmentStrategy; verdictColor: string }): React.JSX.Element {
-  const rows: { label: string; content: string | string[]; icon: string }[] = [
-    { label: '진입 전략', content: strategy.entryStrategy, icon: '🎯' },
-    { label: '포지션 비중', content: strategy.positionSizing, icon: '⚖️' },
-    { label: '실행 계획', content: strategy.actionPlan, icon: '📋' },
-    { label: '익절/손절 전략', content: strategy.exitStrategy, icon: '🚪' },
-    { label: '권장 보유 기간', content: strategy.timeHorizon, icon: '⏱️' },
+  const rows: { label: string; content: string | string[] }[] = [
+    { label: '진입 전략', content: strategy.entryStrategy },
+    { label: '포지션 비중', content: strategy.positionSizing },
+    { label: '실행 계획', content: strategy.actionPlan },
+    { label: '익절/손절 전략', content: strategy.exitStrategy },
+    { label: '권장 보유 기간', content: strategy.timeHorizon },
   ]
 
   return (
@@ -736,7 +728,7 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
       >
         실전 투자 가이드
       </div>
-      {rows.map(({ label, content, icon }) => {
+      {rows.map(({ label, content }) => {
         if (!content || (Array.isArray(content) && content.length === 0)) return null
         return (
           <div
@@ -750,14 +742,11 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
               gap: 4,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12 }}>{icon}</span>
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {label}
-              </span>
-            </div>
+            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
+              {label}
+            </span>
             {Array.isArray(content) ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 22 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {content.map((step, i) => (
                   <div
                     key={i}
@@ -775,7 +764,7 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
                 ))}
               </div>
             ) : (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, paddingLeft: 22 }}>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
                 {content}
               </div>
             )}
@@ -792,7 +781,6 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
             gap: 6,
           }}
         >
-          <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1 }}>⚠️</span>
           <span style={{ fontSize: 'var(--text-xs)', color: '#92400e', lineHeight: 1.65, fontWeight: 500 }}>
             {strategy.caution}
           </span>
@@ -802,48 +790,4 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
   )
 }
 
-function BulletSection({ title, items, color }: { title: string; items: string[]; color?: string }): React.JSX.Element {
-  const bulletColor = color ?? 'var(--text-tertiary)'
-  return (
-    <div
-      style={{
-        padding: '12px 14px',
-        background: 'var(--bg-secondary)',
-        borderRadius: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-      }}
-    >
-      <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
-        {title}
-      </div>
-      {items.map((item, i) => (
-        <div
-          key={i}
-          style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            paddingLeft: 12,
-            position: 'relative',
-          }}
-        >
-          <span
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: '0.45em',
-              width: 4,
-              height: 4,
-              borderRadius: '50%',
-              background: bulletColor,
-              display: 'inline-block',
-            }}
-          />
-          {item}
-        </div>
-      ))}
-    </div>
-  )
-}
+

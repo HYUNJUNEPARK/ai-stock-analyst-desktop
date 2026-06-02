@@ -231,6 +231,7 @@ async function main() {
     ...parsedReport,
     'ai-model': parsedReport['ai-model'] || aiInfo.model,
     aiInfo,
+    artifactDir,
     company: parsedReport.company || company,
     ticker: parsedReport.ticker || ticker
   }
@@ -447,7 +448,7 @@ function buildIdentifier(company) {
   return safeCompany || 'analysis'
 }
 
-const REQUIRED_REPORT_FIELDS = ['company', 'verdict', 'summary', 'analysis', 'strategy', 'risks']
+const REQUIRED_REPORT_FIELDS = ['company', 'verdict', 'summary', 'analysis', 'strategy']
 
 function parseJsonReport(raw) {
   // 마크다운 코드 블록 전체 제거 (여러 개 대응)
