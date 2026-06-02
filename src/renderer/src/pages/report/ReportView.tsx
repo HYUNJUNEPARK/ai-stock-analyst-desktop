@@ -103,7 +103,7 @@ const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'sector', label: '업종' },
   { key: 'price', label: '기술적' },
   { key: 'valuation', label: '밸류에이션' },
-  { key: 'invest-type', label: '투자전략' },
+  { key: 'invest-type', label: '투자유형' },
 ]
 
 const VERDICT_COLORS: Record<string, string> = {
@@ -357,7 +357,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
           <div style={{ padding: '16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>현재 주가</div>
             <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {data.strategy.targetPrice || data.strategy.currentPrice}
+              {data.strategy.currentPrice}
             </div>
           </div>
           {/* 시나리오 테이블 */}
@@ -780,7 +780,7 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
       <div
         style={{
           padding: '10px 16px',
-          background: 'var(--bg-secondary)',
+          background: '#fff',
           borderBottom: '1px solid var(--border)',
           fontSize: 'var(--text-sm)',
           fontWeight: 700,
@@ -796,7 +796,7 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
             key={label}
             style={{
               padding: '14px 16px',
-              background: 'var(--bg-primary)',
+              background: '#fff',
               borderBottom: '1px solid var(--border)',
               display: 'flex',
               gap: 12,
@@ -807,7 +807,8 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
               width: 36,
               height: 36,
               borderRadius: 8,
-              background: 'var(--bg-secondary)',
+              background: '#fff',
+              border: '1px solid var(--border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -816,11 +817,12 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
             }}>
               {STRATEGY_ICONS[label] || <FiTarget size={16} />}
             </div>
+            {/* 레이블 */}
+            <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0, alignSelf: 'flex-start', width: 100 }}>
+              {label}
+            </span>
             {/* 내용 */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {label}
-              </span>
+            <div style={{ flex: 1 }}>
               {Array.isArray(content) ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {content.map((step, i) => (
