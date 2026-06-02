@@ -1,4 +1,5 @@
 import { IoNewspaperOutline } from 'react-icons/io5'
+import LinkText from './LinkText'
 
 export type NewsData = {
   company: string
@@ -7,6 +8,7 @@ export type NewsData = {
   analysisPeriod: { start: string; end: string }
   articles: {
     title: string
+    url?: string
     date: string
     summary: string
     tag: string
@@ -102,7 +104,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
             </div>
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px' }}>
-            {data.verdict.rationale}
+            <LinkText>{data.verdict.rationale}</LinkText>
           </div>
         </div>
       </div>
@@ -147,7 +149,15 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
               {/* 제목 + 태그 */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                 <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4, flex: 1 }}>
-                  {article.title}
+                  {article.url ? (
+                    <a
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(article.url!) }}
+                      style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}
+                    >
+                      {article.title}
+                    </a>
+                  ) : article.title}
                 </div>
                 <span
                   style={{
@@ -170,7 +180,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
                 {article.date}
               </div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                {article.summary}
+                <LinkText>{article.summary}</LinkText>
               </div>
               {/* 근거 */}
               {article.rationale && (
@@ -184,7 +194,7 @@ export default function NewsAnalysisSection({ data }: { data: NewsData }): React
                     borderTop: '1px solid var(--border)',
                   }}
                 >
-                  {article.rationale}
+                  <LinkText>{article.rationale}</LinkText>
                 </div>
               )}
             </div>

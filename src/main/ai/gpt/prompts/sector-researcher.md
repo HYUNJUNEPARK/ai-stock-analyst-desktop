@@ -29,6 +29,7 @@
   "competitors": [
     {
       "name": "[기업명]",
+      "url": "[기업 IR 또는 관련 페이지 URL. 확인 가능한 경우 원문 링크, 불가 시 빈 문자열]",
       "recentPerformance": "[최근 실적 요약]",
       "comment": "[주요 코멘트]"
     }

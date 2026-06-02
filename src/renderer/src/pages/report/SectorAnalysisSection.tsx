@@ -1,4 +1,5 @@
 import { FiUsers } from 'react-icons/fi'
+import LinkText from './LinkText'
 
 export type SectorData = {
   company: string
@@ -6,7 +7,7 @@ export type SectorData = {
   asOfDate: string
   sectorOverview: string
   globalTrends: string[]
-  competitors: { name: string; recentPerformance: string; comment: string }[]
+  competitors: { name: string; url?: string; recentPerformance: string; comment: string }[]
   policyChanges: string[]
   outlook: { verdict: string; rationale: string }
 }
@@ -57,10 +58,10 @@ export default function SectorAnalysisSection({ data }: { data: SectorData }): R
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>업종 개요</div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', lineHeight: 1.65 }}>{data.sectorOverview}</div>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', lineHeight: 1.65 }}><LinkText>{data.sectorOverview}</LinkText></div>
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px' }}>
-            {data.outlook.rationale}
+            <LinkText>{data.outlook.rationale}</LinkText>
           </div>
         </div>
       </div>
@@ -100,9 +101,13 @@ export default function SectorAnalysisSection({ data }: { data: SectorData }): R
             <tbody>
               {data.competitors.map((c, i) => (
                 <tr key={i}>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{c.name}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{c.recentPerformance}</td>
-                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{c.comment}</td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>
+                    {c.url ? (
+                      <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(c.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{c.name}</a>
+                    ) : c.name}
+                  </td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{c.recentPerformance}</LinkText></td>
+                  <td style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.competitors.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{c.comment}</LinkText></td>
                 </tr>
               ))}
             </tbody>
@@ -127,7 +132,7 @@ function BulletCard({ title, items, color }: { title: string; items: string[]; c
         {items.map((item, i) => (
           <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
             <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: color, display: 'inline-block' }} />
-            {item}
+            <LinkText>{item}</LinkText>
           </div>
         ))}
       </div>

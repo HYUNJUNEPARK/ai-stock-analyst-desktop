@@ -1,7 +1,10 @@
+import LinkText from './LinkText'
+
 export type PriceData = {
   company: string
   ticker: string
   asOfDate: string
+  sources?: { name: string; url: string }[]
   currentPrice: {
     price: string
     returns: { '1w': string; '1m': string; '3m': string; ytd: string }
@@ -81,6 +84,27 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
         </div>
       </div>
 
+      {/* 데이터 출처 */}
+      {data.sources && data.sources.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '0 4px' }}>
+          <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>출처:</span>
+          {data.sources.map((s, i) => (
+            s.url ? (
+              <a
+                key={i}
+                href="#"
+                onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(s.url) }}
+                style={{ fontSize: 10, color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}
+              >
+                {s.name}
+              </a>
+            ) : (
+              <span key={i} style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{s.name}</span>
+            )
+          ))}
+        </div>
+      )}
+
       {/* 이동평균선 */}
       <SimpleTable
         title="이동평균선"
@@ -103,7 +127,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
             ))}
           </div>
           <div style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>
-            {data.momentum.macd.interpretation}
+            <LinkText>{data.momentum.macd.interpretation}</LinkText>
           </div>
         </div>
       </div>
@@ -120,7 +144,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
           ))}
         </div>
         <div style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>
-          {data.bollingerBands.interpretation}
+          <LinkText>{data.bollingerBands.interpretation}</LinkText>
         </div>
       </div>
 
@@ -136,7 +160,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
           ))}
         </div>
         <div style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>
-          {data.volume.interpretation}
+          <LinkText>{data.volume.interpretation}</LinkText>
         </div>
       </div>
 
@@ -157,7 +181,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
       </div>
       {data.week52.interpretation && (
         <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px', marginTop: -8 }}>
-          {data.week52.interpretation}
+          <LinkText>{data.week52.interpretation}</LinkText>
         </div>
       )}
 
@@ -173,7 +197,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
               )}
             </div>
             {data.chartPattern.implication && (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{data.chartPattern.implication}</div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6 }}><LinkText>{data.chartPattern.implication}</LinkText></div>
             )}
           </div>
         </div>
@@ -197,7 +221,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
           </div>
         )}
         <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>
-          {data.technicalSummary.rationale}
+          <LinkText>{data.technicalSummary.rationale}</LinkText>
         </div>
       </div>
 
@@ -231,7 +255,7 @@ function SimpleTable({ title, columns, rows, interpretation }: { title: string; 
         </tbody>
       </table>
       {interpretation && (
-        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>{interpretation}</div>
+        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#f8fafc' }}><LinkText>{interpretation}</LinkText></div>
       )}
     </div>
   )
@@ -245,7 +269,7 @@ function MetricCard({ title, value, interpretation }: { title: string; value: st
         <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>{value}</div>
       </div>
       {interpretation && (
-        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#f8fafc' }}>{interpretation}</div>
+        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#f8fafc' }}><LinkText>{interpretation}</LinkText></div>
       )}
     </div>
   )

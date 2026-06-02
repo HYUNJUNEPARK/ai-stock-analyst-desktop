@@ -35,6 +35,12 @@
   "company": "[회사명]",
   "ticker": "[티커]",
   "asOfDate": "[기준일]",
+  "sources": [
+    {
+      "name": "[출처명. 예: StockAnalysis, Yahoo Finance, TradingView 등]",
+      "url": "[출처 URL. 확인 가능한 경우 원문 링크, 불가 시 빈 문자열]"
+    }
+  ],
   "currentPrice": {
     "price": "[미국 주식이면 $XXX.XX, 한국 주식이면 XX,XXX원]",
     "returns": {

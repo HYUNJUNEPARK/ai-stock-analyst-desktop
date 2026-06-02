@@ -40,6 +40,7 @@
   "securitiesReports": [
     {
       "firm": "[증권사명]",
+      "url": "[리포트 URL. 확인 가능한 경우 원문 링크, 불가 시 빈 문자열]",
       "date": "[리포트 발행일]",
       "opinion": "[매수/중립/매도]",
       "targetPrice": "[목표주가]",

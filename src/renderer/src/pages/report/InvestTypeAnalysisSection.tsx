@@ -1,4 +1,5 @@
 import { FiAlertTriangle } from 'react-icons/fi'
+import LinkText from './LinkText'
 
 export type InvestTypeData = {
   company: string
@@ -79,11 +80,11 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ padding: '12px 16px', background: 'var(--bg-secondary)', borderRadius: 10, border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>핵심 투자 아이디어</div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', lineHeight: 1.65 }}>{data.coreIdea}</div>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-primary)', lineHeight: 1.65 }}><LinkText>{data.coreIdea}</LinkText></div>
           </div>
           {data.horizonReason && (
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px' }}>
-              {data.horizonReason}
+              <LinkText>{data.horizonReason}</LinkText>
             </div>
           )}
         </div>
@@ -103,13 +104,13 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
         ] as [string, string][]).map(([label, content]) => (
           <div key={label} style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)', display: 'flex', gap: 10 }}>
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0, width: 80 }}>{label}</span>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>{content}</span>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}><LinkText>{content}</LinkText></span>
           </div>
         ))}
         {data.rationale.conflict && data.rationale.conflict !== '없음' && (
           <div style={{ padding: '10px 14px', background: '#fffbeb', display: 'flex', gap: 10 }}>
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#d97706', flexShrink: 0, width: 80 }}>충돌 사항</span>
-            <span style={{ fontSize: 'var(--text-xs)', color: '#92400e', lineHeight: 1.65 }}>{data.rationale.conflict}</span>
+            <span style={{ fontSize: 'var(--text-xs)', color: '#92400e', lineHeight: 1.65 }}><LinkText>{data.rationale.conflict}</LinkText></span>
           </div>
         )}
       </div>
@@ -124,7 +125,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
             {data.keyIndicators.map((item, i) => (
               <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#2563eb', display: 'inline-block' }} />
-                {item}
+                <LinkText>{item}</LinkText>
               </div>
             ))}
           </div>
@@ -142,7 +143,7 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
             {data.risks.map((risk, i) => (
               <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-                {risk}
+                <LinkText>{risk}</LinkText>
               </div>
             ))}
           </div>

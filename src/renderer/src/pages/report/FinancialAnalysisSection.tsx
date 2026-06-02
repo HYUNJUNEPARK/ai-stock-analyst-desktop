@@ -1,4 +1,5 @@
 import { FiAlertTriangle, FiTrendingUp } from 'react-icons/fi'
+import LinkText from './LinkText'
 
 export type FinancialData = {
   company: string
@@ -74,10 +75,10 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
           >
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>현재 주가</div>
             <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>{data.currentPrice.price}</div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.5 }}>{data.currentPrice.interpretation}</div>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.5 }}><LinkText>{data.currentPrice.interpretation}</LinkText></div>
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px' }}>
-            {data.grade.rationale}
+            <LinkText>{data.grade.rationale}</LinkText>
           </div>
         </div>
       </div>
@@ -203,7 +204,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
                     display: 'inline-block',
                   }}
                 />
-                {risk}
+                <LinkText>{risk}</LinkText>
               </div>
             ))}
           </div>
@@ -348,7 +349,7 @@ function FinancialTableCard({
             background: '#f8fafc',
           }}
         >
-          {interpretation}
+          <LinkText>{interpretation}</LinkText>
         </div>
       )}
     </div>
@@ -388,7 +389,7 @@ function FinancialMetricCard({
             background: '#f8fafc',
           }}
         >
-          {interpretation}
+          <LinkText>{interpretation}</LinkText>
         </div>
       )}
     </div>

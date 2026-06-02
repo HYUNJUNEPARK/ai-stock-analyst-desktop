@@ -1,8 +1,10 @@
+import LinkText from './LinkText'
+
 export type ValuationData = {
   company: string
   ticker: string
   asOfDate: string
-  securitiesReports: { firm: string; date: string; opinion: string; targetPrice: string; rationale: string; note: string }[]
+  securitiesReports: { firm: string; url?: string; date: string; opinion: string; targetPrice: string; rationale: string; note: string }[]
   targetPriceRange: { min: string; max: string; avg: string; median: string; summary: string }
   fairValueScenarios: { scenario: string; priceRange: string; assumption: string; valuation: string; vsCurrentPrice: string }[]
   priceZones: { zone: string; judgment: string; interpretation: string; strategy: string }[]
@@ -48,7 +50,7 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
             <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>{data.currentPriceAnalysis.currentPrice}</div>
           </div>
           <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, padding: '0 4px' }}>
-            {data.finalVerdict.summary}
+            <LinkText>{data.finalVerdict.summary}</LinkText>
           </div>
         </div>
       </div>
@@ -91,12 +93,14 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
               {data.securitiesReports.map((r, i) => (
                 <tr key={i}>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>
-                    {r.firm}{r.note && <span style={{ fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 4 }}>({r.note})</span>}
+                    {r.url ? (
+                      <a href="#" onClick={(e) => { e.preventDefault(); window.api.openExternalUrl(r.url!) }} style={{ color: 'var(--accent)', textDecoration: 'underline', cursor: 'pointer' }}>{r.firm}</a>
+                    ) : r.firm}{r.note && <span style={{ fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 4 }}>({r.note})</span>}
                   </td>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.date}</td>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.opinion}</td>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.targetPrice}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{r.rationale}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.securitiesReports.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{r.rationale}</LinkText></td>
                 </tr>
               ))}
             </tbody>
@@ -117,7 +121,7 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
                   <span style={{ fontSize: 'var(--text-sm)', fontWeight: 800, color: 'var(--text-primary)' }}>{s.priceRange}</span>
                   <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{s.vsCurrentPrice}</span>
                 </div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{s.assumption}</div>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.5 }}><LinkText>{s.assumption}</LinkText></div>
               </div>
             )
           })}
@@ -141,8 +145,8 @@ export default function ValuationAnalysisSection({ data }: { data: ValuationData
                 <tr key={i}>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-primary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.zone}</td>
                   <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', fontWeight: 700, color: getJudgmentStyle(z.judgment).color, borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.judgment}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.interpretation}</td>
-                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}>{z.strategy}</td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{z.interpretation}</LinkText></td>
+                  <td style={{ padding: '7px 10px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', borderBottom: i < data.priceZones.length - 1 ? '1px solid var(--border)' : 'none', background: 'var(--bg-primary)' }}><LinkText>{z.strategy}</LinkText></td>
                 </tr>
               ))}
             </tbody>
