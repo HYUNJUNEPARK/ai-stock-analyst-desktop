@@ -14,6 +14,7 @@ const promptsDir = path.join(projectRoot, 'prompts')
 const reportsDir = path.join(projectRoot, 'reports')
 const codexCommand = process.env.CODEX_BIN || 'codex'
 
+/** 역할 → 프롬프트 템플릿 파일명 (prompts/ 디렉토리) */
 const ROLE_FILES = {
   'financial-analyst-kr': 'financial-analyst-kr.md',
   'news-sentiment-analyst': 'news-sentiment-analyst.md',
@@ -22,6 +23,11 @@ const ROLE_FILES = {
   'valuation-analyst': 'valuation-analyst.md',
   'invest-type-classifier': 'invest-type-classifier.md',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
+}
+
+/** 역할 → artifact 출력 파일명 (기본값: 프롬프트 파일명과 동일, JSON 출력인 경우 .json) */
+const ROLE_OUTPUT_FILES = {
+  'financial-analyst-kr': 'financial-analyst-kr.json',
 }
 
 /** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */
@@ -62,8 +68,8 @@ async function main() {
     return
   }
 
-  const company = options.company || extractCompany(options.request) || '미지정 종목'
   const ticker = options.ticker || extractTicker(options.request) || 'unknown'
+  const company = options.company || extractCompany(options.request) || (ticker !== 'unknown' ? ticker : '미지정 종목')
   const asOfDateFile = formatDate(new Date())
   const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company)
@@ -93,25 +99,25 @@ async function main() {
   const financialPromise = runRole({
     role: 'financial-analyst-kr',
     context,
-    outputPath: path.join(artifactDir, 'financial-analyst-kr.md'),
+    outputPath: path.join(artifactDir, getOutputFileName('financial-analyst-kr')),
     model: options.model
   })
   const sectorPromise = runRole({
     role: 'sector-researcher',
     context,
-    outputPath: path.join(artifactDir, 'sector-researcher.md'),
+    outputPath: path.join(artifactDir, getOutputFileName('sector-researcher')),
     model: options.model
   })
   const newsPromise = runRole({
     role: 'news-sentiment-analyst',
     context,
-    outputPath: path.join(artifactDir, 'news-sentiment-analyst.md'),
+    outputPath: path.join(artifactDir, getOutputFileName('news-sentiment-analyst')),
     model: options.model
   })
   const pricePromise = runRole({
     role: 'price-analyst',
     context,
-    outputPath: path.join(artifactDir, 'price-analyst.md'),
+    outputPath: path.join(artifactDir, getOutputFileName('price-analyst')),
     model: options.model
   })
 
@@ -135,7 +141,7 @@ async function main() {
       FINANCIAL_ANALYSIS: financialOutcome.status === 'fulfilled' ? financialOutcome.value.content : '',
       SECTOR_ANALYSIS: sectorOutcome.status === 'fulfilled' ? sectorOutcome.value.content : ''
     },
-    outputPath: path.join(artifactDir, 'valuation-analyst.md'),
+    outputPath: path.join(artifactDir, getOutputFileName('valuation-analyst')),
     model: options.model
   })
 
@@ -185,7 +191,7 @@ async function main() {
     VALUATION_ANALYSIS: resultMap['valuation-analyst'] ?? ''
   }
 
-  const classifierOutputPath = path.join(artifactDir, 'invest-type-classifier.md')
+  const classifierOutputPath = path.join(artifactDir, getOutputFileName('invest-type-classifier'))
   let classifierContent = ''
   try {
     const classifierResult = await runRole({
@@ -210,7 +216,7 @@ async function main() {
     INVEST_TYPE_ANALYSIS: classifierContent
   }
 
-  const strategistOutputPath = path.join(artifactDir, 'aggressive-investment-strategist.md')
+  const strategistOutputPath = path.join(artifactDir, getOutputFileName('aggressive-investment-strategist'))
   let finalReport
   try {
     finalReport = await runRole({
@@ -238,6 +244,11 @@ async function main() {
   await writeFile(finalReportPath, JSON.stringify(reportJson, null, 2), 'utf8')
 
   console.log(`최종 리포트 저장 완료: ${finalReportPath}`)
+}
+
+/** 역할에 대응하는 artifact 출력 파일명을 반환한다. */
+function getOutputFileName(role) {
+  return ROLE_OUTPUT_FILES[role] || ROLE_FILES[role]
 }
 
 async function runRole({ role, context, outputPath, model }) {

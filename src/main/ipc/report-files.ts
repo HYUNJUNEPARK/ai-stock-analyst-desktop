@@ -127,7 +127,7 @@ export function registerReportFilesHandlers(): void {
       }
     }
     return {
-      financial: read('financial-analyst-kr.md'),
+      financial: read('financial-analyst-kr.json') || read('financial-analyst-kr.md'),
       news: read('news-sentiment-analyst.md'),
       sector: read('sector-researcher.md'),
       price: read('price-analyst.md'),

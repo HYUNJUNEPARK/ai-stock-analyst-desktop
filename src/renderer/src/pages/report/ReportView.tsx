@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
+import FinancialAnalysisSection, { tryParseFinancialJson } from './FinancialAnalysisSection'
 import { gptIcon, claudeIcon } from '../../assets'
 import {
   FiUsers,
@@ -267,6 +268,20 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                     투자 유형 분석 데이터가 없습니다.
                   </div>
                 )
+          ) : activeTab === 'financial' ? (
+            (() => {
+              // 재무 분석
+              const parsed = tryParseFinancialJson(artifacts?.financial ?? '')
+              return parsed
+                ? <FinancialAnalysisSection data={parsed} />
+                : artifacts?.financial
+                  ? <MarkdownRenderer text={artifacts.financial} isStreaming={false} />
+                  : (
+                    <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
+                      재무 분석 데이터가 없습니다.
+                    </div>
+                  )
+            })()
           ) : activeTab === 'valuation' ? (
             artifacts?.valuation
               ? <MarkdownRenderer text={artifacts.valuation} isStreaming={false} />
@@ -278,10 +293,9 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
           ) : (
             <MarkdownRenderer
               text={
-                activeTab === 'financial' ? (artifacts?.financial ?? '') :
-                  activeTab === 'news' ? (artifacts?.news ?? '') :
-                    activeTab === 'price' ? (artifacts?.price ?? '') :
-                      (artifacts?.sector ?? '')
+                activeTab === 'news' ? (artifacts?.news ?? '') :
+                  activeTab === 'price' ? (artifacts?.price ?? '') :
+                    (artifacts?.sector ?? '')
               }
               isStreaming={false}
             />
