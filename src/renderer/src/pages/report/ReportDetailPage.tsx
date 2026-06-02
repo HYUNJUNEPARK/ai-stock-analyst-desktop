@@ -39,6 +39,9 @@ export default function ReportDetailPage(): React.JSX.Element {
         setError(result.error)
       }
       setLoading(false)
+    }).catch((err) => {
+      setError(err instanceof Error ? err.message : '보고서를 불러오는 중 오류가 발생했습니다.')
+      setLoading(false)
     })
   }, [name])
 
@@ -178,8 +181,42 @@ export default function ReportDetailPage(): React.JSX.Element {
               )}
 
               {!loading && error && (
-                <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
-                  보고서를 불러올 수 없습니다. 
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  minHeight: 180,
+                  textAlign: 'center'
+                }}>
+                  <div style={{
+                    fontSize: 'var(--text-base)',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                  }}>
+                    보고서를 불러올 수 없습니다
+                  </div>
+                  <div style={{
+                    fontSize: 'var(--text-sm)',
+                    color: 'var(--text-tertiary)',
+                    lineHeight: 1.5,
+                    maxWidth: 320
+                  }}>
+                    {error}
+                  </div>
+                  <button
+                    className="btn-ghost"
+                    onClick={handleCloseOrBack}
+                    style={{
+                      marginTop: 4,
+                      padding: '6px 16px',
+                      borderRadius: 8,
+                      fontSize: 'var(--text-sm)'
+                    }}
+                  >
+                    {isStandaloneWindow ? '닫기' : '돌아가기'}
+                  </button>
                 </div>
               )}
 

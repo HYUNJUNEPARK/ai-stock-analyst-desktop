@@ -13,6 +13,7 @@ import { mkdirSync, existsSync, readFileSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { CLI_PREFIX } from '../constants'
 import { spawnCommand, safeSend } from '../utils/spawn'
+import { getEnhancedPath } from '../utils/cli'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
 /**
@@ -60,7 +61,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     // 실행 명령: npm install --prefix ~/.ai-cli-launcher @anthropic-ai/claude-code
     //          npm install --prefix ~/.ai-cli-launcher @openai/codex
     const child = spawnCommand(npmCmd, ['install', '--prefix', CLI_PREFIX, pkg], {
-      env: { ...process.env },
+      env: { ...process.env, PATH: getEnhancedPath() },
       stdio: ['ignore', 'pipe', 'pipe']
     })
 

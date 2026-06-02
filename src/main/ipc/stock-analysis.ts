@@ -33,7 +33,7 @@ import { readFileSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import { spawnCommand, writeTerminalLine, safeSend } from '../utils/spawn'
-import { getCliCommand, resolveCliCommand } from '../utils/cli'
+import { getCliCommand, resolveCliCommand, getEnhancedPath } from '../utils/cli'
 
 /**
  * 에이전트 내부 식별자 → UI 표시용 한글 레이블 매핑
@@ -114,7 +114,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
     IPC.RUN_STOCK_ANALYSIS,
     (_event, { model, prompt }: { model: string; prompt: string }) => {
       console.log(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
-      const env: NodeJS.ProcessEnv = { ...process.env }
+      const env: NodeJS.ProcessEnv = { ...process.env, PATH: getEnhancedPath() }
 
       if (model === 'gpt') {
         runGptAnalysis({ win, env, prompt, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })

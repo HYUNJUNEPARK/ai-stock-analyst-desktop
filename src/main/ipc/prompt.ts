@@ -8,7 +8,7 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
 import { spawnCommand, safeSend } from '../utils/spawn'
-import { getCliCommand } from '../utils/cli'
+import { getCliCommand, getEnhancedPath } from '../utils/cli'
 
 /**
  * 단발 프롬프트 실행 IPC 핸들러를 등록한다.
@@ -51,7 +51,7 @@ export function registerPromptHandlers(win: BrowserWindow): void {
       }
 
       const child = spawnCommand(cmd, args, {
-        env: { ...process.env },
+        env: { ...process.env, PATH: getEnhancedPath() },
         stdio: ['ignore', 'pipe', 'pipe']
       })
 

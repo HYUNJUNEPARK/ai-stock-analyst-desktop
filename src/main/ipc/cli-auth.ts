@@ -11,7 +11,7 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
 import { spawnCommand, safeSend } from '../utils/spawn'
-import { resolveCliCommand, streamLines } from '../utils/cli'
+import { resolveCliCommand, streamLines, getEnhancedPath } from '../utils/cli'
 
 /**
  * Claude 또는 Codex CLI의 로그인 명령을 실행한다.
@@ -50,7 +50,7 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
 
   // 실행 명령: claude login, codex login
   const child = spawnCommand(resolved.command, args, {
-    env: { ...process.env },
+    env: { ...process.env, PATH: getEnhancedPath() },
     stdio: ['ignore', 'pipe', 'pipe']
   })
 

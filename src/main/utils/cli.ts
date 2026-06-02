@@ -11,10 +11,60 @@
 
 import { join } from 'path'
 import { existsSync } from 'fs'
-import { spawn, spawnSync } from 'child_process'
+import { execSync, spawn, spawnSync } from 'child_process'
+import { homedir } from 'os'
 import type { BrowserWindow } from 'electron'
 import { safeSend } from './spawn'
 import { CLI_BIN } from '../constants'
+
+/**
+ * 패키징된 Electron 앱에서 사용할 보강된 PATH를 반환한다.
+ *
+ * 문제 배경:
+ *   macOS에서 .app 번들로 실행하면 쉘 프로필(.zshrc 등)이 로드되지 않아
+ *   PATH가 /usr/bin:/bin:/usr/sbin:/sbin 정도로 매우 제한적이다.
+ *   npm으로 설치한 CLI(codex, claude 등)를 찾으려면 추가 경로가 필요하다.
+ *
+ * 해결 방법:
+ *   1. 사용자의 기본 쉘에서 실제 PATH를 가져온다 (가장 정확)
+ *   2. 실패 시 일반적인 경로를 수동으로 추가한다
+ */
+let _cachedEnhancedPath: string | null = null
+
+export function getEnhancedPath(): string {
+  if (_cachedEnhancedPath) return _cachedEnhancedPath
+
+  const currentPath = process.env['PATH'] ?? ''
+
+  // 사용자 쉘에서 실제 PATH 가져오기 시도
+  try {
+    const shell = process.env['SHELL'] ?? '/bin/zsh'
+    const shellPath = execSync(`${shell} -ilc 'echo $PATH'`, {
+      encoding: 'utf-8',
+      timeout: 5000
+    }).trim()
+    if (shellPath) {
+      _cachedEnhancedPath = shellPath
+      return _cachedEnhancedPath
+    }
+  } catch {
+    // 쉘 실행 실패 시 폴백
+  }
+
+  // 폴백: 일반적인 npm/node 설치 경로를 수동으로 추가
+  const home = homedir()
+  const extraPaths = [
+    join(home, '.npm-global', 'bin'),
+    join(home, '.nvm', 'versions', 'node'),  // nvm 사용자
+    '/usr/local/bin',
+    '/opt/homebrew/bin',                       // Apple Silicon Homebrew
+    join(home, '.local', 'bin'),
+    join(home, 'bin')
+  ].filter(existsSync)
+
+  _cachedEnhancedPath = [...new Set([...currentPath.split(':'), ...extraPaths])].join(':')
+  return _cachedEnhancedPath
+}
 
 /**
  * 앱 전용 설치 경로에서 CLI 실행 파일 경로를 반환한다.
@@ -56,7 +106,7 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   const fallbackCommand = process.platform === 'win32' ? `${name}.cmd` : name
   const resolver = process.platform === 'win32' ? 'where' : 'which'
   const result = spawnSync(resolver, [fallbackCommand], {
-    env: { ...process.env },
+    env: { ...process.env, PATH: getEnhancedPath() },
     stdio: 'ignore'
   })
 
