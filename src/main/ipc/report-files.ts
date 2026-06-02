@@ -208,60 +208,80 @@ export function registerReportFilesHandlers(): void {
     // ─────────────────────────────────────────────────────────────────
     const PRINT_CSS = `
       body, #root {
-        height: auto !important;      /* 고정 높이 제거 → 콘텐츠 전체 높이로 확장 */
-        min-height: 0 !important;     /* 100vh min-height로 인한 빈 여백 방지 */
-        overflow: visible !important; /* body 레벨 스크롤 클리핑 제거 */
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
       }
       .page {
-        height: auto !important;      /* 창 높이에 종속된 고정값 해제 */
-        min-height: 0 !important;     /* min-height가 강제 여백을 만드는 것을 방지 */
-        overflow: visible !important; /* 보고서 페이지 래퍼의 클리핑 제거 */
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: 0 !important;
       }
       .page-content {
-        flex: none !important;        /* flexbox 높이 배분에서 벗어나 콘텐츠 크기를 따르게 함 */
-        height: auto !important;      /* 고정 높이 제거 */
-        overflow: visible !important; /* 스크롤 영역의 클리핑 제거 */
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
       }
       .card {
-        overflow: visible !important; /* 카드 컴포넌트 내부 콘텐츠 잘림 방지 */
+        overflow: visible !important;
+      }
+      /* PDF에서 NavBar 숨김 — 보고서 본문(ReportView/MarkdownRenderer)만 남긴다 */
+      .nav-bar {
+        display: none !important;
+      }
+      /* content-container의 상하 여백 제거 */
+      .content-container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
       }
     `
 
     let cssKey: string | undefined
     try {
       // 2. PDF 캡처 (CSS 임시 주입 → reflow 대기 → printToPDF)
-      // cssKey: finally 블록에서 removeInsertedCSS()로 제거할 때 사용하는 핸들
       cssKey = await event.sender.insertCSS(PRINT_CSS)
       await new Promise<void>((r) => setTimeout(r, 300))
 
-      // 한 장짜리 PDF를 생성하기 위해 Chromium DevTools Protocol을 사용한다.
-      // printToPDF는 자체 레이아웃 엔진으로 리렌더링하므로, JS scrollHeight 측정값과
-      // 실제 print 레이아웃 높이가 다를 수 있다. 따라서 CDP의 Page.getLayoutMetrics로
-      // print 엔진이 계산한 실제 콘텐츠 높이를 구한 뒤 그 높이로 PDF를 생성한다.
       const A4_WIDTH_INCH = 8.27
       const MARGIN_INCH = 0.5
 
-      // CDP 세션을 열어 print 레이아웃의 실제 높이를 측정한다.
+      // printToPDF의 콘텐츠 영역 너비(인치 → px).
+      // Chromium의 print 엔진은 1인치 = 96 CSS px로 레이아웃한다.
+      const contentWidthPx = Math.round((A4_WIDTH_INCH - MARGIN_INCH * 2) * 96)
+
+      // CDP로 printToPDF와 동일한 뷰포트 조건에서 콘텐츠 높이를 측정한다.
       const wc = event.sender
       const debugger_ = wc.debugger
       debugger_.attach('1.3')
       try {
-        // Emulation으로 PDF 콘텐츠 너비에 맞춘 뷰포트를 설정한다.
-        const contentWidthPx = Math.round((A4_WIDTH_INCH - MARGIN_INCH * 2) * 96)
+        // 1) 뷰포트를 PDF 콘텐츠 너비에 맞추고 높이를 충분히 크게 설정하여
+        //    콘텐츠가 잘리지 않는 상태에서 레이아웃을 수행시킨다.
         await debugger_.sendCommand('Emulation.setDeviceMetricsOverride', {
           width: contentWidthPx,
-          height: 1,
+          height: 10000,
           deviceScaleFactor: 1,
           mobile: false,
         })
 
-        // 레이아웃을 다시 계산하고 실제 콘텐츠 높이를 가져온다.
-        const layoutMetrics = await debugger_.sendCommand('Page.getLayoutMetrics')
-        const contentHeightPx = Math.ceil(layoutMetrics.contentSize.height)
-        const contentHeightInch = contentHeightPx / 96 + MARGIN_INCH * 2
+        // 2) 레이아웃 완료 대기 후 실제 콘텐츠 높이를 JS로 직접 측정한다.
+        //    Page.getLayoutMetrics의 contentSize는 viewport/document 크기에 영향을 받을 수 있으므로
+        //    숨겨지지 않은 실제 DOM 요소의 높이를 직접 측정하는 것이 더 정확하다.
+        await new Promise<void>((r) => setTimeout(r, 200))
+        const contentHeightPx: number = await wc.executeJavaScript(`
+          (function() {
+            // .card 요소가 실제 보고서 콘텐츠 래퍼이다.
+            var card = document.querySelector('.card');
+            if (card) return card.getBoundingClientRect().height;
+            return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+          })()
+        `)
 
-        // Emulation을 해제한다.
         await debugger_.sendCommand('Emulation.clearDeviceMetricsOverride')
+
+        // 콘텐츠 높이 + 상하 마진으로 페이지 높이를 결정한다.
+        const contentHeightInch = Math.ceil(contentHeightPx) / 96 + MARGIN_INCH * 2
 
         const pdfBuffer = await event.sender.printToPDF({
           printBackground: true,
@@ -269,12 +289,10 @@ export function registerReportFilesHandlers(): void {
           margins: { marginType: 'custom', top: MARGIN_INCH, bottom: MARGIN_INCH, left: MARGIN_INCH, right: MARGIN_INCH },
         })
 
-        // 3. 파일 저장
         writeFileSync(filePath, pdfBuffer)
         console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
         return { success: true, filePath }
       } finally {
-        // CDP 디버거 세션을 반드시 해제한다.
         try { debugger_.detach() } catch (_) { /* 이미 detach된 경우 무시 */ }
       }
     } catch (err) {
