@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { spawn } from 'node:child_process'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile, rm, readdir, rmdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -13,6 +13,8 @@ const projectRoot = path.resolve(__dirname, '..')
 const promptsDir = path.join(projectRoot, 'prompts')
 const reportsDir = path.join(projectRoot, 'reports')
 const codexCommand = process.env.CODEX_BIN || 'codex'
+let pendingArtifactDir = ''
+let pendingDateDir = ''
 
 /** 역할 → 프롬프트 템플릿 파일명 (prompts/ 디렉토리) */
 const ROLE_FILES = {
@@ -83,6 +85,8 @@ async function main() {
   const artifactDir = resolveUniqueFolderPath(dateDir, identifier)
   const finalReportPath = path.join(artifactDir, getOutputFileName('aggressive-investment-strategist'))
   const aiInfo = buildAiInfo(options.model)
+  pendingArtifactDir = artifactDir
+  pendingDateDir = dateDir
 
   await mkdir(artifactDir, { recursive: true })
 
@@ -96,6 +100,8 @@ async function main() {
 
   if (options.dryRun) {
     console.log(JSON.stringify({ context, artifactDir, finalReportPath }, null, 2))
+    pendingArtifactDir = ''
+    pendingDateDir = ''
     return
   }
 
@@ -250,6 +256,8 @@ async function main() {
   await writeFile(finalReportPath, JSON.stringify(reportJson, null, 2), 'utf8')
 
   console.log(`최종 리포트 저장 완료: ${finalReportPath}`)
+  pendingArtifactDir = ''
+  pendingDateDir = ''
 }
 
 /** 역할에 대응하는 artifact 출력 파일명을 반환한다. */
@@ -304,12 +312,14 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 7 * 60 * 1000 }) {
       args.push('--model', model)
     }
 
-    args.push(prompt)
+    args.push('-')
 
     const child = spawnCommand(codexCommand, args, {
       cwd: projectRoot,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe']
     })
+
+    child.stdin.end(prompt)
 
     const timer = setTimeout(() => {
       child.kill()
@@ -505,6 +515,36 @@ function resolveUniqueFolderPath(dir, baseName) {
   return path.join(dir, `${baseName}_${i}`)
 }
 
+function isPathInside(parent, candidate) {
+  const resolvedParent = path.resolve(parent)
+  const resolvedCandidate = path.resolve(candidate)
+  return resolvedCandidate.startsWith(`${resolvedParent}${path.sep}`)
+}
+
+async function cleanupFailedArtifacts(artifactDir, dateDir) {
+  if (!artifactDir) return
+
+  const resolvedArtifactDir = path.resolve(artifactDir)
+  if (!isPathInside(reportsDir, resolvedArtifactDir)) {
+    console.warn(`[cleanup] skip removing path outside reports: ${resolvedArtifactDir}`)
+    return
+  }
+
+  try {
+    await rm(resolvedArtifactDir, { recursive: true, force: true })
+    console.warn(`[cleanup] removed failed analysis artifacts: ${resolvedArtifactDir}`)
+
+    if (dateDir && isPathInside(reportsDir, dateDir)) {
+      const entries = await readdir(dateDir)
+      if (entries.length === 0) {
+        await rmdir(dateDir)
+      }
+    }
+  } catch (error) {
+    console.warn(`[cleanup] failed to remove analysis artifacts: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
 function printHelp() {
   console.log(`
 사용법:
@@ -521,7 +561,8 @@ function printHelp() {
 `)
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
+  await cleanupFailedArtifacts(pendingArtifactDir, pendingDateDir)
   console.error(error instanceof Error ? error.message : String(error))
   process.exitCode = 1
 })

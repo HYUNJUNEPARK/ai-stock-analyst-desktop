@@ -64,6 +64,10 @@ export function safeSend(win: BrowserWindow, channel: string, ...args: unknown[]
 export function writeTerminalLine(message: string, isError = false): void {
   if (process.platform === 'win32') {
     const stream = isError ? process.stderr : process.stdout
+    if (process.env['AI_CLI_LAUNCHER_UTF8_CONSOLE'] === '1') {
+      stream.write(`${message}\n`)
+      return
+    }
     stream.write(iconv.encode(`${message}\n`, 'cp949'))
     return
   }
