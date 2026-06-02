@@ -5,7 +5,6 @@ import {
   FiClock,
   FiTarget,
   FiUsers,
-
 } from 'react-icons/fi'
 import {
   IoNewspaperOutline,

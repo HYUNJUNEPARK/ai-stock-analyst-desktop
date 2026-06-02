@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { gptIcon, claudeIcon } from '../../assets'
 import {
-  FiFileText,
   FiUsers,
-  FiTrendingUp,
   FiTarget,
   FiBarChart2,
   FiList,
   FiShield,
   FiCheckCircle,
 } from 'react-icons/fi'
-import { LuNewspaper, LuDiamond } from 'react-icons/lu'
+import {
+  IoNewspaperOutline,
+  IoDiamondOutline,
+  IoDocumentTextOutline,
+} from 'react-icons/io5'
+import { FaChartLine } from 'react-icons/fa6'
+import { LuScale } from 'react-icons/lu'
 
 type InvestType = {
   type: string
@@ -351,7 +355,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
           </div>
           {/* 목표 주가 */}
           <div style={{ padding: '16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>목표 주가</div>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>현재 주가</div>
             <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>
               {data.strategy.targetPrice || data.strategy.currentPrice}
             </div>
@@ -575,12 +579,12 @@ function calcPctFromCurrent(itemPrice: string, currentPrice: string): string | n
 
 
 const ANALYSIS_ICONS: Record<string, React.ReactNode> = {
-  financial: <FiFileText size={16} />,
+  financial: <IoDocumentTextOutline size={16} />,
   sector: <FiUsers size={16} />,
-  news: <LuNewspaper size={16} />,
-  price: <FiTrendingUp size={16} />,
-  valuation: <LuDiamond size={16} />,
-  investType: <FiTarget size={16} />,
+  news: <IoNewspaperOutline size={16} />,
+  price: <FaChartLine size={16} />,
+  valuation: <IoDiamondOutline size={16} />,
+  investType: <LuScale size={16} />,
 }
 
 const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; fullLabel: string; analysisKey?: 'financial' | 'news' | 'sector' | 'price' }[] = [
@@ -662,7 +666,7 @@ function AnalysisSummarySection({
       <div
         style={{
           padding: '10px 16px',
-          background: 'var(--bg-secondary)',
+          background: '#fff',
           borderBottom: '1px solid var(--border)',
           fontSize: 'var(--text-sm)',
           fontWeight: 700,
@@ -676,7 +680,7 @@ function AnalysisSummarySection({
           key={key}
           style={{
             padding: '14px 16px',
-            background: 'var(--bg-primary)',
+            background: '#fff',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
             gap: 12,
@@ -687,7 +691,8 @@ function AnalysisSummarySection({
             width: 36,
             height: 36,
             borderRadius: 8,
-            background: 'var(--bg-secondary)',
+            background: '#fff',
+            border: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -760,8 +765,8 @@ const STRATEGY_ICONS: Record<string, React.ReactNode> = {
   '진입 전략': <FiTarget size={16} />,
   '포지션 비중': <FiBarChart2 size={16} />,
   '실행 계획': <FiList size={16} />,
-  '익절/손절 전략': <FiTrendingUp size={16} />,
-  '권장 보유 기간': <FiFileText size={16} />,
+  '익절/손절 전략': <FaChartLine size={16} />,
+  '권장 보유 기간': <IoDocumentTextOutline size={16} />,
   '리스크 관리': <FiShield size={16} />,
 }
 
