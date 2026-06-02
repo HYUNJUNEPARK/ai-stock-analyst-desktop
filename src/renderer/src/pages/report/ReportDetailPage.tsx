@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { LuDownload } from 'react-icons/lu'
+import { LuDownload, LuMinus, LuPlus } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import NavBar from '../../components/NavBar'
 import type { ComponentProps } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
-import ReportView from './ReportView'
+import ReportView, { ZOOM_LEVELS, DEFAULT_ZOOM_INDEX } from './ReportView'
 import { ROUTES } from '../../routes'
 
 type GptReport = ComponentProps<typeof ReportView>['data']
@@ -19,6 +19,7 @@ export default function ReportDetailPage(): React.JSX.Element {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [savingPdf, setSavingPdf] = useState(false)
+  const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX)
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Page] ReportDetailPage 렌더링')
@@ -69,39 +70,90 @@ export default function ReportDetailPage(): React.JSX.Element {
         rightAction={
           !loading && !error && data
             ? (
-              <button
-                onClick={handleSavePdf}
-                disabled={savingPdf}
-                title="PDF 저장"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 32,
-                  height: 32,
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: savingPdf ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {savingPdf ? (
-                  <span
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid var(--border)',
+                    borderRadius: 8,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <button
+                    onClick={() => setZoomIndex((i) => Math.max(0, i - 1))}
+                    disabled={zoomIndex === 0}
+                    title="축소"
                     style={{
-                      display: 'block',
-                      width: 16,
-                      height: 16,
-                      border: '2px solid var(--border)',
-                      borderTopColor: 'var(--text-primary)',
-                      borderRadius: '50%',
-                      animation: 'spin 0.8s linear infinite',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 28,
+                      height: 28,
+                      background: 'transparent',
+                      color: zoomIndex === 0 ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: zoomIndex === 0 ? 'default' : 'pointer',
+                      opacity: zoomIndex === 0 ? 0.4 : 1,
                     }}
-                  />
-                ) : (
-                  <LuDownload size={18} />
-                )}
-              </button>
+                  >
+                    <LuMinus size={14} />
+                  </button>
+                  <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
+                  <button
+                    onClick={() => setZoomIndex((i) => Math.min(ZOOM_LEVELS.length - 1, i + 1))}
+                    disabled={zoomIndex === ZOOM_LEVELS.length - 1}
+                    title="확대"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 28,
+                      height: 28,
+                      background: 'transparent',
+                      color: zoomIndex === ZOOM_LEVELS.length - 1 ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                      border: 'none',
+                      cursor: zoomIndex === ZOOM_LEVELS.length - 1 ? 'default' : 'pointer',
+                      opacity: zoomIndex === ZOOM_LEVELS.length - 1 ? 0.4 : 1,
+                    }}
+                  >
+                    <LuPlus size={14} />
+                  </button>
+                </div>
+                <button
+                  onClick={handleSavePdf}
+                  disabled={savingPdf}
+                  title="PDF 저장"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 32,
+                    height: 32,
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    border: 'none',
+                    borderRadius: 8,
+                    cursor: savingPdf ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {savingPdf ? (
+                    <span
+                      style={{
+                        display: 'block',
+                        width: 16,
+                        height: 16,
+                        border: '2px solid var(--border)',
+                        borderTopColor: 'var(--text-primary)',
+                        borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite',
+                      }}
+                    />
+                  ) : (
+                    <LuDownload size={18} />
+                  )}
+                </button>
+              </div>
             )
             : undefined
         }
@@ -128,7 +180,7 @@ export default function ReportDetailPage(): React.JSX.Element {
 
               {!loading && !error && data && (
                 isGpt
-                  ? <ReportView data={data as unknown as GptReport} />
+                  ? <ReportView data={data as unknown as GptReport} zoomIndex={zoomIndex} />
                   : <MarkdownRenderer text={JSON.stringify(data, null, 2)} isStreaming={false} />
               )}
             </div>

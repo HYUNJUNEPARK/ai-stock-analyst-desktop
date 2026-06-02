@@ -24,6 +24,17 @@ const ROLE_FILES = {
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
 }
 
+/** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */
+const ROLE_TIMEOUT = {
+  'financial-analyst-kr': 7 * 60 * 1000,
+  'news-sentiment-analyst': 7 * 60 * 1000,
+  'sector-researcher': 7 * 60 * 1000,
+  'price-analyst': 7 * 60 * 1000,
+  'valuation-analyst': 7 * 60 * 1000,
+  'invest-type-classifier': 7 * 60 * 1000,
+  'aggressive-investment-strategist': 10 * 60 * 1000
+}
+
 function spawnCommand(command, args, options) {
   if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
     return spawn(process.env.COMSPEC || 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
@@ -155,6 +166,16 @@ async function main() {
     'valuation-analyst': valuationOutcome.status === 'fulfilled' ? valuationOutcome.value.content : undefined
   }
 
+  // Codex stderr에서 감지된 실제 모델명으로 aiInfo 업데이트
+  const allOutcomes = [financialOutcome, sectorOutcome, newsOutcome, priceOutcome, valuationOutcome]
+  const autoDetectedModel = allOutcomes
+    .filter((o) => o.status === 'fulfilled' && o.value.detectedModel)
+    .map((o) => o.value.detectedModel)[0]
+  if (autoDetectedModel) {
+    aiInfo.model = autoDetectedModel
+    context.AI_MODEL = autoDetectedModel
+  }
+
   const classifierContext = {
     ...context,
     FINANCIAL_ANALYSIS: resultMap['financial-analyst-kr'] ?? '',
@@ -165,12 +186,19 @@ async function main() {
   }
 
   const classifierOutputPath = path.join(artifactDir, 'invest-type-classifier.md')
-  const classifierResult = await runRole({
-    role: 'invest-type-classifier',
-    context: classifierContext,
-    outputPath: classifierOutputPath,
-    model: options.model
-  })
+  let classifierContent = ''
+  try {
+    const classifierResult = await runRole({
+      role: 'invest-type-classifier',
+      context: classifierContext,
+      outputPath: classifierOutputPath,
+      model: options.model
+    })
+    classifierContent = classifierResult.content
+  } catch (err) {
+    console.error('[실패] invest-type-classifier')
+    console.warn(`[경고] 투자 유형 분류 에이전트 실패. 해당 데이터 없이 계속 진행합니다. (${err?.message ?? 'unknown'})`)
+  }
 
   const strategistContext = {
     ...context,
@@ -179,16 +207,22 @@ async function main() {
     SECTOR_ANALYSIS: resultMap['sector-researcher'] ?? '',
     PRICE_ANALYSIS: resultMap['price-analyst'] ?? '',
     VALUATION_ANALYSIS: resultMap['valuation-analyst'] ?? '',
-    INVEST_TYPE_ANALYSIS: classifierResult.content
+    INVEST_TYPE_ANALYSIS: classifierContent
   }
 
   const strategistOutputPath = path.join(artifactDir, 'aggressive-investment-strategist.md')
-  const finalReport = await runRole({
-    role: 'aggressive-investment-strategist',
-    context: strategistContext,
-    outputPath: strategistOutputPath,
-    model: options.model
-  })
+  let finalReport
+  try {
+    finalReport = await runRole({
+      role: 'aggressive-investment-strategist',
+      context: strategistContext,
+      outputPath: strategistOutputPath,
+      model: options.model
+    })
+  } catch (err) {
+    console.error(`[실패] aggressive-investment-strategist: ${err?.message ?? 'unknown'}`)
+    throw new Error('최종 투자 전략 에이전트 실패. 리포트를 생성할 수 없습니다.')
+  }
 
   const parsedReport = parseJsonReport(finalReport.content)
   const reportJson = {
@@ -198,8 +232,7 @@ async function main() {
     'ai-model': parsedReport['ai-model'] || aiInfo.model,
     aiInfo,
     company: parsedReport.company || company,
-    ticker: parsedReport.ticker || ticker,
-    artifactDir
+    ticker: parsedReport.ticker || ticker
   }
   await writeFile(finalReportPath, JSON.stringify(reportJson, null, 2), 'utf8')
 
@@ -211,15 +244,12 @@ async function runRole({ role, context, outputPath, model }) {
   const prompt = applyTemplate(promptTemplate, context)
 
   console.log(`[start] ${role}`)
-  await execCodex({
-    prompt,
-    outputPath,
-    model
-  })
+  const timeoutMs = ROLE_TIMEOUT[role] || 7 * 60 * 1000
+  const { detectedModel } = await execCodex({ prompt, outputPath, model, timeoutMs })
   const content = await readFile(outputPath, 'utf8')
   console.log(`[done] ${role}`)
 
-  return { role, content, outputPath }
+  return { role, content, outputPath, detectedModel }
 }
 
 async function loadPromptTemplate(role) {
@@ -237,14 +267,13 @@ function applyTemplate(template, vars) {
   })
 }
 
-function execCodex({ prompt, outputPath, model, timeoutMs = 5 * 60 * 1000 }) {
+function execCodex({ prompt, outputPath, model, timeoutMs = 7 * 60 * 1000 }) {
   return new Promise((resolve, reject) => {
     const args = [
       'exec',
       '--skip-git-repo-check',
       '--sandbox',
       'workspace-write',
-      '--dangerously-bypass-approvals-and-sandbox',
       '--cd',
       projectRoot,
       '--color',
@@ -269,12 +298,19 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 5 * 60 * 1000 }) {
       reject(new Error(`codex exec 타임아웃: ${timeoutMs / 1000}초 초과`))
     }, timeoutMs)
 
+    let detectedModel = ''
+
     child.stdout.on('data', (chunk) => {
       process.stdout.write(chunk)
     })
 
     child.stderr.on('data', (chunk) => {
       process.stderr.write(chunk)
+      // Codex는 세션 시작 시 stderr에 "model: <모델명>"을 출력한다
+      if (!detectedModel) {
+        const modelMatch = chunk.toString().match(/^model:\s*(.+)$/m)
+        if (modelMatch) detectedModel = modelMatch[1].trim()
+      }
     })
 
     child.on('error', (error) => {
@@ -285,7 +321,7 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 5 * 60 * 1000 }) {
     child.on('close', (code) => {
       clearTimeout(timer)
       if (code === 0 && existsSync(outputPath)) {
-        resolve()
+        resolve({ detectedModel })
         return
       }
       if (code !== 0) {
@@ -411,16 +447,27 @@ function buildIdentifier(company) {
   return safeCompany || 'analysis'
 }
 
+const REQUIRED_REPORT_FIELDS = ['company', 'verdict', 'summary', 'analysis', 'strategy', 'risks']
+
 function parseJsonReport(raw) {
   // 마크다운 코드 블록 전체 제거 (여러 개 대응)
   const stripped = raw.replace(/```(?:json)?\s*/g, '').replace(/```/g, '')
   const match = stripped.match(/\{[\s\S]*\}/)
+  let parsed
   try {
-    return JSON.parse(match?.[0] ?? stripped)
+    parsed = JSON.parse(match?.[0] ?? stripped)
   } catch {
     console.error('[parseJsonReport] JSON 파싱 실패. raw 응답을 확인하세요.')
-    return { raw }
+    throw new Error('최종 리포트 JSON 파싱 실패. 모델 응답이 유효한 JSON이 아닙니다.')
   }
+
+  const missing = REQUIRED_REPORT_FIELDS.filter((f) => !(f in parsed))
+  if (missing.length > 0) {
+    console.error(`[parseJsonReport] 필수 필드 누락: ${missing.join(', ')}`)
+    throw new Error(`최종 리포트에 필수 필드가 누락되었습니다: ${missing.join(', ')}`)
+  }
+
+  return parsed
 }
 
 function buildAiInfo(model) {

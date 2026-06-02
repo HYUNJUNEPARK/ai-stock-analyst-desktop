@@ -121,7 +121,10 @@ function getValuationPositionColor(position: string): string {
   return '#f59e0b'
 }
 
-export default function ReportView({ data }: { data: Report }): React.JSX.Element {
+export const ZOOM_LEVELS = [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5]
+export const DEFAULT_ZOOM_INDEX = 2 // 1.0
+
+export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { data: Report; zoomIndex?: number }): React.JSX.Element {
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
   const aiModel = data['ai-model'] || data.aiInfo?.model
   const aiProvider = data.aiInfo?.provider
@@ -130,6 +133,7 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   const [activeTab, setActiveTab] = useState<ArtifactTab>('summary')
   const [artifacts, setArtifacts] = useState<{ financial: string; news: string; sector: string; price: string; valuation: string; investType: string } | null>(null)
   const [artifactLoading, setArtifactLoading] = useState(false)
+  const zoom = ZOOM_LEVELS[zoomIndex] ?? 1.0
 
   useEffect(() => {
     if (!data.artifactDir || artifacts) return
@@ -141,9 +145,23 @@ export default function ReportView({ data }: { data: Report }): React.JSX.Elemen
   }, [data.artifactDir, artifacts])
 
   return (
-    <div className="report-view" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div
+      className="report-view"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+        '--text-xs': `${Math.round(11 * zoom)}px`,
+        '--text-sm': `${Math.round(13 * zoom)}px`,
+        '--text-base': `${Math.round(15 * zoom)}px`,
+        '--text-md': `${Math.round(17 * zoom)}px`,
+        '--text-lg': `${Math.round(20 * zoom)}px`,
+        '--text-xl': `${Math.round(24 * zoom)}px`,
+        '--text-2xl': `${Math.round(28 * zoom)}px`,
+      } as React.CSSProperties}
+    >
 
-      {/* 헤더: 종목 + 판정 */}
+      {/* 헤더: 종목 + 판정 + 확대/축소 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
