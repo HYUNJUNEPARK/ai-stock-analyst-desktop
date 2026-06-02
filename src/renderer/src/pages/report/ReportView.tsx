@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { gptIcon, claudeIcon } from '../../assets'
+import {
+  FiFileText,
+  FiUsers,
+  FiTrendingUp,
+  FiTarget,
+  FiBarChart2,
+  FiList,
+  FiShield,
+  FiCheckCircle,
+} from 'react-icons/fi'
+import { LuNewspaper, LuDiamond } from 'react-icons/lu'
 
 type InvestType = {
   type: string
@@ -88,7 +99,7 @@ const TAB_LABELS: { key: ArtifactTab; label: string }[] = [
   { key: 'sector', label: '업종' },
   { key: 'price', label: '기술적' },
   { key: 'valuation', label: '밸류에이션' },
-  { key: 'invest-type', label: '투자유형' },
+  { key: 'invest-type', label: '투자전략' },
 ]
 
 const VERDICT_COLORS: Record<string, string> = {
@@ -166,10 +177,10 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <div style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               {data.company}{data.ticker && data.ticker !== 'unknown' ? ` (${data.ticker})` : ''}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+
+
               {(aiModel || aiProvider) && <>
-                <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>·</span>
                 <img
                   src={modelIcon}
                   alt={isGpt ? 'GPT' : 'Claude'}
@@ -177,6 +188,9 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                 />
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
               </>}
+
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{data.asOfDate}</span>
+
             </div>
           </div>
           <div
@@ -204,10 +218,8 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
         <div
           style={{
             display: 'flex',
-            gap: 4,
-            background: 'var(--bg-secondary)',
-            borderRadius: 10,
-            padding: 4,
+            gap: 0,
+            borderBottom: '1px solid var(--border)',
           }}
         >
           {TAB_LABELS.map(({ key, label }) => (
@@ -216,15 +228,16 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
               onClick={() => setActiveTab(key)}
               style={{
                 flex: 1,
-                padding: '6px 0',
+                padding: '10px 0',
                 fontSize: 'var(--text-xs)',
                 fontWeight: activeTab === key ? 700 : 400,
-                color: activeTab === key ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                background: activeTab === key ? 'var(--bg-primary)' : 'transparent',
-                border: activeTab === key ? '1px solid var(--border)' : '1px solid transparent',
-                borderRadius: 7,
+                color: activeTab === key ? '#2563eb' : 'var(--text-tertiary)',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === key ? '2px solid #2563eb' : '2px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
+                marginBottom: -1,
               }}
             >
               {label}
@@ -262,9 +275,9 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <MarkdownRenderer
               text={
                 activeTab === 'financial' ? (artifacts?.financial ?? '') :
-                activeTab === 'news' ? (artifacts?.news ?? '') :
-                activeTab === 'price' ? (artifacts?.price ?? '') :
-                (artifacts?.sector ?? '')
+                  activeTab === 'news' ? (artifacts?.news ?? '') :
+                    activeTab === 'price' ? (artifacts?.price ?? '') :
+                      (artifacts?.sector ?? '')
               }
               isStreaming={false}
             />
@@ -278,17 +291,20 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
         {/* 1. 결론 카드: 요약 + 전략가 종합 */}
         <div
           style={{
-            padding: '16px 18px',
-            background: `${verdictColor}0d`,
-            border: `1px solid ${verdictColor}35`,
+            padding: '18px 20px',
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
             borderRadius: 14,
             display: 'flex',
             flexDirection: 'column',
-            gap: 10,
+            gap: 12,
           }}
         >
-          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.6 }}>
-            {data.summary}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <FiCheckCircle size={20} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+              {data.summary}
+            </div>
           </div>
           {data.analysis.strategist && (
             <div
@@ -296,8 +312,9 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                 fontSize: 'var(--text-xs)',
                 color: 'var(--text-secondary)',
                 lineHeight: 1.75,
-                borderTop: `1px solid ${verdictColor}20`,
+                borderTop: '1px solid #bfdbfe40',
                 paddingTop: 10,
+                paddingLeft: 30,
               }}
             >
               {data.analysis.strategist}
@@ -312,7 +329,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
           agentVerdicts={data.agentVerdicts}
         />
 
-        {/* 3. 가격 전략 통합 카드 */}
+        {/* 3. 투자 전략 카드 */}
         <div
           style={{
             border: '1px solid var(--border)',
@@ -322,70 +339,74 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
         >
           <div
             style={{
-              padding: '8px 14px',
+              padding: '10px 16px',
               background: 'var(--bg-secondary)',
               borderBottom: '1px solid var(--border)',
-              fontSize: 'var(--text-xs)',
+              fontSize: 'var(--text-sm)',
               fontWeight: 700,
               color: 'var(--text-primary)',
             }}
           >
             투자 전략
           </div>
-          <div style={{ padding: '12px 14px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 4 }}>현재 주가</div>
+          {/* 목표 주가 */}
+          <div style={{ padding: '16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: 6 }}>목표 주가</div>
             <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {data.strategy.currentPrice}
+              {data.strategy.targetPrice || data.strategy.currentPrice}
             </div>
           </div>
+          {/* 시나리오 테이블 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'var(--bg-primary)' }}>
-            <div style={{ padding: '12px 14px', borderRight: '1px solid var(--border)' }}>
+            <div style={{ padding: '14px 16px', borderRight: '1px solid var(--border)' }}>
               {data.strategy.targetPrices && data.strategy.targetPrices.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444' }}>목표가</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 2 }}>목표가 시나리오</div>
                   {data.strategy.targetPrices.map((item, i) => {
                     const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
                     return (
-                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{item.price}</span>
-                          {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#ef4444' }}>{pct}</span>}
-                        </div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</div>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444', minWidth: 80 }}>{item.price}</span>
+                        {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#ef4444', minWidth: 45 }}>{pct}</span>}
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</span>
                       </div>
                     )
                   })}
                 </div>
               ) : data.strategy.targetPrice ? (
                 <div>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 4 }}>목표가 {data.strategy.targetReturn}</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{data.strategy.targetPrice}</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#ef4444', marginBottom: 6 }}>목표가 시나리오</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#ef4444' }}>{data.strategy.targetPrice}</span>
+                    {data.strategy.targetReturn && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#ef4444' }}>{data.strategy.targetReturn}</span>}
+                  </div>
                 </div>
               ) : (
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>목표가 없음</div>
               )}
             </div>
-            <div style={{ padding: '12px 14px' }}>
+            <div style={{ padding: '14px 16px' }}>
               {data.strategy.stopLossPrices && data.strategy.stopLossPrices.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2' }}>손절가</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 2 }}>손절가 시나리오</div>
                   {data.strategy.stopLossPrices.map((item, i) => {
                     const pct = calcPctFromCurrent(item.price, data.strategy.currentPrice)
                     return (
-                      <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{item.price}</span>
-                          {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#1976d2' }}>{pct}</span>}
-                        </div>
-                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</div>
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2', minWidth: 80 }}>{item.price}</span>
+                        {pct && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#1976d2', minWidth: 45 }}>{pct}</span>}
+                        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{item.source}</span>
                       </div>
                     )
                   })}
                 </div>
               ) : data.strategy.stopLossPrice ? (
                 <div>
-                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 4 }}>손절가 {data.strategy.stopLoss}</div>
-                  <div style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{data.strategy.stopLossPrice}</div>
+                  <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: '#1976d2', marginBottom: 6 }}>손절가 시나리오</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: '#1976d2' }}>{data.strategy.stopLossPrice}</span>
+                    {data.strategy.stopLoss && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: '#1976d2' }}>{data.strategy.stopLoss}</span>}
+                  </div>
                 </div>
               ) : (
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>손절가 없음</div>
@@ -553,13 +574,22 @@ function calcPctFromCurrent(itemPrice: string, currentPrice: string): string | n
 }
 
 
-const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; analysisKey?: 'financial' | 'news' | 'sector' | 'price' }[] = [
-  { key: 'financial', label: '재무', analysisKey: 'financial' },
-  { key: 'news', label: '뉴스', analysisKey: 'news' },
-  { key: 'sector', label: '업종', analysisKey: 'sector' },
-  { key: 'price', label: '기술적', analysisKey: 'price' },
-  { key: 'valuation', label: '밸류에이션' },
-  { key: 'investType', label: '투자유형' },
+const ANALYSIS_ICONS: Record<string, React.ReactNode> = {
+  financial: <FiFileText size={16} />,
+  sector: <FiUsers size={16} />,
+  news: <LuNewspaper size={16} />,
+  price: <FiTrendingUp size={16} />,
+  valuation: <LuDiamond size={16} />,
+  investType: <FiTarget size={16} />,
+}
+
+const ANALYSIS_CATEGORIES: { key: keyof AgentVerdicts; label: string; fullLabel: string; analysisKey?: 'financial' | 'news' | 'sector' | 'price' }[] = [
+  { key: 'financial', label: '재무', fullLabel: '재무 분석', analysisKey: 'financial' },
+  { key: 'sector', label: '업종', fullLabel: '업종 리서치', analysisKey: 'sector' },
+  { key: 'news', label: '뉴스', fullLabel: '뉴스 분석', analysisKey: 'news' },
+  { key: 'price', label: '기술적', fullLabel: '기술 분석', analysisKey: 'price' },
+  { key: 'valuation', label: '밸류에이션', fullLabel: '밸류에이션 분석' },
+  { key: 'investType', label: '투자유형', fullLabel: '투자유형' },
 ]
 
 function getAgentVerdictValue(verdicts: AgentVerdicts, key: keyof AgentVerdicts): string {
@@ -595,7 +625,7 @@ function AnalysisSummarySection({
   agentVerdicts?: AgentVerdicts
 }): React.JSX.Element {
   // 각 카테고리별로 signal(분석 신호)과 verdict(에이전트 판정)를 통합
-  const rows = ANALYSIS_CATEGORIES.map(({ key, label, analysisKey }) => {
+  const rows = ANALYSIS_CATEGORIES.map(({ key, label, fullLabel, analysisKey }) => {
     // signal: analysis에서 가져오기 (밸류에이션은 valuation에서)
     let signal = ''
     if (analysisKey && analysis[analysisKey]) {
@@ -618,8 +648,8 @@ function AnalysisSummarySection({
         ? getAgentVerdictColor(verdictValue)
         : getSignalColor(signal)
 
-    return { key, label, displaySignal, verdictSummary, color }
-  }).filter(Boolean) as { key: string; label: string; displaySignal: string; verdictSummary: string; color: string }[]
+    return { key, label, fullLabel, displaySignal, verdictSummary, color }
+  }).filter(Boolean) as { key: string; label: string; fullLabel: string; displaySignal: string; verdictSummary: string; color: string }[]
 
   return (
     <div
@@ -631,69 +661,108 @@ function AnalysisSummarySection({
     >
       <div
         style={{
-          padding: '8px 14px',
+          padding: '10px 16px',
           background: 'var(--bg-secondary)',
           borderBottom: '1px solid var(--border)',
-          fontSize: 'var(--text-xs)',
+          fontSize: 'var(--text-sm)',
           fontWeight: 700,
           color: 'var(--text-primary)',
         }}
       >
         분석 요약
       </div>
-      {rows.map(({ key, label, displaySignal, verdictSummary, color }) => (
+      {rows.map(({ key, fullLabel, displaySignal, verdictSummary, color }) => (
         <div
           key={key}
           style={{
-            padding: '8px 14px',
+            padding: '14px 16px',
             background: 'var(--bg-primary)',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
+            gap: 12,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', flexShrink: 0, width: 62 }}>
-              {label}
-            </span>
-            {key === 'investType' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                {displaySignal.split('+').map((part) => part.trim()).filter(Boolean).map((part) => {
-                  const c = getInvestTypeColor(part)
-                  return (
-                    <span
-                      key={part}
-                      style={{
-                        fontSize: 'var(--text-xs)',
-                        fontWeight: 700,
-                        color: c,
-                        background: `${c}15`,
-                        border: `1px solid ${c}50`,
-                        borderRadius: 6,
-                        padding: '2px 8px',
-                      }}
-                    >
-                      {part}
-                    </span>
-                  )
-                })}
-              </div>
-            ) : (
-              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color, flexShrink: 0 }}>
-                {displaySignal}
+          {/* 아이콘 */}
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            background: 'var(--bg-secondary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-tertiary)',
+            flexShrink: 0,
+          }}>
+            {ANALYSIS_ICONS[key]}
+          </div>
+          {/* 내용 */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {fullLabel}
               </span>
+              {key === 'investType' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                  {displaySignal.split('+').map((part) => part.trim()).filter(Boolean).map((part) => {
+                    const c = getInvestTypeColor(part)
+                    return (
+                      <span
+                        key={part}
+                        style={{
+                          fontSize: 'var(--text-xs)',
+                          fontWeight: 700,
+                          color: c,
+                          background: `${c}15`,
+                          border: `1px solid ${c}50`,
+                          borderRadius: 6,
+                          padding: '2px 8px',
+                        }}
+                      >
+                        {part}
+                      </span>
+                    )
+                  })}
+                </div>
+              ) : (
+                <span style={{
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}>
+                  {displaySignal}
+                  <span style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: color,
+                    display: 'inline-block',
+                  }} />
+                </span>
+              )}
+            </div>
+            {verdictSummary && (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                {verdictSummary}
+              </div>
             )}
           </div>
-          {verdictSummary && (
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 70 }}>
-              {verdictSummary}
-            </div>
-          )}
         </div>
       ))}
     </div>
   )
+}
+
+const STRATEGY_ICONS: Record<string, React.ReactNode> = {
+  '진입 전략': <FiTarget size={16} />,
+  '포지션 비중': <FiBarChart2 size={16} />,
+  '실행 계획': <FiList size={16} />,
+  '익절/손절 전략': <FiTrendingUp size={16} />,
+  '권장 보유 기간': <FiFileText size={16} />,
+  '리스크 관리': <FiShield size={16} />,
 }
 
 function InvestmentStrategySection({ strategy, verdictColor }: { strategy: InvestmentStrategy; verdictColor: string }): React.JSX.Element {
@@ -703,27 +772,25 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
     { label: '실행 계획', content: strategy.actionPlan },
     { label: '익절/손절 전략', content: strategy.exitStrategy },
     { label: '권장 보유 기간', content: strategy.timeHorizon },
+    { label: '리스크 관리', content: strategy.caution },
   ]
 
   return (
     <div
       style={{
-        border: `1px solid ${verdictColor}35`,
+        border: '1px solid var(--border)',
         borderRadius: 12,
         overflow: 'hidden',
       }}
     >
       <div
         style={{
-          padding: '8px 14px',
-          background: `${verdictColor}0d`,
-          borderBottom: `1px solid ${verdictColor}25`,
-          fontSize: 'var(--text-xs)',
+          padding: '10px 16px',
+          background: 'var(--bg-secondary)',
+          borderBottom: '1px solid var(--border)',
+          fontSize: 'var(--text-sm)',
           fontWeight: 700,
           color: 'var(--text-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
         }}
       >
         실전 투자 가이드
@@ -734,58 +801,59 @@ function InvestmentStrategySection({ strategy, verdictColor }: { strategy: Inves
           <div
             key={label}
             style={{
-              padding: '10px 14px',
+              padding: '14px 16px',
               background: 'var(--bg-primary)',
               borderBottom: '1px solid var(--border)',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
+              gap: 12,
             }}
           >
-            <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {label}
-            </span>
-            {Array.isArray(content) ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {content.map((step, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      fontSize: 'var(--text-xs)',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.65,
-                      display: 'flex',
-                      gap: 6,
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, color: verdictColor, flexShrink: 0 }}>{i + 1}.</span>
-                    <span>{step}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
-                {content}
-              </div>
-            )}
+            {/* 아이콘 */}
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: 'var(--bg-secondary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-tertiary)',
+              flexShrink: 0,
+            }}>
+              {STRATEGY_ICONS[label] || <FiTarget size={16} />}
+            </div>
+            {/* 내용 */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {label}
+              </span>
+              {Array.isArray(content) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {content.map((step, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        fontSize: 'var(--text-xs)',
+                        color: 'var(--text-secondary)',
+                        lineHeight: 1.65,
+                        display: 'flex',
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, color: verdictColor, flexShrink: 0 }}>{i + 1}</span>
+                      <span>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
+                  {content}
+                </div>
+              )}
+            </div>
           </div>
         )
       })}
-      {strategy.caution && (
-        <div
-          style={{
-            padding: '10px 14px',
-            background: '#fef3c7',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 6,
-          }}
-        >
-          <span style={{ fontSize: 'var(--text-xs)', color: '#92400e', lineHeight: 1.65, fontWeight: 500 }}>
-            {strategy.caution}
-          </span>
-        </div>
-      )}
     </div>
   )
 }
