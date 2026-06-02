@@ -174,7 +174,7 @@ export function registerReportFilesHandlers(): void {
    *   1. event.sender(보고서 창의 webContents)로부터 BrowserWindow 인스턴스를 획득
    *   2. dialog.showSaveDialog로 사용자에게 저장 경로를 선택받음
    *   3. printToPDF 실행 전 PRINT_CSS를 임시 주입 → 스크롤 클리핑 문제 해결
-   *   4. event.sender.printToPDF()로 Chromium 렌더러가 A4 PDF를 생성
+   *   4. 콘텐츠 높이를 측정하여 커스텀 페이지 사이즈로 한 장짜리 PDF를 생성
    *   5. Node.js writeFileSync로 디스크에 기록
    *   6. finally 블록에서 주입했던 CSS를 반드시 제거 (원상복구)
    */
@@ -233,23 +233,54 @@ export function registerReportFilesHandlers(): void {
       // cssKey: finally 블록에서 removeInsertedCSS()로 제거할 때 사용하는 핸들
       cssKey = await event.sender.insertCSS(PRINT_CSS)
       await new Promise<void>((r) => setTimeout(r, 300))
-      const pdfBuffer = await event.sender.printToPDF({
-        printBackground: true,
-        pageSize: 'A4',
-        margins: { marginType: 'custom', top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
-      })
 
-      // 3. 파일 저장
-      writeFileSync(filePath, pdfBuffer)
-      console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
-      return { success: true, filePath }
+      // 한 장짜리 PDF를 생성하기 위해 Chromium DevTools Protocol을 사용한다.
+      // printToPDF는 자체 레이아웃 엔진으로 리렌더링하므로, JS scrollHeight 측정값과
+      // 실제 print 레이아웃 높이가 다를 수 있다. 따라서 CDP의 Page.getLayoutMetrics로
+      // print 엔진이 계산한 실제 콘텐츠 높이를 구한 뒤 그 높이로 PDF를 생성한다.
+      const A4_WIDTH_INCH = 8.27
+      const MARGIN_INCH = 0.5
+
+      // CDP 세션을 열어 print 레이아웃의 실제 높이를 측정한다.
+      const wc = event.sender
+      const debugger_ = wc.debugger
+      debugger_.attach('1.3')
+      try {
+        // Emulation으로 PDF 콘텐츠 너비에 맞춘 뷰포트를 설정한다.
+        const contentWidthPx = Math.round((A4_WIDTH_INCH - MARGIN_INCH * 2) * 96)
+        await debugger_.sendCommand('Emulation.setDeviceMetricsOverride', {
+          width: contentWidthPx,
+          height: 1,
+          deviceScaleFactor: 1,
+          mobile: false,
+        })
+
+        // 레이아웃을 다시 계산하고 실제 콘텐츠 높이를 가져온다.
+        const layoutMetrics = await debugger_.sendCommand('Page.getLayoutMetrics')
+        const contentHeightPx = Math.ceil(layoutMetrics.contentSize.height)
+        const contentHeightInch = contentHeightPx / 96 + MARGIN_INCH * 2
+
+        // Emulation을 해제한다.
+        await debugger_.sendCommand('Emulation.clearDeviceMetricsOverride')
+
+        const pdfBuffer = await event.sender.printToPDF({
+          printBackground: true,
+          pageSize: { width: A4_WIDTH_INCH, height: contentHeightInch },
+          margins: { marginType: 'custom', top: MARGIN_INCH, bottom: MARGIN_INCH, left: MARGIN_INCH, right: MARGIN_INCH },
+        })
+
+        // 3. 파일 저장
+        writeFileSync(filePath, pdfBuffer)
+        console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
+        return { success: true, filePath }
+      } finally {
+        // CDP 디버거 세션을 반드시 해제한다.
+        try { debugger_.detach() } catch (_) { /* 이미 detach된 경우 무시 */ }
+      }
     } catch (err) {
       console.error('[save-report-pdf] PDF 저장 실패:', err)
       return { success: false, error: (err as Error).message }
     } finally {
-      // 성공·실패·예외 발생 여부와 관계없이 반드시 CSS를 원상복구한다.
-      // 제거하지 않으면 보고서 창이 열려 있는 동안 레이아웃이 변형된 채로 유지된다.
-      // removeInsertedCSS()는 비동기이므로 오류가 발생해도 무시한다(빈 catch).
       if (cssKey !== undefined) {
         event.sender.removeInsertedCSS(cssKey).catch(() => {})
       }

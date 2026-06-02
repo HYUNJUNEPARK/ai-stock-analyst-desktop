@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LuDownload, LuMinus, LuPlus } from 'react-icons/lu'
+import { LuDownload, LuZoomOut, LuZoomIn } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import NavBar from '../../components/NavBar'
 import type { ComponentProps } from 'react'
@@ -97,7 +97,7 @@ export default function ReportDetailPage(): React.JSX.Element {
                       opacity: zoomIndex === 0 ? 0.4 : 1,
                     }}
                   >
-                    <LuMinus size={14} />
+                    <LuZoomOut size={16} />
                   </button>
                   <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
                   <button
@@ -117,7 +117,7 @@ export default function ReportDetailPage(): React.JSX.Element {
                       opacity: zoomIndex === ZOOM_LEVELS.length - 1 ? 0.4 : 1,
                     }}
                   >
-                    <LuPlus size={14} />
+                    <LuZoomIn size={16} />
                   </button>
                 </div>
                 <button
