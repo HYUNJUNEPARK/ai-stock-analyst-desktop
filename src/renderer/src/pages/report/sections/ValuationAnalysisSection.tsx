@@ -1,4 +1,8 @@
-import LinkText from './LinkText'
+/**
+ * 밸류에이션 분석 에이전트 결과 뷰
+ * 증권사 목표주가, 시나리오별 적정가, 가격대별 투자 판단을 표시한다.
+ */
+import LinkText from '../components/LinkText'
 
 export type ValuationData = {
   company: string

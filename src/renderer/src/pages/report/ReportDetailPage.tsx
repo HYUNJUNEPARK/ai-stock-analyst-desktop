@@ -1,9 +1,14 @@
+/**
+ * 보고서 상세 페이지
+ * 라우팅 진입점으로 보고서 JSON을 로드하고, ReportView에 데이터를 전달한다.
+ * NavBar, 확대/축소, PDF 저장 등 페이지 셸 기능을 담당한다.
+ */
 import { useEffect, useState } from 'react'
 import { LuDownload, LuZoomOut, LuZoomIn } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import NavBar from '../../components/NavBar'
 import type { ComponentProps } from 'react'
-import MarkdownRenderer from './MarkdownRenderer'
+import MarkdownRenderer from './components/MarkdownRenderer'
 import ReportView, { ZOOM_LEVELS, DEFAULT_ZOOM_INDEX } from './ReportView'
 import { ROUTES } from '../../routes'
 

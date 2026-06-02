@@ -1,5 +1,9 @@
+/**
+ * 뉴스 감성 분석 에이전트 결과 뷰
+ * 수집된 뉴스 기사의 호재/악재 태그, 센티먼트 요약, 종합 판정을 표시한다.
+ */
 import { IoNewspaperOutline } from 'react-icons/io5'
-import LinkText from './LinkText'
+import LinkText from '../components/LinkText'
 
 export type NewsData = {
   company: string

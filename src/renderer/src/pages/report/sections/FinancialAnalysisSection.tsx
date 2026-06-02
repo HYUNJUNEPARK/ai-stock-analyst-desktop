@@ -1,5 +1,9 @@
+/**
+ * 재무 분석 에이전트 결과 뷰
+ * 매출/이익률/PER/PBR/EPS/ROE/부채비율 등 재무 지표를 구조화하여 표시한다.
+ */
 import { FiAlertTriangle, FiTrendingUp } from 'react-icons/fi'
-import LinkText from './LinkText'
+import LinkText from '../components/LinkText'
 
 export type FinancialData = {
   company: string

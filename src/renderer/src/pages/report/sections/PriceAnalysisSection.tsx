@@ -1,4 +1,8 @@
-import LinkText from './LinkText'
+/**
+ * 기술적(차트) 분석 에이전트 결과 뷰
+ * 이동평균선, RSI/MACD, 볼린저밴드, 거래량, 지지/저항선 등 기술적 지표를 표시한다.
+ */
+import LinkText from '../components/LinkText'
 
 export type PriceData = {
   company: string

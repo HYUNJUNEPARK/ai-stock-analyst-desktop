@@ -1,5 +1,9 @@
+/**
+ * 투자 유형 분류 에이전트 결과 뷰
+ * 종목의 투자 유형(성장형/가치형/턴어라운드 등), 적합 기간, 판단 근거를 표시한다.
+ */
 import { FiAlertTriangle } from 'react-icons/fi'
-import LinkText from './LinkText'
+import LinkText from '../components/LinkText'
 
 export type InvestTypeData = {
   company: string

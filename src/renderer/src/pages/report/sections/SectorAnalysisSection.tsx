@@ -1,5 +1,9 @@
+/**
+ * 업종 리서치 에이전트 결과 뷰
+ * 업종 전망, 글로벌 트렌드, 경쟁사 비교, 정책/규제 변화를 표시한다.
+ */
 import { FiUsers } from 'react-icons/fi'
-import LinkText from './LinkText'
+import LinkText from '../components/LinkText'
 
 export type SectorData = {
   company: string
