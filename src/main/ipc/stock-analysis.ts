@@ -152,10 +152,14 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
   // 스크립트가 codex 경로를 환경변수로 받아 사용
   env['CODEX_BIN'] = resolvedCodex.command
+  // 패키징된 앱에서 process.execPath는 앱 실행 파일을 가리킨다.
+  // ELECTRON_RUN_AS_NODE=1을 설정하면 Electron 바이너리가 순수 Node.js처럼 동작해
+  // .mjs 스크립트를 실행할 수 있다. (이 설정 없이는 앱이 새 창으로 다시 열림)
+  env['ELECTRON_RUN_AS_NODE'] = '1'
 
   // 실행 명령: node <STOCK_GPT_DIR>/scripts/analyze-stock.mjs --request <prompt>
   const child = spawn(
-    process.execPath,   // 현재 Electron의 Node.js 실행 파일 경로
+    process.execPath,
     [join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs'), '--request', prompt],
     {
       env,
