@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import FinancialAnalysisSection, { tryParseFinancialJson } from './FinancialAnalysisSection'
+import NewsAnalysisSection, { tryParseNewsJson } from './NewsAnalysisSection'
+import SectorAnalysisSection, { tryParseSectorJson } from './SectorAnalysisSection'
+import PriceAnalysisSection, { tryParsePriceJson } from './PriceAnalysisSection'
+import ValuationAnalysisSection, { tryParseValuationJson } from './ValuationAnalysisSection'
+import InvestTypeAnalysisSection, { tryParseInvestTypeJson } from './InvestTypeAnalysisSection'
 import { gptIcon, claudeIcon } from '../../assets'
 import {
   FiUsers,
@@ -258,47 +263,29 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
               불러오는 중...
             </div>
-          ) : activeTab === 'invest-type' ? (
-            artifacts?.investType
-              ? <MarkdownRenderer text={artifacts.investType} isStreaming={false} />
-              : data.investType
-                ? <InvestTypeSection investType={data.investType} />
-                : (
-                  <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
-                    투자 유형 분석 데이터가 없습니다.
-                  </div>
-                )
-          ) : activeTab === 'financial' ? (
-            (() => {
-              // 재무 분석
-              const parsed = tryParseFinancialJson(artifacts?.financial ?? '')
-              return parsed
-                ? <FinancialAnalysisSection data={parsed} />
-                : artifacts?.financial
-                  ? <MarkdownRenderer text={artifacts.financial} isStreaming={false} />
-                  : (
-                    <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
-                      재무 분석 데이터가 없습니다.
-                    </div>
-                  )
-            })()
-          ) : activeTab === 'valuation' ? (
-            artifacts?.valuation
-              ? <MarkdownRenderer text={artifacts.valuation} isStreaming={false} />
-              : (
-                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>
-                  밸류에이션 분석 데이터가 없습니다.
-                </div>
-              )
           ) : (
-            <MarkdownRenderer
-              text={
-                activeTab === 'news' ? (artifacts?.news ?? '') :
-                  activeTab === 'price' ? (artifacts?.price ?? '') :
-                    (artifacts?.sector ?? '')
+            (() => {
+              const tabConfig: Record<string, { raw: string | undefined; tryParse: (t: string) => unknown; Component: React.ComponentType<{ data: never }>; emptyMsg: string }> = {
+                'financial': { raw: artifacts?.financial, tryParse: tryParseFinancialJson, Component: FinancialAnalysisSection as never, emptyMsg: '재무 분석 데이터가 없습니다.' },
+                'news': { raw: artifacts?.news, tryParse: tryParseNewsJson, Component: NewsAnalysisSection as never, emptyMsg: '뉴스 분석 데이터가 없습니다.' },
+                'sector': { raw: artifacts?.sector, tryParse: tryParseSectorJson, Component: SectorAnalysisSection as never, emptyMsg: '업종 분석 데이터가 없습니다.' },
+                'price': { raw: artifacts?.price, tryParse: tryParsePriceJson, Component: PriceAnalysisSection as never, emptyMsg: '기술적 분석 데이터가 없습니다.' },
+                'valuation': { raw: artifacts?.valuation, tryParse: tryParseValuationJson, Component: ValuationAnalysisSection as never, emptyMsg: '밸류에이션 분석 데이터가 없습니다.' },
+                'invest-type': { raw: artifacts?.investType, tryParse: tryParseInvestTypeJson, Component: InvestTypeAnalysisSection as never, emptyMsg: '투자 유형 분석 데이터가 없습니다.' },
               }
-              isStreaming={false}
-            />
+              const cfg = tabConfig[activeTab]
+              if (!cfg) return null
+              const text = cfg.raw ?? ''
+              const parsed = text ? cfg.tryParse(text) : null
+              if (parsed) {
+                const C = cfg.Component as React.ComponentType<{ data: unknown }>
+                return <C data={parsed} />
+              }
+              if (text) return <MarkdownRenderer text={text} isStreaming={false} />
+              // invest-type은 종합 보고서 JSON에서 fallback
+              if (activeTab === 'invest-type' && data.investType) return <InvestTypeSection investType={data.investType} />
+              return <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', padding: '20px 0', textAlign: 'center' }}>{cfg.emptyMsg}</div>
+            })()
           )}
         </div>
       )}

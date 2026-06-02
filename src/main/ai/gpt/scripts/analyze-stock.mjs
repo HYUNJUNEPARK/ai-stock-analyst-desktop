@@ -28,6 +28,11 @@ const ROLE_FILES = {
 /** 역할 → artifact 출력 파일명 (기본값: 프롬프트 파일명과 동일, JSON 출력인 경우 .json) */
 const ROLE_OUTPUT_FILES = {
   'financial-analyst-kr': 'financial-analyst-kr.json',
+  'news-sentiment-analyst': 'news-sentiment-analyst.json',
+  'sector-researcher': 'sector-researcher.json',
+  'price-analyst': 'price-analyst.json',
+  'valuation-analyst': 'valuation-analyst.json',
+  'invest-type-classifier': 'invest-type-classifier.json',
 }
 
 /** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */

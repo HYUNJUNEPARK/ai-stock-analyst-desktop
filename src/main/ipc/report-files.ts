@@ -128,11 +128,11 @@ export function registerReportFilesHandlers(): void {
     }
     return {
       financial: read('financial-analyst-kr.json') || read('financial-analyst-kr.md'),
-      news: read('news-sentiment-analyst.md'),
-      sector: read('sector-researcher.md'),
-      price: read('price-analyst.md'),
-      valuation: read('valuation-analyst.md'),
-      investType: read('invest-type-classifier.md'),
+      news: read('news-sentiment-analyst.json') || read('news-sentiment-analyst.md'),
+      sector: read('sector-researcher.json') || read('sector-researcher.md'),
+      price: read('price-analyst.json') || read('price-analyst.md'),
+      valuation: read('valuation-analyst.json') || read('valuation-analyst.md'),
+      investType: read('invest-type-classifier.json') || read('invest-type-classifier.md'),
     }
   })
 
