@@ -79,6 +79,19 @@ export default function InfoPage(): React.JSX.Element {
     })
   }
 
+  function handleDevErrorPreview(): void {
+    const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
+    setCurrentPrompt(previewPrompt)
+    navigate(ROUTES.RESPONSE, {
+      state: {
+        previewOnly: true,
+        previewStatus: 'error',
+        model: selectedModel,
+        prompt: previewPrompt
+      }
+    })
+  }
+
   const isGpt = selectedModel === 'gpt'
 
   const modelNameBadgeStyle: React.CSSProperties = {
@@ -278,6 +291,15 @@ export default function InfoPage(): React.JSX.Element {
                     <div style={settingsRowTitleStyle}>처리 중 화면 미리보기</div>
                     <div style={settingsRowDescStyle}>
                       스트리밍 진행 중 상태의 응답 화면을 개발용으로 확인합니다.
+                    </div>
+                  </div>
+                  <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                </button>
+                <button onClick={handleDevErrorPreview} style={settingsRowButtonStyle}>
+                  <div>
+                    <div style={settingsRowTitleStyle}>분석 실패 화면 미리보기</div>
+                    <div style={settingsRowDescStyle}>
+                      분석 실패 상태의 에러 화면을 개발용으로 확인합니다.
                     </div>
                   </div>
                   <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />

@@ -26,7 +26,7 @@ win:
   executableName: ai-stock-analytics
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
+  shortcutName: AI 투자 솔루션
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
@@ -35,6 +35,7 @@ mac:
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - CFBundleDisplayName: AI 투자 솔루션
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false

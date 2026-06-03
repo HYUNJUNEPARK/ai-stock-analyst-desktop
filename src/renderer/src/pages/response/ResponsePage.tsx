@@ -27,7 +27,9 @@ export default function ResponsePage(): React.JSX.Element {
   const initialResponse = isPreviewOnly && previewStatus === 'done' ? DEV_PREVIEW_RESPONSE : ''
   const [response, setResponse] = useState(initialResponse)
   const [status, setStatus] = useState<Status>(isPreviewOnly ? previewStatus : 'streaming')
-  const [errorMsg, setErrorMsg] = useState('')
+  const [errorMsg, setErrorMsg] = useState(
+    isPreviewOnly && previewStatus === 'error' ? '개발용 미리보기: 분석 실패 상태입니다.' : ''
+  )
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
@@ -305,6 +307,7 @@ function getPreviewAgentStatuses(
 ): Record<string, AgentStatus> {
   if (!isPreviewOnly) return getInitialAgentStatuses('idle')
   if (previewStatus === 'done') return getInitialAgentStatuses('done')
+  if (previewStatus === 'error') return getInitialAgentStatuses('idle')
 
   return Object.fromEntries(
     AGENT_CONFIG.map((agent, index) => [agent.key, index === 0 ? 'running' : 'idle'])

@@ -430,6 +430,7 @@ function extractTicker(text) {
 
 function extractCompany(text) {
   const cleaned = text
+    .replace(/\b\d{6}\.K[SQ]\b/g, ' ')
     .replace(/\b\d{6}\b/g, ' ')
     .replace(/\b[A-Z]{2,5}\b/g, ' ')
     .replace(
