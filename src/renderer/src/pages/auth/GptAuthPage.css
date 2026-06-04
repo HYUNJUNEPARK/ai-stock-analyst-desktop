@@ -1,0 +1,179 @@
+/* ── GPT Auth Page — Apple Design ── */
+
+.gpt-auth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 60px 0 40px;
+  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── 아이콘 ── */
+.gpt-auth-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+.gpt-auth-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── 텍스트 ── */
+.gpt-auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.gpt-auth-desc {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* ── 안내 카드 ── */
+.gpt-auth-info-card {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 6px 4px;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.gpt-auth-info-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+}
+
+.gpt-auth-info-row + .gpt-auth-info-row {
+  border-top: 0.5px solid var(--border);
+}
+
+.gpt-auth-info-step {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gpt-auth-info-text {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* ── 에러 ── */
+.gpt-auth-error {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.15);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: var(--text-sm);
+  color: var(--danger);
+  line-height: 1.4;
+  margin-bottom: 20px;
+  animation: fadeSlideUp 0.3s ease-out;
+}
+
+/* ── 성공 ── */
+.gpt-auth-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--success);
+  margin-bottom: 20px;
+  animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gpt-auth-success-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── CTA 버튼 ── */
+.gpt-auth-btn {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: var(--text-md);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease,
+    opacity 0.2s ease;
+}
+
+.gpt-auth-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.gpt-auth-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.gpt-auth-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gpt-auth-btn[data-status='done'] {
+  background: var(--success);
+  opacity: 1;
+}
+
+/* 스피너 */
+.gpt-auth-btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
