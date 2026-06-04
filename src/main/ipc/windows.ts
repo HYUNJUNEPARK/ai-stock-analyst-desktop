@@ -142,13 +142,15 @@ function createErrorLogWindow(errorLog: string): void {
     background: #16162a; -webkit-app-region: drag;
   }
   header h1 { font-size: 14px; font-weight: 600; color: #f87171; }
-  header button {
-    -webkit-app-region: no-drag;
+  .header-actions {
+    display: flex; gap: 6px; -webkit-app-region: no-drag;
+  }
+  .header-actions button {
     background: #2a2a3e; border: 1px solid #3a3a4e; border-radius: 6px;
     color: #a0a0b0; font-size: 12px; padding: 4px 12px; cursor: pointer;
     font-family: inherit;
   }
-  header button:hover { background: #3a3a4e; color: #e0e0e0; }
+  .header-actions button:hover { background: #3a3a4e; color: #e0e0e0; }
   main { flex: 1; overflow-y: auto; padding: 16px 20px; }
   pre {
     font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
@@ -158,18 +160,28 @@ function createErrorLogWindow(errorLog: string): void {
   .line { padding: 1px 0; }
   .line-error { color: #f87171; }
   .line-warn { color: #fbbf24; }
+  .line-info { color: #60a5fa; }
+  .line-env { color: #818cf8; }
+  .line-stderr { color: #fb923c; }
+  .line-section { color: #475569; font-weight: 600; }
   .line-normal { color: #94a3b8; }
 </style>
 </head>
 <body>
 <header>
   <h1>에러 로그</h1>
-  <button onclick="navigator.clipboard.writeText(document.getElementById('log').innerText)">복사</button>
+  <div class="header-actions">
+    <button onclick="navigator.clipboard.writeText(document.getElementById('log').innerText)">복사</button>
+  </div>
 </header>
 <main>
 <pre id="log">${escapedLog.split('\n').map(line => {
-    if (/^\[(실패|error)\]/.test(line)) return `<span class="line line-error">${line}</span>`
-    if (/^\[경고\]/.test(line)) return `<span class="line line-warn">${line}</span>`
+    if (/^\[(실패|error|stderr:error)\]/.test(line)) return `<span class="line line-error">${line}</span>`
+    if (/^\[(경고|warn)\]/.test(line)) return `<span class="line line-warn">${line}</span>`
+    if (/^\[info\]/.test(line)) return `<span class="line line-info">${line}</span>`
+    if (/^\[env\]/.test(line)) return `<span class="line line-env">${line}</span>`
+    if (/^\[stderr\]/.test(line)) return `<span class="line line-stderr">${line}</span>`
+    if (/^---/.test(line)) return `<span class="line line-section">${line}</span>`
     return `<span class="line line-normal">${line}</span>`
   }).join('\n')}</pre>
 </main>
