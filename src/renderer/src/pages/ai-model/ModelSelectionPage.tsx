@@ -4,22 +4,25 @@ import { useApp } from '../../context/AppContext'
 import ComingSoonDialog from '../../components/ComingSoonDialog'
 import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
+import './ModelSelectionPage.css'
 
 const models = [
   {
     id: 'gpt' as const,
     name: 'GPT',
     subtitle: 'OpenAI',
-    dotColor: '#000000',
+    description: '강력한 추론 능력과 광범위한 지식을 갖춘 AI 모델',
     icon: gptIcon,
+    accentColor: '#10a37f',
     comingSoon: false
   },
   {
     id: 'claude' as const,
     name: 'Claude',
     subtitle: 'Anthropic',
-    dotColor: '#D4A853',
+    description: '안전하고 정확한 분석에 특화된 차세대 AI 모델',
     icon: claudeIcon,
+    accentColor: '#D4A853',
     comingSoon: true
   }
 ]
@@ -33,7 +36,6 @@ export default function ModelSelectionPage(): React.JSX.Element {
     if (import.meta.env.DEV) console.log('[Page] ModelSelectionPage 렌더링')
   }, [])
 
-  // 선택한 모델을 전역 상태에 저장하고 CLI 설치 화면으로 이동
   function handleSelect(id: 'gpt' | 'claude'): void {
     if (id === 'claude') {
       setShowComingSoonPopup(true)
@@ -44,48 +46,77 @@ export default function ModelSelectionPage(): React.JSX.Element {
   }
 
   return (
-    <div className="page" style={{ justifyContent: 'space-between' }}>
-      {/* 상단 콘텐츠 */}
-      <div
-        className="page-content"
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      >
-        <div className="content-container">
-          {/* 앱 로고 */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 60 }}>
+    <div className="page model-selection-page">
+      <div className="model-selection-content">
+        {/* 헤더 영역 */}
+        <div className="model-selection-header">
+          <h1 className="model-selection-title">AI 모델 선택</h1>
+          <p className="model-selection-subtitle">
+            투자 분석에 사용할 AI 모델을 선택하세요
+          </p>
+        </div>
 
-            <p
-              style={{
-                fontSize: 'var(--text-md)',
-                color: 'var(--text-secondary)',
-                textAlign: 'center'
-              }}
+        {/* 모델 카드 그리드 */}
+        <div className="model-card-grid">
+          {models.map((model, index) => (
+            <button
+              key={model.id}
+              className={`model-card ${model.comingSoon ? 'model-card--coming-soon' : ''}`}
+              onClick={() => handleSelect(model.id)}
+              aria-label={`${model.name} 선택`}
+              style={
+                { '--card-index': index, '--accent-color': model.accentColor } as React.CSSProperties
+              }
             >
-              원하는 AI 모델을 선택해 주세요
-            </p>
-          </div>
+              {/* Coming Soon 배지 */}
+              {model.comingSoon && (
+                <span className="model-card-badge">Coming Soon</span>
+              )}
 
-          {/* 모델 카드 목록 */}
-          <div style={{ marginTop: 48, display: 'flex', gap: 12 }}>
-            {models.map((model) => (
-              <ModelCard key={model.id} model={model} onSelect={handleSelect} />
-            ))}
-          </div>
+              {/* 아이콘 */}
+              <div className="model-card-icon-wrap">
+                <img
+                  src={model.icon}
+                  alt={model.name}
+                  className="model-card-icon"
+                />
+              </div>
 
+              {/* 텍스트 */}
+              <div className="model-card-text">
+                <div className="model-card-name">{model.name}</div>
+                <div className="model-card-company">{model.subtitle}</div>
+                <div className="model-card-desc">{model.description}</div>
+              </div>
+
+              {/* CTA */}
+              <div className="model-card-cta">
+                <span className="model-card-cta-label">
+                  {model.comingSoon ? '준비 중' : '시작하기'}
+                </span>
+                <svg
+                  className="model-card-cta-arrow"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <path
+                    d="M3.5 8h9M8.5 4l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 버전 표시 */}
-      <div
-        style={{
-          textAlign: 'center',
-          fontSize: 'var(--text-xs)',
-          color: 'var(--text-tertiary)',
-          paddingBottom: 24
-        }}
-      >
-        v{__APP_VERSION__}
-      </div>
+      {/* 버전 */}
+      <div className="model-selection-version">v{__APP_VERSION__}</div>
 
       <ComingSoonDialog
         visible={showComingSoonPopup}
@@ -93,124 +124,5 @@ export default function ModelSelectionPage(): React.JSX.Element {
         onClose={() => setShowComingSoonPopup(false)}
       />
     </div>
-  )
-}
-
-function ModelCard({
-  model,
-  onSelect
-}: {
-  model: (typeof models)[number]
-  onSelect: (id: 'gpt' | 'claude') => void
-}): React.JSX.Element {
-  return (
-    <button
-      onClick={() => onSelect(model.id)}
-      aria-label={`${model.name} 선택`}
-      style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-        width: '100%',
-        height: 120,
-        background: 'var(--bg-secondary)',
-        border: '1.5px solid var(--border)',
-        borderRadius: 16,
-        padding: 20,
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'all 0.15s ease',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        fontFamily: 'inherit',
-        opacity: model.comingSoon ? 0.75 : 1
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget
-        el.style.borderColor = 'var(--accent)'
-        el.style.boxShadow =
-          '0 0 0 3px var(--accent-light), 0 4px 12px rgba(0,0,0,0.08)'
-        el.style.transform = 'translateY(-1px)'
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget
-        el.style.borderColor = 'var(--border)'
-        el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
-        el.style.transform = 'translateY(0)'
-      }}
-      onMouseDown={(e) => {
-        e.currentTarget.style.transform = 'scale(0.99) translateY(0)'
-      }}
-      onMouseUp={(e) => {
-        e.currentTarget.style.transform = 'translateY(-1px)'
-      }}
-    >
-      {/* Coming Soon 배지 */}
-      {model.comingSoon && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 10,
-            right: 12,
-            background: '#D4A853',
-            color: '#fff',
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            padding: '2px 8px',
-            borderRadius: 20,
-            pointerEvents: 'none'
-          }}
-        >
-          Coming soon
-        </div>
-      )}
-
-      {/* 모델 아이콘 */}
-      <img
-        src={model.icon}
-        alt={model.name}
-        style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
-      />
-
-      {/* 텍스트 */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 'var(--text-md)',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            marginBottom: 3
-          }}
-        >
-          {model.name}
-        </div>
-        <div
-          style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-secondary)'
-          }}
-        >
-          {model.subtitle}
-        </div>
-      </div>
-
-      {/* Chevron */}
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 18 18"
-        fill="none"
-        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-      >
-        <polyline
-          points="6,3 12,9 6,15"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
   )
 }
