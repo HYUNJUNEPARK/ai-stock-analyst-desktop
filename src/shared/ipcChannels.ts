@@ -33,6 +33,7 @@ export const IPC = {
   GET_MODEL_INFO: 'get-model-info',
   OPEN_GUIDE_WINDOW: 'open-guide-window',
   OPEN_REPORTS_WINDOW: 'open-reports-window',
+  OPEN_ERROR_LOG_WINDOW: 'open-error-log-window',
 
   // 통계 / 리포트
   CHECK_CLI_STATS: 'check-cli-stats',

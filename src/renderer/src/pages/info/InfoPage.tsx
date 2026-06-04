@@ -53,6 +53,10 @@ export default function InfoPage(): React.JSX.Element {
     void window.api.openGuideWindow('valuation')
   }
 
+  function handleOpenTechnicalAnalysisGuide(): void {
+    void window.api.openGuideWindow('technical-analysis')
+  }
+
   function handleDevPreview(): void {
     const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
     setCurrentPrompt(previewPrompt)
@@ -182,6 +186,15 @@ export default function InfoPage(): React.JSX.Element {
                   <div style={settingsRowTitleStyle}>투자 지표 용어 사전</div>
                   <div style={settingsRowDescStyle}>
                     PER·PBR·ROE·부채비율 등 핵심 지표의 개념과 해석 기준을 확인합니다.
+                  </div>
+                </div>
+                <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              </button>
+              <button onClick={handleOpenTechnicalAnalysisGuide} style={settingsRowButtonStyle}>
+                <div>
+                  <div style={settingsRowTitleStyle}>기술적 분석 용어 사전</div>
+                  <div style={settingsRowDescStyle}>
+                    이동평균선·RSI·MACD·볼린저밴드 등 기술적 분석 지표의 개념과 해석법을 확인합니다.
                   </div>
                 </div>
                 <FiChevronRight style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />

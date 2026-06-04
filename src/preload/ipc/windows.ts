@@ -27,6 +27,9 @@ export const windowsApi = {
   /** 지정한 보고서를 별도 창(BrowserWindow)으로 열어 상세 보기를 제공한다 */
   openReportDetailWindow: (name: string, model: string) => ipcRenderer.invoke(IPC.OPEN_REPORT_DETAIL_WINDOW, name, model),
 
+  /** 에러 로그를 별도 창(BrowserWindow)으로 연다 */
+  openErrorLogWindow: (errorLog: string) => ipcRenderer.invoke(IPC.OPEN_ERROR_LOG_WINDOW, errorLog),
+
   /** 투자 가이드 페이지를 별도 창(BrowserWindow)으로 연다 */
   openGuideWindow: (guide: string) => ipcRenderer.invoke(IPC.OPEN_GUIDE_WINDOW, guide),
 }

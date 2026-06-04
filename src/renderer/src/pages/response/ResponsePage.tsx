@@ -30,6 +30,11 @@ export default function ResponsePage(): React.JSX.Element {
   const [errorMsg, setErrorMsg] = useState(
     isPreviewOnly && previewStatus === 'error' ? '개발용 미리보기: 분석 실패 상태입니다.' : ''
   )
+  const [errorLog, setErrorLog] = useState(
+    isPreviewOnly && previewStatus === 'error'
+      ? '[start] financial-analyst-kr\n[done] financial-analyst-kr\n[start] sector-researcher\n[실패] sector-researcher\n[경고] 업종 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.\n[start] news-sentiment-analyst\n[done] news-sentiment-analyst\n[start] price-analyst\n[done] price-analyst\n[start] valuation-analyst\n[done] valuation-analyst\n[start] invest-type-classifier\n[done] invest-type-classifier\n[start] aggressive-investment-strategist\n[실패] aggressive-investment-strategist: 타임아웃: 600초 초과\n[error] 분석에 실패하였습니다. 최종 투자 전략을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.\n[error] 프로세스 비정상 종료 (exit code: 1)'
+      : ''
+  )
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
@@ -67,13 +72,14 @@ export default function ResponsePage(): React.JSX.Element {
         setResponse(responseRef.current)
       })
 
-      window.api.onStockAnalysisDone((result: { success: boolean; error?: string }) => {
+      window.api.onStockAnalysisDone((result: { success: boolean; error?: string; errorLog?: string }) => {
         if (result.success) {
           setStatus('done')
           setLastResponse(responseRef.current)
         } else {
           setStatus('error')
           setErrorMsg(result.error ?? '분석에 실패했습니다.')
+          setErrorLog(result.errorLog ?? '')
         }
       })
 
@@ -110,6 +116,7 @@ export default function ResponsePage(): React.JSX.Element {
     setResponse('')
     responseRef.current = ''
     setErrorMsg('')
+    setErrorLog('')
     setAgentStatuses(getInitialAgentStatuses('idle'))
 
     if (isPreviewOnly) {
@@ -145,7 +152,7 @@ export default function ResponsePage(): React.JSX.Element {
   const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
   const isStreamingEmpty = status === 'streaming' && !response
-  const contentMinHeight = status === 'done' ? 216 : 260
+  const contentMinHeight = 260
   const isCancelled = status === 'cancelled'
   const isError = status === 'error'
 
@@ -217,7 +224,7 @@ export default function ResponsePage(): React.JSX.Element {
               {isCancelled && <AnalysisCancelledView onRetry={handleRetry} />}
 
               {/* 에러 */}
-              {isError && <ErrorResponseView errorMsg={errorMsg} onRetry={handleRetry} />}
+              {isError && <ErrorResponseView errorMsg={errorMsg} errorLog={errorLog} onRetry={handleRetry} />}
 
               {/* 분석 중 */}
               {!isCancelled && !isError && isStreamingEmpty && (

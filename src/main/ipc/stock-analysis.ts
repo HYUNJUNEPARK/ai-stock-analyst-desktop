@@ -143,9 +143,10 @@ interface AnalysisContext {
 function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   const resolvedCodex = resolveCliCommand('codex')
   if (!resolvedCodex.command) {
+    console.error('[stock-analysis:gpt] Codex CLI를 찾을 수 없음')
     safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
       success: false,
-      error: 'Codex CLI가 설치되어 있지 않습니다. /download 화면에서 다시 설치해 주세요.'
+      error: '분석에 실패하였습니다. AI 도구가 설치되어 있지 않습니다. 설치 화면에서 다시 설치해 주세요.'
     })
     return
   }
@@ -174,6 +175,8 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
   let buf = ''              // 줄 단위 파싱을 위한 버퍼 (data 이벤트가 줄 중간에 끊길 수 있음)
   let finalReportPath = '' // 최종 보고서 파일 경로 (스크립트 stdout에서 파싱)
   let analysisCompleted = false  // 중복 완료 처리 방지 플래그
+  let lastUserErrorMsg = ''      // 스크립트가 [error]로 출력한 유저 친화적 메시지
+  const errorLogLines: string[] = [] // 디버깅용 에러 로그 수집
 
   /**
    * 최종 보고서 파일을 읽어 renderer에 전달하는 헬퍼
@@ -187,8 +190,14 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
       safeSend(win,IPC.STOCK_ANALYSIS_CHUNK, reportContent)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: `리포트 읽기 실패: ${message}` })
+      const detail = error instanceof Error ? error.message : String(error)
+      console.error(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${reportPath}, error=${detail}`)
+      errorLogLines.push(`[error] 리포트 파일 읽기 실패: ${detail}`)
+      safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+        success: false,
+        error: '분석에 실패하였습니다. 리포트 파일을 읽을 수 없습니다. 잠시 후 다시 시도해 주세요.',
+        errorLog: errorLogLines.join('\n')
+      })
     }
   }
 
@@ -224,6 +233,18 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
         continue
       }
 
+      // [실패], [경고], [error] 라인 → 에러 로그로 수집
+      if (/^\[(실패|경고|error)\]/.test(line)) {
+        errorLogLines.push(line)
+      }
+
+      // [error] <유저 친화적 메시지> → 스크립트에서 출력한 에러 메시지 캡처
+      const errorMatch = line.match(/^\[error\]\s+(.+)$/)
+      if (errorMatch) {
+        lastUserErrorMsg = errorMatch[1]
+        continue
+      }
+
       // 최종 리포트 저장 완료: <경로> → 분석 완료 이벤트
       const reportMatch = line.match(/^최종 리포트 저장 완료:\s+(.+)$/)
       if (reportMatch) {
@@ -238,6 +259,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     const text = data.toString().trim()
     if (text) {
       writeTerminalLine(`[stock-analysis:gpt] ${text}`, true)
+      errorLogLines.push(text)
       // stderr의 마지막 줄만 UI에 표시 (중간 진행 출력이 많을 수 있으므로)
       sendLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
     }
@@ -251,7 +273,13 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
     if (code === 0) {
       if (!finalReportPath) {
-        safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: '최종 리포트 경로를 확인하지 못했습니다.' })
+        console.error('[stock-analysis:gpt] 프로세스 정상 종료했으나 리포트 경로 미확인')
+        errorLogLines.push('[error] 프로세스 정상 종료했으나 리포트 경로 미확인')
+        safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+          success: false,
+          error: '분석에 실패하였습니다. 리포트 생성 결과를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+          errorLog: errorLogLines.join('\n')
+        })
         return
       }
       try {
@@ -259,21 +287,39 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
         safeSend(win,IPC.STOCK_ANALYSIS_CHUNK, report)
         safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: `리포트 읽기 실패: ${message}` })
+        const detail = error instanceof Error ? error.message : String(error)
+        console.error(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${finalReportPath}, error=${detail}`)
+        errorLogLines.push(`[error] 리포트 파일 읽기 실패: ${detail}`)
+        safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+          success: false,
+          error: '분석에 실패하였습니다. 리포트 파일을 읽을 수 없습니다. 잠시 후 다시 시도해 주세요.',
+          errorLog: errorLogLines.join('\n')
+        })
       }
       return
     }
 
     // 취소가 아닌 오류 종료일 때만 에러 이벤트 전송
     if (!wasCancelled) {
-      safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: `분석 실패 (exit code: ${code})` })
+      console.error(`[stock-analysis:gpt] 프로세스 비정상 종료: exit code=${code}`)
+      errorLogLines.push(`[error] 프로세스 비정상 종료 (exit code: ${code})`)
+      safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+        success: false,
+        error: lastUserErrorMsg || '분석에 실패하였습니다. 잠시 후 다시 시도해 주세요.',
+        errorLog: errorLogLines.join('\n')
+      })
     }
   })
 
   child.on('error', (err) => {
     setActiveChild(null)
-    safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: `CLI 실행 오류: ${err.message}` })
+    console.error(`[stock-analysis:gpt] CLI 실행 오류: ${err.message}`)
+    errorLogLines.push(`[error] CLI 실행 오류: ${err.message}`)
+    safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+      success: false,
+      error: '분석에 실패하였습니다. AI 도구를 실행할 수 없습니다. 설치 상태를 확인해 주세요.',
+      errorLog: errorLogLines.join('\n')
+    })
   })
 }
 
@@ -302,6 +348,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
   let buf = ''
   let analysisCompleted = false
+  const errorLogLines: string[] = [] // 디버깅용 에러 로그 수집
 
   /**
    * tool_use id → 에이전트명(subagent_type) 매핑
@@ -322,9 +369,13 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
       safeSend(win,IPC.STOCK_ANALYSIS_CHUNK, ev.result ?? '')
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
     } else {
+      const detail = (ev.error as string) ?? 'unknown'
+      console.error(`[stock-analysis:claude] result 이벤트 실패: ${detail}`)
+      errorLogLines.push(`[error] Claude result 실패: ${detail}`)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
         success: false,
-        error: (ev.error as string) ?? '분석 실패'
+        error: '분석에 실패하였습니다. AI 모델 응답에 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+        errorLog: errorLogLines.join('\n')
       })
     }
   }
@@ -387,6 +438,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
     // error 키워드가 있을 때만 처리 (Claude CLI가 stderr에 일반 진행 정보도 출력함)
     if (text.toLowerCase().includes('error')) {
       writeTerminalLine(`[stock-analysis:claude] ${text.trim()}`, true)
+      errorLogLines.push(text.trim())
       sendLog(`Claude CLI: ${text.trim().split(/\r?\n/).at(-1) ?? text.trim()}`)
     }
   })
@@ -410,16 +462,25 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
     if (analysisCompleted || wasCancelled) return
 
+    console.error(`[stock-analysis:claude] 프로세스 종료: exit code=${code}, analysisCompleted=${analysisCompleted}`)
+    errorLogLines.push(`[error] 프로세스 종료 (exit code: ${code})`)
     safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
       success: false,
       error: code === 0
-        ? '분석이 완료되었지만 결과를 가져오지 못했습니다.'
-        : `분석 실패 (exit code: ${code})`
+        ? '분석에 실패하였습니다. 분석 결과를 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+        : '분석에 실패하였습니다. 잠시 후 다시 시도해 주세요.',
+      errorLog: errorLogLines.join('\n')
     })
   })
 
   child.on('error', (err) => {
     setActiveChild(null)
-    safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: false, error: `CLI 실행 오류: ${err.message}` })
+    console.error(`[stock-analysis:claude] CLI 실행 오류: ${err.message}`)
+    errorLogLines.push(`[error] CLI 실행 오류: ${err.message}`)
+    safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+      success: false,
+      error: '분석에 실패하였습니다. AI 도구를 실행할 수 없습니다. 설치 상태를 확인해 주세요.',
+      errorLog: errorLogLines.join('\n')
+    })
   })
 }

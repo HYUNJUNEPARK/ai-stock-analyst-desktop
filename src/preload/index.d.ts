@@ -72,6 +72,9 @@ declare global {
       // 보고서 목록 새 창 열기
       openReportsWindow: () => Promise<{ success: true } | { success: false; error: string }>
 
+      // 에러 로그 새 창 열기
+      openErrorLogWindow: (errorLog: string) => Promise<{ success: true } | { success: false; error: string }>
+
       // 투자 가이드 새 창 열기
       openGuideWindow: (guide: string) => Promise<{ success: true } | { success: false; error: string }>
 
@@ -91,7 +94,7 @@ declare global {
       cancelStockAnalysis: () => void
       onStockAnalysisAgent: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
       onStockAnalysisChunk: (callback: (chunk: string) => void) => void
-      onStockAnalysisDone: (callback: (result: { success: boolean; error?: string }) => void) => void
+      onStockAnalysisDone: (callback: (result: { success: boolean; error?: string; errorLog?: string }) => void) => void
     }
   }
 }

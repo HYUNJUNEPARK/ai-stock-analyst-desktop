@@ -24,7 +24,8 @@ const ROLE_FILES = {
   'price-analyst': 'price-analyst.md',
   'valuation-analyst': 'valuation-analyst.md',
   'invest-type-classifier': 'invest-type-classifier.md',
-  'aggressive-investment-strategist': 'aggressive-investment-strategist.md'
+  'aggressive-investment-strategist': 'aggressive-investment-strategist.md',
+  'input-validator': 'input-validator.md'
 }
 
 /** 역할 → artifact 출력 파일명 (기본값: 프롬프트 파일명과 동일, JSON 출력인 경우 .json) */
@@ -36,6 +37,7 @@ const ROLE_OUTPUT_FILES = {
   'valuation-analyst': 'valuation-analyst.json',
   'invest-type-classifier': 'invest-type-classifier.json',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.json',
+  'input-validator': 'input-validator.json'
 }
 
 /** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */
@@ -46,7 +48,8 @@ const ROLE_TIMEOUT = {
   'price-analyst': 7 * 60 * 1000,
   'valuation-analyst': 7 * 60 * 1000,
   'invest-type-classifier': 7 * 60 * 1000,
-  'aggressive-investment-strategist': 10 * 60 * 1000
+  'aggressive-investment-strategist': 10 * 60 * 1000,
+  'input-validator': 2 * 60 * 1000
 }
 
 function spawnCommand(command, args, options) {
@@ -76,8 +79,8 @@ async function main() {
     return
   }
 
-  const ticker = options.ticker || extractTicker(options.request) || 'unknown'
-  const company = options.company || extractCompany(options.request) || (ticker !== 'unknown' ? ticker : '미지정 종목')
+  let ticker = options.ticker || extractTicker(options.request) || 'unknown'
+  let company = options.company || extractCompany(options.request) || (ticker !== 'unknown' ? ticker : '미지정 종목')
   const asOfDateFile = formatDate(new Date())
   const asOfDate = formatDateDisplay(new Date())
   const identifier = buildIdentifier(company)
@@ -103,6 +106,29 @@ async function main() {
     pendingArtifactDir = ''
     pendingDateDir = ''
     return
+  }
+
+  // 입력 검증: 유효한 종목 분석 요청인지 사전 확인
+  const validationResult = await runValidation({
+    context,
+    outputPath: path.join(artifactDir, getOutputFileName('input-validator')),
+    model: options.model
+  })
+
+  if (!validationResult.valid) {
+    const reason = validationResult.reason || '유효한 종목 분석 요청이 아닙니다.'
+    console.log('[error] 기업명 또는 종목코드를 포함해 다시 입력해 주세요.')
+    throw new Error(`입력 검증 실패: ${reason}`)
+  }
+
+  // 검증에서 추출한 정식 기업명/티커로 컨텍스트 업데이트
+  if (validationResult.company) {
+    context.COMPANY = validationResult.company
+    company = validationResult.company
+  }
+  if (validationResult.ticker) {
+    context.TICKER = validationResult.ticker
+    ticker = validationResult.ticker
   }
 
   // Wave 1: 4개 동시 시작
@@ -239,7 +265,8 @@ async function main() {
     })
   } catch (err) {
     console.error(`[실패] aggressive-investment-strategist: ${err?.message ?? 'unknown'}`)
-    throw new Error('최종 투자 전략 에이전트 실패. 리포트를 생성할 수 없습니다.')
+    console.log('[error] 분석에 실패하였습니다. 최종 투자 전략을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    throw err
   }
 
   const parsedReport = parseJsonReport(finalReport.content)
@@ -263,6 +290,43 @@ async function main() {
 /** 역할에 대응하는 artifact 출력 파일명을 반환한다. */
 function getOutputFileName(role) {
   return ROLE_OUTPUT_FILES[role] || ROLE_FILES[role]
+}
+
+/**
+ * 입력 검증을 실행한다.
+ * runRole과 달리 [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
+ * 검증 실패 시에도 분석을 중단하지 않고 fail-open으로 동작한다.
+ */
+async function runValidation({ context, outputPath, model }) {
+  const promptTemplate = await loadPromptTemplate('input-validator')
+  const prompt = applyTemplate(promptTemplate, context)
+  const timeoutMs = ROLE_TIMEOUT['input-validator']
+
+  try {
+    await execCodex({ prompt, outputPath, model, timeoutMs })
+    const content = await readFile(outputPath, 'utf8')
+    return parseValidationResult(content)
+  } catch (err) {
+    console.warn(`[경고] 입력 검증 실행 실패. 검증을 건너뛰고 계속 진행합니다. (${err?.message ?? 'unknown'})`)
+    return { valid: true, company: '', ticker: '', reason: '' }
+  }
+}
+
+function parseValidationResult(raw) {
+  try {
+    const stripped = raw.replace(/```(?:json)?\s*/g, '').replace(/```/g, '')
+    const match = stripped.match(/\{[\s\S]*\}/)
+    const parsed = JSON.parse(match?.[0] ?? stripped)
+    return {
+      valid: parsed.valid === true,
+      company: parsed.company || '',
+      ticker: parsed.ticker || '',
+      reason: parsed.reason || ''
+    }
+  } catch {
+    console.warn('[경고] 입력 검증 결과 파싱 실패. 검증을 건너뛰고 계속 진행합니다.')
+    return { valid: true, company: '', ticker: '', reason: '' }
+  }
 }
 
 async function runRole({ role, context, outputPath, model }) {
@@ -323,7 +387,7 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 7 * 60 * 1000 }) {
 
     const timer = setTimeout(() => {
       child.kill()
-      reject(new Error(`codex exec 타임아웃: ${timeoutMs / 1000}초 초과`))
+      reject(new Error(`타임아웃: ${timeoutMs / 1000}초 초과`))
     }, timeoutMs)
 
     let detectedModel = ''
@@ -353,10 +417,10 @@ function execCodex({ prompt, outputPath, model, timeoutMs = 7 * 60 * 1000 }) {
         return
       }
       if (code !== 0) {
-        reject(new Error(`codex exec 비정상 종료 (exit code: ${code ?? 'unknown'})`))
+        reject(new Error(`비정상 종료 (exit code: ${code ?? 'unknown'})`))
         return
       }
-      reject(new Error(`codex exec 완료했으나 출력 파일이 생성되지 않았습니다: ${outputPath}`))
+      reject(new Error(`출력 파일 미생성: ${outputPath}`))
     })
   })
 }
@@ -485,15 +549,17 @@ function parseJsonReport(raw) {
   let parsed
   try {
     parsed = JSON.parse(match?.[0] ?? stripped)
-  } catch {
-    console.error('[parseJsonReport] JSON 파싱 실패. raw 응답을 확인하세요.')
-    throw new Error('최종 리포트 JSON 파싱 실패. 모델 응답이 유효한 JSON이 아닙니다.')
+  } catch (err) {
+    console.error(`[parseJsonReport] JSON 파싱 실패. raw=${raw.slice(0, 500)}`)
+    console.log('[error] 분석에 실패하였습니다. 분석 결과 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.')
+    throw err
   }
 
   const missing = REQUIRED_REPORT_FIELDS.filter((f) => !(f in parsed))
   if (missing.length > 0) {
     console.error(`[parseJsonReport] 필수 필드 누락: ${missing.join(', ')}`)
-    throw new Error(`최종 리포트에 필수 필드가 누락되었습니다: ${missing.join(', ')}`)
+    console.log('[error] 분석에 실패하였습니다. 분석 결과가 불완전합니다. 잠시 후 다시 시도해 주세요.')
+    throw new Error(`필수 필드 누락: ${missing.join(', ')}`)
   }
 
   return parsed

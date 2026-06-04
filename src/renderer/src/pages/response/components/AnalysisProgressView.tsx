@@ -177,7 +177,6 @@ export default function AnalysisProgressView({
               description="1단계 분석 결과 종합하여 투자 유형 판단"
               icon={<LuScale size={28} />}
               status={agentStatuses[classifier?.key] ?? 'idle'}
-              waitingMsg="모든 분석 결과가 완료되면 자동으로 진행됩니다."
             />
 
             {/* → 화살표 */}
@@ -203,7 +202,6 @@ export default function AnalysisProgressView({
               description="최종 투자 전략 및 제안"
               icon={<FiTarget size={28} />}
               status={agentStatuses[strategy?.key] ?? 'idle'}
-              waitingMsg="투자 유형 판단 완료 후 자동으로 진행됩니다."
             />
           </div>
 
@@ -344,7 +342,6 @@ type StageCardProps = {
   description: string
   icon: React.ReactNode
   status: AgentStatus
-  waitingMsg: string
 }
 
 function StageCard({
@@ -355,8 +352,7 @@ function StageCard({
   title,
   description,
   icon,
-  status,
-  waitingMsg
+  status
 }: StageCardProps): React.JSX.Element {
   return (
     <div
@@ -410,7 +406,7 @@ function StageCard({
             {icon}
           </div>
         </div>
-        <StageStatusIndicator status={status} color={color} waitingMsg={waitingMsg} />
+        <StageStatusIndicator status={status} color={color} />
       </div>
     </div>
   )
@@ -418,12 +414,10 @@ function StageCard({
 
 function StageStatusIndicator({
   status,
-  color,
-  waitingMsg
+  color
 }: {
   status: AgentStatus
   color: string
-  waitingMsg: string
 }): React.JSX.Element {
   if (status === 'done') {
     return (
@@ -451,18 +445,7 @@ function StageStatusIndicator({
     )
   }
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        textAlign: 'center'
-      }}
-    >
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>대기 중</div>
-      <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>{waitingMsg}</div>
-    </div>
+    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>대기 중</div>
   )
 }
 
