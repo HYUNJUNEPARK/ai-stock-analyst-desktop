@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   FiArrowRight,
   FiCheck,
@@ -33,7 +33,37 @@ export default function AnalysisProgressView({
   const [financial, sector, news, price, valuation, classifier, strategy] = AGENT_CONFIG
 
   const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
+  const anyRunningOrDone = Object.values(agentStatuses).some((s) => s === 'running' || s === 'done')
+  const isValidating = !anyRunningOrDone
   const progressPct = Math.round((doneCount / AGENT_CONFIG.length) * 100)
+
+  // 검증 배너: 사라질 때 fade-out 애니메이션을 위해 DOM 제거를 지연
+  const [showValidationBanner, setShowValidationBanner] = useState(isValidating)
+  const [validationFadingOut, setValidationFadingOut] = useState(false)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (isValidating) {
+      // 검증 중으로 돌아온 경우 (retry 등)
+      if (fadeTimerRef.current) {
+        clearTimeout(fadeTimerRef.current)
+        fadeTimerRef.current = null
+      }
+      setValidationFadingOut(false)
+      setShowValidationBanner(true)
+    } else if (showValidationBanner && !validationFadingOut) {
+      // 검증 끝남 → fade-out 시작
+      setValidationFadingOut(true)
+      fadeTimerRef.current = setTimeout(() => {
+        setShowValidationBanner(false)
+        setValidationFadingOut(false)
+        fadeTimerRef.current = null
+      }, 400)
+    }
+    return () => {
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+    }
+  }, [isValidating]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const chainADone =
     agentStatuses[financial.key] === 'done' && agentStatuses[sector.key] === 'done'
@@ -62,6 +92,51 @@ export default function AnalysisProgressView({
           에이전트별 분석을 마친 후 종합 투자 분석이 진행됩니다.
         </div>
       </div>
+
+      {/* 입력 검증 중 안내 */}
+      {showAgentFlow && showValidationBanner && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: validationFadingOut ? '0 14px' : '10px 14px',
+            borderRadius: 10,
+            background: 'var(--accent-light, #EFF6FF)',
+            border: validationFadingOut ? '1px solid transparent' : '1px solid var(--accent, #3B82F6)',
+            opacity: validationFadingOut ? 0 : 1,
+            maxHeight: validationFadingOut ? 0 : 60,
+            marginBottom: validationFadingOut ? -16 : 0,
+            overflow: 'hidden',
+            transition: 'opacity 0.35s ease, max-height 0.4s ease, margin-bottom 0.4s ease, padding 0.4s ease, border-color 0.35s ease',
+          }}
+        >
+          <div
+            className="spinner"
+            style={{
+              width: 16,
+              height: 16,
+              borderTopColor: 'var(--accent, #3B82F6)',
+              flexShrink: 0
+            }}
+          />
+          <div>
+            <div
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: 2
+              }}
+            >
+              입력을 검증하고 있습니다
+            </div>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+              종목명 또는 종목코드를 확인하는 중입니다. 잠시만 기다려 주세요.
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAgentFlow ? (
         <>
