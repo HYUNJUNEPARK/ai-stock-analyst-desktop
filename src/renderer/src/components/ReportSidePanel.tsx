@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { FiChevronRight, FiTrash2 } from 'react-icons/fi'
+import { FiX, FiChevronRight, FiTrash2 } from 'react-icons/fi'
 import ConfirmDialog from './ConfirmDialog'
 import { gptIcon, claudeIcon } from '../assets'
 import { useReportList } from '../hooks/useReportList'
 import type { ReportFile } from '../hooks/useReportList'
 import { useReportDeletion } from '../hooks/useReportDeletion'
+import './ReportSidePanel.css'
 
 type ReportSidePanelProps = {
   isOpen: boolean
@@ -17,11 +18,20 @@ export default function ReportSidePanel({
 }: ReportSidePanelProps): React.JSX.Element | null {
   const [panelVisible, setPanelVisible] = useState(false)
 
-  const { loading: reportsLoading, sections, removeReport, resetLoading } = useReportList({ enabled: isOpen })
-  const { deleteTarget, deleteTargetLabel, handleDeleteRequest, handleDeleteCancel, handleDeleteConfirm } =
-    useReportDeletion({ onSuccess: removeReport })
+  const {
+    loading: reportsLoading,
+    sections,
+    removeReport,
+    resetLoading
+  } = useReportList({ enabled: isOpen })
+  const {
+    deleteTarget,
+    deleteTargetLabel,
+    handleDeleteRequest,
+    handleDeleteCancel,
+    handleDeleteConfirm
+  } = useReportDeletion({ onSuccess: removeReport })
 
-  // 패널이 열릴 때 슬라이드 인 애니메이션을 트리거한다
   useEffect(() => {
     if (!isOpen) return
     requestAnimationFrame(() => setPanelVisible(true))
@@ -39,114 +49,79 @@ export default function ReportSidePanel({
 
   return (
     <>
+      {/* 백드롭 */}
       <div
+        className={`rsp-backdrop ${panelVisible ? 'rsp-backdrop--visible' : ''}`}
         onClick={closePanel}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.35)',
-          zIndex: 200,
-          opacity: panelVisible ? 1 : 0,
-          transition: 'opacity 0.28s ease'
-        }}
       />
 
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: '82%',
-          maxWidth: 420,
-          background: 'var(--bg-primary)',
-          borderLeft: '0.5px solid var(--border)',
-          boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
-          zIndex: 201,
-          display: 'flex',
-          flexDirection: 'column',
-          transform: panelVisible ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
-      >
-        <div
-          style={{
-            height: 52,
-            minHeight: 52,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 16px',
-            borderBottom: '0.5px solid var(--border)',
-            background: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)'
-          }}
-        >
-          <button
-            onClick={closePanel}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 30,
-              height: 30,
-              border: 'none',
-              background: 'var(--bg-tertiary)',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            <FiChevronRight size={16} />
+      {/* 패널 */}
+      <div className={`rsp-panel ${panelVisible ? 'rsp-panel--visible' : ''}`}>
+        {/* 헤더 */}
+        <div className="rsp-header">
+          <h2 className="rsp-header-title">이전 보고서</h2>
+          <button className="rsp-close-btn" onClick={closePanel} aria-label="닫기">
+            <FiX size={15} />
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px' }}>
-          <p
-            style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-              margin: '0 0 16px',
-              lineHeight: 1.5
-            }}
-          >
-            보관 중인 보고서 리스트입니다.
-          </p>
-
+        {/* 콘텐츠 */}
+        <div className="rsp-content">
+          {/* 로딩 */}
           {reportsLoading && (
-            <div className="card status-card">보고서 목록을 불러오는 중입니다...</div>
+            <div className="rsp-empty">
+              <span className="rsp-empty-spinner" />
+              보고서를 불러오는 중...
+            </div>
           )}
 
+          {/* 빈 상태 */}
           {!reportsLoading && sections.length === 0 && (
-            <div className="card status-card">
-              <div className="status-card-title">저장된 보고서가 없습니다</div>
-              <p className="status-card-copy">
-                GPT 분석을 먼저 실행하면 이 목록에 보고서가 표시됩니다.
-              </p>
+            <div className="rsp-empty-card">
+              <div className="rsp-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <rect
+                    x="6"
+                    y="4"
+                    width="20"
+                    height="24"
+                    rx="3"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M11 12h10M11 16h7"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <div className="rsp-empty-title">저장된 보고서가 없습니다</div>
+              <div className="rsp-empty-desc">
+                분석을 실행하면 이 목록에 보고서가 표시됩니다.
+              </div>
             </div>
           )}
 
-          {!reportsLoading && sections.length > 0 && (
-            <div className="report-sections">
-              {sections.map((section) => (
-                <section key={section.date} className="report-section">
-                  <div className="report-section-heading">{section.date}</div>
-                  <div className="card report-list-card">
-                    <div className="report-list">
-                      {section.reports.map((report) => (
-                        <ReportRow
-                          key={report.name}
-                          report={report}
-                          onDelete={handleDeleteRequest}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
+          {/* 보고서 리스트 */}
+          {!reportsLoading &&
+            sections.length > 0 &&
+            sections.map((section) => (
+              <section key={section.date} className="rsp-section">
+                <h3 className="rsp-section-header">{section.date}</h3>
+                <div className="rsp-group">
+                  {section.reports.map((report, i) => (
+                    <ReportRow
+                      key={report.name}
+                      report={report}
+                      showSeparator={i < section.reports.length - 1}
+                      onDelete={handleDeleteRequest}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
         </div>
       </div>
 
@@ -166,50 +141,59 @@ export default function ReportSidePanel({
 
 function ReportRow({
   report,
+  showSeparator,
   onDelete
 }: {
   report: ReportFile
+  showSeparator: boolean
   onDelete: (report: ReportFile) => void
 }): React.JSX.Element {
   const displayName = report.company || report.name
-  const label = report.ticker && report.ticker !== 'unknown' ? `${displayName}(${report.ticker})` : displayName
+  const label =
+    report.ticker && report.ticker !== 'unknown'
+      ? `${displayName}(${report.ticker})`
+      : displayName
+
   const openReport = (): void => {
     void window.api.openReportDetailWindow(report.name, report.model)
   }
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="report-list-row"
-      onClick={openReport}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          openReport()
-        }
-      }}
-    >
-      <img
-        src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}
-        alt={displayName}
-        className="report-list-thumb"
-      />
-      <div className="report-list-body report-list-body--center">
-        <div className="report-list-title">{label}</div>
-      </div>
-      <button
-        type="button"
-        className="report-list-delete-btn"
-        aria-label="보고서 삭제"
-        onClick={(e) => {
-          e.stopPropagation()
-          onDelete(report)
+    <>
+      <div
+        role="button"
+        tabIndex={0}
+        className="rsp-row"
+        onClick={openReport}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            openReport()
+          }
         }}
       >
-        <FiTrash2 size={15} />
-      </button>
-      <FiChevronRight className="report-list-chevron" aria-hidden="true" />
-    </div>
+        <img
+          src={report.model === 'gpt' ? gptIcon : report.model === 'claude' ? claudeIcon : ''}
+          alt={displayName}
+          className="rsp-row-thumb"
+        />
+        <div className="rsp-row-body">
+          <span className="rsp-row-title">{label}</span>
+        </div>
+        <button
+          type="button"
+          className="rsp-row-delete"
+          aria-label="보고서 삭제"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(report)
+          }}
+        >
+          <FiTrash2 size={14} />
+        </button>
+        <FiChevronRight className="rsp-row-chevron" aria-hidden="true" />
+      </div>
+      {showSeparator && <div className="rsp-row-separator" />}
+    </>
   )
 }
