@@ -129,10 +129,10 @@ export default function AnalysisProgressView({
                 marginBottom: 2
               }}
             >
-              입력을 검증하고 있습니다
+              종목을 확인하고 있습니다
             </div>
             <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-              종목명 또는 종목코드를 확인하는 중입니다. 잠시만 기다려 주세요.
+              종목명과 현재 주가를 확인하는 중입니다. 잠시만 기다려 주세요.(약 1-3분 소요)
             </div>
           </div>
         </div>

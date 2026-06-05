@@ -25,7 +25,8 @@ const ROLE_FILES = {
   'valuation-analyst': 'valuation-analyst.md',
   'invest-type-classifier': 'invest-type-classifier.md',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.md',
-  'input-validator': 'input-validator.md'
+  'input-validator': 'input-validator.md',
+  'price-fetcher': 'price-fetcher.md'
 }
 
 /** 역할 → artifact 출력 파일명 (기본값: 프롬프트 파일명과 동일, JSON 출력인 경우 .json) */
@@ -37,7 +38,8 @@ const ROLE_OUTPUT_FILES = {
   'valuation-analyst': 'valuation-analyst.json',
   'invest-type-classifier': 'invest-type-classifier.json',
   'aggressive-investment-strategist': 'aggressive-investment-strategist.json',
-  'input-validator': 'input-validator.json'
+  'input-validator': 'input-validator.json',
+  'price-fetcher': 'price-fetcher.json'
 }
 
 /** 역할별 타임아웃 (ms). 기본값 7분, 최종 전략 에이전트는 10분 */
@@ -49,7 +51,8 @@ const ROLE_TIMEOUT = {
   'valuation-analyst': 7 * 60 * 1000,
   'invest-type-classifier': 7 * 60 * 1000,
   'aggressive-investment-strategist': 10 * 60 * 1000,
-  'input-validator': 2 * 60 * 1000
+  'input-validator': 2 * 60 * 1000,
+  'price-fetcher': 2 * 60 * 1000
 }
 
 function spawnCommand(command, args, options) {
@@ -108,7 +111,8 @@ async function main() {
     return
   }
 
-  // 입력 검증: 유효한 종목 분석 요청인지 사전 확인
+  // Wave 0: 입력 검증 + 기준 주가 확정
+  // 0-1: 입력 검증 — 유효한 종목 분석 요청인지 사전 확인
   const validationResult = await runValidation({
     context,
     outputPath: path.join(artifactDir, getOutputFileName('input-validator')),
@@ -129,6 +133,16 @@ async function main() {
   if (validationResult.ticker) {
     context.TICKER = validationResult.ticker
     ticker = validationResult.ticker
+  }
+
+  // 0-2: 주가 조회 — 모든 에이전트가 사용할 기준 가격 확정
+  const priceResult = await runPriceFetcher({
+    context,
+    outputPath: path.join(artifactDir, getOutputFileName('price-fetcher')),
+    model: options.model
+  })
+  if (priceResult.priceFormatted) {
+    context.CURRENT_PRICE = priceResult.priceFormatted
   }
 
   // Wave 1: 4개 동시 시작
@@ -309,6 +323,42 @@ async function runValidation({ context, outputPath, model }) {
   } catch (err) {
     console.warn(`[경고] 입력 검증 실행 실패. 검증을 건너뛰고 계속 진행합니다. (${err?.message ?? 'unknown'})`)
     return { valid: true, company: '', ticker: '', reason: '' }
+  }
+}
+
+/**
+ * 주가를 조회한다.
+ * runValidation과 동일하게 [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
+ * 조회 실패 시에도 분석을 중단하지 않고 빈 값으로 계속 진행한다.
+ */
+async function runPriceFetcher({ context, outputPath, model }) {
+  const promptTemplate = await loadPromptTemplate('price-fetcher')
+  const prompt = applyTemplate(promptTemplate, context)
+  const timeoutMs = ROLE_TIMEOUT['price-fetcher']
+
+  try {
+    await execCodex({ prompt, outputPath, model, timeoutMs })
+    const content = await readFile(outputPath, 'utf8')
+    return parsePriceFetcherResult(content)
+  } catch (err) {
+    console.warn(`[경고] 주가 조회 실패. 각 에이전트가 개별적으로 주가를 조회합니다. (${err?.message ?? 'unknown'})`)
+    return { price: '', priceFormatted: '', currency: '' }
+  }
+}
+
+function parsePriceFetcherResult(raw) {
+  try {
+    const stripped = raw.replace(/```(?:json)?\s*/g, '').replace(/```/g, '')
+    const match = stripped.match(/\{[\s\S]*\}/)
+    const parsed = JSON.parse(match?.[0] ?? stripped)
+    return {
+      price: parsed.price || '',
+      priceFormatted: parsed.priceFormatted || '',
+      currency: parsed.currency || ''
+    }
+  } catch {
+    console.warn('[경고] 주가 조회 결과 파싱 실패. 각 에이전트가 개별적으로 주가를 조회합니다.')
+    return { price: '', priceFormatted: '', currency: '' }
   }
 }
 

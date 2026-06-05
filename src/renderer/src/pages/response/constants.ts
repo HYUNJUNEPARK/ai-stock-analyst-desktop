@@ -1,6 +1,7 @@
 import type { AgentConfig } from './types'
 
 export const AGENT_CONFIG: AgentConfig[] = [
+  // Wave 0 (순차): input-validator → price-fetcher (UI 배너로 표시, AGENT_CONFIG 미포함)
   // Wave 1 – Chain A (재무+업종 병렬)
   { key: 'financial-analyst-kr', label: '재무 분석' },
   { key: 'sector-researcher', label: '업종 리서치' },

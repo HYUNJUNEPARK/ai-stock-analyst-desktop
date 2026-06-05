@@ -10,6 +10,7 @@
 - 티커: {{TICKER}}
 - 사용자 요청: {{REQUEST}}
 - 기준일: {{AS_OF_DATE}}
+- 기준 주가: {{CURRENT_PRICE}}
 - 사용 AI 모델: {{AI_MODEL}}
 
 종합 입력:
@@ -33,6 +34,7 @@
 {{VALUATION_ANALYSIS}}
 
 지침:
+- **현재 주가**: 기준 주가({{CURRENT_PRICE}})가 제공된 경우 반드시 이 가격을 현재가 기준으로 사용한다. 각 에이전트 분석 결과의 currentPrice와 차이가 있으면 기준 주가를 우선한다.
 - **Valuation Analysis를 목표주가 및 매수 추천가 산정의 핵심 참고 자료로 활용한다**: 증권사 목표주가 범위, 자체 보수적·기준·낙관 적정주가를 strategy 수립 시 반드시 반영한다. Valuation Analysis가 비어있는 경우 Financial Analysis 기반으로 직접 산정한다.
 - **Investment Type Analysis를 최우선으로 참조한다**: 투자 유형 판단 결과(핵심 투자 아이디어, 투자 유형, 투자 기간 적합성)를 전략 수립의 출발점으로 사용한다.
 - 투자 유형이 "고위험 테마형" 또는 "모멘텀형"으로 분류된 경우, 목표 수익률과 손절 비율을 보수적으로 설정하고 리스크를 강조한다.

@@ -3,7 +3,7 @@
 ## 프로젝트 개요
 
 GPT/Claude 모델 기반 종목 분석 **Electron 데스크탑 앱**.
-7개 전문 에이전트가 병렬·순차 파이프라인으로 종목을 분석하고, 투자 유형 분류를 거쳐 최종 투자 리포트를 생성한다.
+9개 전문 에이전트가 병렬·순차 파이프라인으로 종목을 분석하고, 투자 유형 분류를 거쳐 최종 투자 리포트를 생성한다.
 
 - **제품명**: AI 투자 솔루션
 - **기술 스택**: Electron 39 + React 19 + TypeScript 5.9 + electron-vite 5
@@ -38,7 +38,7 @@ src/
 │       │   └── reports/         # 생성된 리포트
 │       └── gpt/                 # GPT/Codex 에이전트 프로젝트
 │           ├── AGENTS.md
-│           ├── prompts/         # 에이전트 프롬프트 (8개)
+│           ├── prompts/         # 에이전트 프롬프트 (9개)
 │           ├── scripts/         # 분석 오케스트레이션 스크립트
 │           └── reports/         # 생성된 리포트
 ├── preload/                     # contextBridge 보안 브릿지
@@ -102,10 +102,12 @@ main (Node.js, child_process, fs)
 
 ## 멀티 에이전트 파이프라인
 
-### 7개 에이전트
+### 9개 에이전트
 
 | 에이전트 | 역할 |
 |---------|------|
+| `input-validator` | 입력 검증 (유효한 종목 요청인지 판단, 정식 기업명·티커 추출) |
+| `price-fetcher` | 기준 주가 확정 (교차 검증 후 모든 에이전트에 공통 가격 제공) |
 | `financial-analyst-kr` | 재무제표 분석 (매출, 영업이익률, PER, PBR, ROE, 부채비율) |
 | `sector-researcher` | 업종 리서치 (글로벌 시장, 경쟁사, 정책, 업종 전망) |
 | `news-sentiment-analyst` | 뉴스 감성 분석 (호재·악재, 시장 심리) |
@@ -117,11 +119,14 @@ main (Node.js, child_process, fs)
 ### 실행 순서
 
 ```
+Wave 0 (순차):  input-validator → price-fetcher (입력 검증 + 기준 주가 확정)
 Wave 1 (병렬):  financial-analyst-kr, sector-researcher, news-sentiment-analyst, price-analyst
 Wave 1b:        valuation-analyst (financial + sector 완료 후)
 Wave 2-1:       invest-type-classifier (5개 완료 후)
 Wave 2-2:       aggressive-investment-strategist (모든 분석 + 유형 분류 후)
 ```
+
+> Wave 0에서 확정된 기준 주가(`CURRENT_PRICE`)는 Wave 1 이후 모든 에이전트에 주입되어 가격 일관성을 보장한다.
 
 ---
 
