@@ -131,8 +131,8 @@ export default function AnalysisProgressView({
             >
               종목을 확인하고 있습니다
             </div>
-            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
-              종목명과 현재 주가를 확인하는 중입니다. 잠시만 기다려 주세요.(약 1-3분 소요)
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', whiteSpace: 'pre-line' }}>
+              {'종목명과 현재 주가를 확인하는 중입니다.\n잠시만 기다려 주세요. (약 1-3분 소요)'}
             </div>
           </div>
         </div>
@@ -197,25 +197,25 @@ export default function AnalysisProgressView({
                   <AgentCard
                     icon={<IoDocumentTextOutline size={14} />}
                     label="재무 분석"
-                    description="기업 재무제표 및 재무 건전성 분석"
+                    description={'기업 재무제표 및\n재무 건전성 분석'}
                     status={agentStatuses[financial.key] ?? 'idle'}
                   />
                   <AgentCard
                     icon={<FiUsers size={14} />}
                     label="업종 리서치"
-                    description="산업 동향 및 경쟁사 분석"
+                    description={'산업 동향 및\n경쟁사 분석'}
                     status={agentStatuses[sector.key] ?? 'idle'}
                   />
                   <AgentCard
                     icon={<IoNewspaperOutline size={14} />}
                     label="뉴스 분석"
-                    description="뉴스 수집 및 감성 분석"
+                    description={'뉴스 수집 및\n감성 분석'}
                     status={agentStatuses[news.key] ?? 'idle'}
                   />
                   <AgentCard
                     icon={<FaChartLine size={14} />}
                     label="기술 분석"
-                    description="주가 흐름 및 기술적 지표 분석"
+                    description={'주가 흐름 및\n기술적 지표 분석'}
                     status={agentStatuses[price.key] ?? 'idle'}
                   />
                 </div>
@@ -249,7 +249,7 @@ export default function AnalysisProgressView({
               iconBg="#D1FAE5"
               iconColor="#34D399"
               title="투자 유형 판단"
-              description="1단계 분석 결과 종합하여 투자 유형 판단"
+              description={'1단계 분석 결과 종합하여\n투자 유형 판단'}
               icon={<LuScale size={28} />}
               status={agentStatuses[classifier?.key] ?? 'idle'}
             />
@@ -274,7 +274,7 @@ export default function AnalysisProgressView({
               iconBg="#EDE9FE"
               iconColor="#A78BFA"
               title="투자 전략 생성"
-              description="최종 투자 전략 및 제안"
+              description={'최종 투자 전략 및 제안'}
               icon={<FiTarget size={28} />}
               status={agentStatuses[strategy?.key] ?? 'idle'}
             />
@@ -451,7 +451,7 @@ function StageCard({
             {title}
           </span>
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4 }}>
+        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', lineHeight: 1.4, whiteSpace: 'pre-line' }}>
           {description}
         </div>
       </div>
@@ -610,7 +610,8 @@ function AgentCard({ icon, label, description, status }: AgentCardProps): React.
         style={{
           fontSize: 10,
           color: 'var(--text-tertiary)',
-          lineHeight: 1.3
+          lineHeight: 1.3,
+          whiteSpace: 'pre-line'
         }}
       >
         {description}
