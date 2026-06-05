@@ -89,7 +89,7 @@ export default function CliDownloadPage(): React.JSX.Element {
               logRef={logRef}
             />
           )}
-          {status === 'error' && <ErrorState errorMsg={errorMsg} />}
+          {status === 'error' && <ErrorState errorMsg={errorMsg} logs={logs} />}
         </div>
       </div>
 

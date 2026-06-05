@@ -65,18 +65,30 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
+    const stderrChunks: string[] = []
+
     streamLines(win, child, IPC.INSTALL_PROGRESS, 'stdout')
     streamLines(win, child, IPC.INSTALL_PROGRESS, 'stderr')
+
+    child.stderr?.on('data', (chunk: Buffer) => {
+      stderrChunks.push(chunk.toString())
+    })
 
     child.on('close', (code) => {
       if (code === 0) {
         console.log(`[start-cli-install] "${model}" 모델 설치 완료`)
         safeSend(win,IPC.INSTALL_COMPLETE, { success: true })
       } else {
+        const stderrText = stderrChunks.join('').trim()
+        const lastLines = stderrText.split('\n').filter(Boolean).slice(-5).join('\n')
+        const detail = lastLines
+          ? `설치 중 오류가 발생했습니다. (exit code: ${code})\n${lastLines}`
+          : `설치 중 오류가 발생했습니다. (exit code: ${code})`
         console.error(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
+        if (stderrText) console.error(`[start-cli-install] stderr:\n${stderrText}`)
         safeSend(win,IPC.INSTALL_COMPLETE, {
           success: false,
-          error: `설치 중 오류가 발생했습니다. (exit code: ${code})`
+          error: detail
         })
       }
     })

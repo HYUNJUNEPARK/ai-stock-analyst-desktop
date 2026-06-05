@@ -44,26 +44,54 @@ export function getEnhancedPath(): string {
       timeout: 5000
     }).trim()
     if (shellPath) {
+      console.log('[getEnhancedPath] 쉘에서 PATH 획득 성공')
       _cachedEnhancedPath = shellPath
       return _cachedEnhancedPath
     }
-  } catch {
-    // 쉘 실행 실패 시 폴백
+  } catch (err) {
+    console.warn('[getEnhancedPath] 쉘 PATH 획득 실패, 폴백 사용:', (err as Error).message)
   }
 
   // 폴백: 일반적인 npm/node 설치 경로를 수동으로 추가
   const home = homedir()
   const extraPaths = [
     join(home, '.npm-global', 'bin'),
-    join(home, '.nvm', 'versions', 'node'),  // nvm 사용자
+    ...findNvmBinPaths(home),
     '/usr/local/bin',
     '/opt/homebrew/bin',                       // Apple Silicon Homebrew
+    '/opt/homebrew/sbin',
     join(home, '.local', 'bin'),
     join(home, 'bin')
   ].filter(existsSync)
 
   _cachedEnhancedPath = [...new Set([...currentPath.split(':'), ...extraPaths])].join(':')
+  console.log('[getEnhancedPath] 폴백 PATH 구성:', _cachedEnhancedPath)
   return _cachedEnhancedPath
+}
+
+/**
+ * nvm이 설치한 Node.js 버전들의 실제 bin 디렉토리 목록을 반환한다.
+ *
+ * 기존 코드는 ~/.nvm/versions/node 디렉토리 자체만 추가해서
+ * 실제 실행 파일(npm, node 등)이 있는 bin/ 경로가 PATH에 포함되지 않았다.
+ * 이 함수는 설치된 모든 버전의 bin/ 경로를 반환한다.
+ */
+function findNvmBinPaths(home: string): string[] {
+  const nvmNodeDir = join(home, '.nvm', 'versions', 'node')
+  if (!existsSync(nvmNodeDir)) return []
+
+  try {
+    const { readdirSync } = require('fs')
+    const versions: string[] = readdirSync(nvmNodeDir)
+    // 가장 최신 버전이 먼저 오도록 역순 정렬
+    return versions
+      .sort()
+      .reverse()
+      .map((v: string) => join(nvmNodeDir, v, 'bin'))
+      .filter(existsSync)
+  } catch {
+    return []
+  }
 }
 
 /**
