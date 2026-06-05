@@ -74,6 +74,9 @@ declare global {
       // 외부 URL을 시스템 기본 브라우저로 열기
       openExternalUrl: (url: string) => Promise<void>
 
+      // 사용 전 준비사항 새 창 열기
+      openPrerequisitesWindow: () => Promise<{ success: true } | { success: false; error: string }>
+
       // 보고서 목록 새 창 열기
       openReportsWindow: () => Promise<{ success: true } | { success: false; error: string }>
 

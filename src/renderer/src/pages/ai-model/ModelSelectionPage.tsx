@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FiPackage } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
@@ -104,6 +105,47 @@ export default function ModelSelectionPage(): React.JSX.Element {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* 하단 링크 */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 4,
+          paddingTop: 16,
+          paddingBottom: 4
+        }}
+      >
+        <button
+          onClick={() => window.api.openPrerequisitesWindow()}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '6px 10px',
+            borderRadius: 8,
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-secondary)',
+            fontFamily: 'inherit',
+            transition: 'color 0.15s, background 0.15s',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--accent)'
+            e.currentTarget.style.background = 'var(--accent-light)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-secondary)'
+            e.currentTarget.style.background = 'none'
+          }}
+        >
+          <FiPackage size={15} />
+          사용 전 준비사항
+        </button>
       </div>
 
       {/* 버전 */}

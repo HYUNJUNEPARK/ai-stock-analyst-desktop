@@ -32,6 +32,7 @@ export const IPC = {
   OPEN_EXTERNAL_URL: 'open-external-url',
   GET_MODEL_INFO: 'get-model-info',
   OPEN_GUIDE_WINDOW: 'open-guide-window',
+  OPEN_PREREQUISITES_WINDOW: 'open-prerequisites-window',
   OPEN_REPORTS_WINDOW: 'open-reports-window',
   OPEN_ERROR_LOG_WINDOW: 'open-error-log-window',
 

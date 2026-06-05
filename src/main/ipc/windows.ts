@@ -14,6 +14,79 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import icon from '../../../resources/icon.png?asset'
 
+function createPrerequisitesWindow(): void {
+  const win = new BrowserWindow({
+    width: 520,
+    height: 460,
+    minWidth: 400,
+    minHeight: 360,
+    show: false,
+    autoHideMenuBar: true,
+    title: '사용 전 준비사항',
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  })
+
+  const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>사용 전 준비사항</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f2f2f7; color: #1c1c1e;
+    padding: 32px 28px; line-height: 1.7;
+    -webkit-app-region: drag;
+  }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .card {
+    background: #fff; border-radius: 12px; padding: 20px 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    -webkit-app-region: no-drag;
+  }
+  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #007aff; }
+  .card p { font-size: 13.5px; color: #3a3a3c; margin-bottom: 12px; }
+  code {
+    display: inline-block; background: #e8e8ed; padding: 2px 8px;
+    border-radius: 6px; font-size: 13px; font-family: 'SF Mono', Menlo, Consolas, monospace;
+  }
+  .link {
+    display: inline-block; margin-top: 8px; color: #007aff;
+    font-size: 13.5px; text-decoration: none; cursor: pointer;
+    -webkit-app-region: no-drag;
+  }
+  .link:hover { text-decoration: underline; }
+  .check { margin-top: 14px; font-size: 13px; color: #6c6c70; }
+  .check code { font-size: 12.5px; }
+</style>
+</head>
+<body>
+  <h1>사용 전 준비사항</h1>
+  <div class="card">
+    <h2>Node.js 설치</h2>
+    <p>AI 분석에 필요한 CLI 도구(Claude Code, Codex)가 npm을 통해 설치되므로 <b>Node.js</b>가 사전에 설치되어 있어야 합니다.</p>
+    <a class="link" href="https://nodejs.org/ko/download" target="_blank">https://nodejs.org/ko/download</a>
+    <p style="margin-top:6px;">위 주소에서 <b>LTS 버전</b>을 다운로드하여 설치해 주세요.</p>
+    <div class="check">설치 확인: <code>node -v</code> &nbsp; <code>npm -v</code></div>
+  </div>
+</body>
+</html>`
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//.test(url)) shell.openExternal(url)
+    return { action: 'deny' }
+  })
+
+  win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  win.on('ready-to-show', () => { win.show() })
+}
+
 function createReportsWindow(): void {
   const reportsWindow = new BrowserWindow({
     width: 560,
@@ -207,6 +280,15 @@ export function registerWindowsHandlers(): void {
   ipcMain.handle(IPC.OPEN_EXTERNAL_URL, (_event, url: string) => {
     if (typeof url === 'string' && /^https?:\/\//.test(url)) {
       shell.openExternal(url)
+    }
+  })
+
+  ipcMain.handle(IPC.OPEN_PREREQUISITES_WINDOW, () => {
+    try {
+      createPrerequisitesWindow()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: (error as Error).message }
     }
   })
 

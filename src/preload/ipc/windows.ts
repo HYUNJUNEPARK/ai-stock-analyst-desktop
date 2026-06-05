@@ -21,6 +21,9 @@ export const windowsApi = {
   /** 지정한 URL을 시스템 기본 브라우저로 연다 (http/https만 허용) */
   openExternalUrl: (url: string) => ipcRenderer.invoke(IPC.OPEN_EXTERNAL_URL, url),
 
+  /** 사용 전 준비사항을 별도 창(BrowserWindow)으로 연다 */
+  openPrerequisitesWindow: () => ipcRenderer.invoke(IPC.OPEN_PREREQUISITES_WINDOW),
+
   /** 보고서 목록 페이지를 별도 창(BrowserWindow)으로 연다 */
   openReportsWindow: () => ipcRenderer.invoke(IPC.OPEN_REPORTS_WINDOW),
 
