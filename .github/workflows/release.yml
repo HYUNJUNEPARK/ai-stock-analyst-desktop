@@ -2,8 +2,8 @@
 # GitHub Releases의 "latest" 태그에 업로드하는 워크플로우
 #
 # 고정 다운로드 URL:
-#   - https://github.com/HYUNJUNEPARK/ai-stock-analyst-desktop/releases/latest/download/ai-stock-analytics.dmg
-#   - https://github.com/HYUNJUNEPARK/ai-stock-analyst-desktop/releases/latest/download/ai-stock-analytics-setup.exe
+#   - https://github.com/HYUNJUNEPARK/ai-stock-analyst-desktop/releases/latest/download/ai-stock-analytics-setup-mac.dmg
+#   - https://github.com/HYUNJUNEPARK/ai-stock-analyst-desktop/releases/latest/download/ai-stock-analytics-setup-windows.exe
 
 name: Build & Release
 
@@ -25,10 +25,10 @@ jobs:
         include:
           - os: macos-latest
             build_cmd: npm run build:mac
-            artifact_pattern: dist/*.dmg
+            artifact_pattern: dist/*-setup-mac.dmg
           - os: windows-latest
             build_cmd: npm run build:win
-            artifact_pattern: dist/*-setup.exe
+            artifact_pattern: dist/*-setup-windows.exe
 
     runs-on: ${{ matrix.os }}
 

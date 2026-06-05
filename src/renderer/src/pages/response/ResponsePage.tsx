@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
-import { claudeIcon as claudeImg, gptIcon as gptImg } from '../../assets'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
 import { useApp } from '../../context/AppContext'
@@ -148,8 +147,6 @@ export default function ResponsePage(): React.JSX.Element {
     setIsReportPanelOpen(false)
   }
 
-  const modelLabel = effectiveModel === 'gpt' ? 'GPT' : 'Claude'
-  const modelImg = effectiveModel === 'gpt' ? gptImg : claudeImg
 
   const isStreamingEmpty = status === 'streaming' && !response
   const contentMinHeight = 260
@@ -182,40 +179,6 @@ export default function ResponsePage(): React.JSX.Element {
           </div>
 
           <div className="card" style={{ borderRadius: 16, overflow: 'hidden' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '0 16px',
-                height: 48,
-                background: 'var(--bg-primary)',
-                borderBottom: '1px solid var(--border)'
-              }}
-            >
-              <img
-                src={modelImg}
-                alt={modelLabel}
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 6,
-                  objectFit: 'cover',
-                  flexShrink: 0
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 600,
-                  color: 'var(--text-secondary)',
-                  flexShrink: 0
-                }}
-              >
-                {modelLabel}
-              </span>
-            </div>
-
             <div
               style={{ padding: 16, minHeight: contentMinHeight, position: 'relative' }}
               role="article"

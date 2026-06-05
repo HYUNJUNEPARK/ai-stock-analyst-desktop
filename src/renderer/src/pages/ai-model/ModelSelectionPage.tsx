@@ -10,7 +10,7 @@ const models = [
     id: 'gpt' as const,
     name: 'GPT',
     subtitle: 'OpenAI',
-    description: '강력한 추론 능력과 광범위한 지식을 갖춘 AI 모델',
+    description: '강력한 추론 능력과\n광범위한 지식을 갖춘 AI 모델',
     icon: gptIcon,
     accentColor: '#10a37f',
     disabled: false
@@ -19,7 +19,7 @@ const models = [
     id: 'claude' as const,
     name: 'Claude',
     subtitle: 'Anthropic',
-    description: '안전하고 정확한 분석에 특화된 차세대 AI 모델',
+    description: '안전하고 정확한 분석에\n특화된 차세대 AI 모델',
     icon: claudeIcon,
     accentColor: '#D4A853',
     disabled: true

@@ -25,7 +25,7 @@ extraResources:
 win:
   executableName: ai-stock-analytics
 nsis:
-  artifactName: ${name}-setup.${ext}
+  artifactName: ${name}-setup-windows.${ext}
   shortcutName: AI 투자 솔루션
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -40,7 +40,7 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${name}.${ext}
+  artifactName: ${name}-setup-mac.${ext}
 linux:
   target:
     - AppImage
