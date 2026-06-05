@@ -10,7 +10,7 @@
  */
 
 import { ipcMain, BrowserWindow, dialog } from 'electron'
-import { writeFileSync, rmSync, readFileSync, existsSync, readdirSync, statSync } from 'fs'
+import { writeFileSync, rmSync, readFileSync, existsSync, readdirSync, statSync, mkdirSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { STOCK_GPT_REPORTS_DIR } from '../constants'
@@ -302,5 +302,150 @@ export function registerReportFilesHandlers(): void {
         event.sender.removeInsertedCSS(cssKey).catch(() => {})
       }
     }
+  })
+
+  /**
+   * IPC 채널: 'save-report-pdf-bundle'
+   * 방향: renderer → main → renderer (handle = 양방향)
+   * 용도: 7개 탭(종합, 재무, 뉴스, 업종, 기술적, 밸류에이션, 투자유형)을
+   *       각각 PDF로 캡처하여 선택한 폴더에 저장
+   */
+  ipcMain.handle(IPC.SAVE_REPORT_PDF_BUNDLE, async (event, folderName: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return { success: false, error: '창을 찾을 수 없습니다.' }
+
+    // 1. 폴더 선택 다이얼로그
+    const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+      title: 'PDF 저장 폴더 선택',
+      properties: ['openDirectory', 'createDirectory'],
+    })
+    if (canceled || filePaths.length === 0) return { success: false, canceled: true }
+
+    const baseDir = filePaths[0]
+    const outputDir = join(baseDir, folderName)
+    mkdirSync(outputDir, { recursive: true })
+
+    const TAB_NAMES = [
+      { index: 0, filename: '01_종합.pdf' },
+      { index: 1, filename: '02_재무.pdf' },
+      { index: 2, filename: '03_뉴스.pdf' },
+      { index: 3, filename: '04_업종.pdf' },
+      { index: 4, filename: '05_기술적.pdf' },
+      { index: 5, filename: '06_밸류에이션.pdf' },
+      { index: 6, filename: '07_투자유형.pdf' },
+    ]
+
+    const PRINT_CSS = `
+      body, #root {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+      }
+      .page {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+      .page-content {
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+      .card {
+        overflow: visible !important;
+      }
+      .nav-bar {
+        display: none !important;
+      }
+      .content-container {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+    `
+
+    const wc = event.sender
+    const saved: string[] = []
+    const errors: string[] = []
+
+    for (const tab of TAB_NAMES) {
+      let cssKey: string | undefined
+      try {
+        // 탭 클릭: .report-view 내부의 탭 버튼을 인덱스로 선택
+        await wc.executeJavaScript(`
+          (function() {
+            var buttons = document.querySelectorAll('.report-view button');
+            if (buttons[${tab.index}]) buttons[${tab.index}].click();
+          })()
+        `)
+        // 탭 전환 + 렌더링 대기
+        await new Promise<void>((r) => setTimeout(r, 500))
+
+        cssKey = await wc.insertCSS(PRINT_CSS)
+        await new Promise<void>((r) => setTimeout(r, 300))
+
+        const A4_WIDTH_INCH = 8.27
+        const MARGIN_INCH = 0.5
+        const contentWidthPx = Math.round((A4_WIDTH_INCH - MARGIN_INCH * 2) * 96)
+
+        const debugger_ = wc.debugger
+        debugger_.attach('1.3')
+        try {
+          await debugger_.sendCommand('Emulation.setDeviceMetricsOverride', {
+            width: contentWidthPx,
+            height: 10000,
+            deviceScaleFactor: 1,
+            mobile: false,
+          })
+
+          await new Promise<void>((r) => setTimeout(r, 200))
+          const contentHeightPx: number = await wc.executeJavaScript(`
+            (function() {
+              var card = document.querySelector('.card');
+              if (card) return card.getBoundingClientRect().height;
+              return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+            })()
+          `)
+
+          await debugger_.sendCommand('Emulation.clearDeviceMetricsOverride')
+
+          const contentHeightInch = Math.ceil(contentHeightPx) / 96 + MARGIN_INCH * 2
+
+          const pdfBuffer = await wc.printToPDF({
+            printBackground: true,
+            pageSize: { width: A4_WIDTH_INCH, height: contentHeightInch },
+            margins: { marginType: 'custom', top: MARGIN_INCH, bottom: MARGIN_INCH, left: MARGIN_INCH, right: MARGIN_INCH },
+          })
+
+          const filePath = join(outputDir, tab.filename)
+          writeFileSync(filePath, pdfBuffer)
+          saved.push(tab.filename)
+          console.log(`[save-report-pdf-bundle] ${tab.filename} 저장 완료`)
+        } finally {
+          try { debugger_.detach() } catch (_) { /* 이미 detach된 경우 무시 */ }
+        }
+      } catch (err) {
+        console.error(`[save-report-pdf-bundle] ${tab.filename} 저장 실패:`, err)
+        errors.push(`${tab.filename}: ${(err as Error).message}`)
+      } finally {
+        if (cssKey !== undefined) {
+          wc.removeInsertedCSS(cssKey).catch(() => {})
+        }
+      }
+    }
+
+    // 완료 후 첫 번째 탭(종합)으로 복귀
+    await wc.executeJavaScript(`
+      (function() {
+        var buttons = document.querySelectorAll('.report-view button');
+        if (buttons[0]) buttons[0].click();
+      })()
+    `)
+
+    if (errors.length > 0) {
+      return { success: false, error: `일부 PDF 저장 실패: ${errors.join(', ')}`, saved, outputDir }
+    }
+    return { success: true, outputDir, saved }
   })
 }

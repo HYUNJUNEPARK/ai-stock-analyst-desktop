@@ -61,9 +61,9 @@ export default function ReportDetailPage(): React.JSX.Element {
     setSavingPdf(true)
     const company = data && typeof data.company === 'string' ? data.company : ''
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const defaultName = [company, today].filter(Boolean).join('_') + '.pdf'
+    const folderName = [company, today].filter(Boolean).join('_')
     try {
-      await window.api.saveReportPdf(defaultName)
+      await window.api.saveReportPdfBundle(folderName)
     } finally {
       setSavingPdf(false)
     }

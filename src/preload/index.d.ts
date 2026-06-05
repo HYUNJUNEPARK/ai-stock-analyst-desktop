@@ -62,6 +62,11 @@ declare global {
         { success: true; filePath: string } | { success: false; canceled?: boolean; error?: string }
       >
 
+      // 7개 탭을 각각 PDF로 캡처하여 폴더에 저장
+      saveReportPdfBundle: (folderName: string) => Promise<
+        { success: true; outputDir: string; saved: string[] } | { success: false; canceled?: boolean; error?: string; saved?: string[]; outputDir?: string }
+      >
+
       // 보고서 폴더 삭제
       deleteGptReportFile: (name: string) => Promise<{ success: true } | { success: false; error: string }>
 

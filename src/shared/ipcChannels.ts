@@ -42,5 +42,6 @@ export const IPC = {
   OPEN_REPORT_DETAIL_WINDOW: 'open-report-detail-window',
   READ_ARTIFACT_FILES: 'read-artifact-files',
   SAVE_REPORT_PDF: 'save-report-pdf',
+  SAVE_REPORT_PDF_BUNDLE: 'save-report-pdf-bundle',
   DELETE_GPT_REPORT_FILE: 'delete-gpt-report-file',
 } as const

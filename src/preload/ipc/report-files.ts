@@ -33,4 +33,7 @@ export const reportFilesApi = {
 
   /** 현재 보고서 화면을 PDF로 캡처하여 로컬 파일로 저장한다 */
   saveReportPdf: (defaultFilename: string) => ipcRenderer.invoke(IPC.SAVE_REPORT_PDF, defaultFilename),
+
+  /** 7개 탭을 각각 PDF로 캡처하여 선택한 폴더에 저장한다 */
+  saveReportPdfBundle: (folderName: string) => ipcRenderer.invoke(IPC.SAVE_REPORT_PDF_BUNDLE, folderName),
 }
