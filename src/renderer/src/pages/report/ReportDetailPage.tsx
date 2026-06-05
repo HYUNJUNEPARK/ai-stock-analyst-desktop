@@ -59,12 +59,16 @@ export default function ReportDetailPage(): React.JSX.Element {
 
   async function handleSavePdf(): Promise<void> {
     setSavingPdf(true)
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
     const company = data && typeof data.company === 'string' ? data.company : ''
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     const folderName = [company, today].filter(Boolean).join('_')
     try {
       await window.api.saveReportPdfBundle(folderName)
     } finally {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
       setSavingPdf(false)
     }
   }
@@ -228,6 +232,45 @@ export default function ReportDetailPage(): React.JSX.Element {
             </div>
           </div>
         </div>
+
+        {savingPdf && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 16,
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(14px)',
+              zIndex: 9999,
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                width: 36,
+                height: 36,
+                border: '3px solid var(--border)',
+                borderTopColor: 'var(--accent)',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)' }}>
+                PDF 저장 중
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginTop: 6, lineHeight: 1.5 }}>
+                7개의 분석 보고서를 PDF로 변환하고 있습니다.
+                <br />
+                화면이 자동으로 전환됩니다. 잠시만 기다려 주세요.
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
