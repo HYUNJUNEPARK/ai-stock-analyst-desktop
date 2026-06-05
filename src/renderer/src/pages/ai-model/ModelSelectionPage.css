@@ -85,30 +85,10 @@
   transition-duration: 0.1s;
 }
 
-.model-card--coming-soon {
-  opacity: 0.6;
-}
-
-.model-card--coming-soon:hover {
-  opacity: 0.8;
-  border-color: var(--border-strong);
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
-/* Coming Soon 배지 */
-.model-card-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 3px 10px;
-  border-radius: 20px;
+.model-card--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: default;
 }
 
 /* 아이콘 */
@@ -208,29 +188,17 @@
   color: #fff;
 }
 
-/* Coming Soon 카드 CTA 오버라이드 */
-.model-card--coming-soon .model-card-cta {
+/* Disabled 카드 CTA 오버라이드 */
+.model-card--disabled .model-card-cta {
   background: var(--bg-tertiary);
 }
 
-.model-card--coming-soon .model-card-cta-label {
+.model-card--disabled .model-card-cta-label {
   color: var(--text-tertiary);
 }
 
-.model-card--coming-soon .model-card-cta-arrow {
+.model-card--disabled .model-card-cta-arrow {
   color: var(--text-tertiary);
-}
-
-.model-card--coming-soon:hover .model-card-cta {
-  background: var(--bg-tertiary);
-}
-
-.model-card--coming-soon:hover .model-card-cta-label {
-  color: var(--text-secondary);
-}
-
-.model-card--coming-soon:hover .model-card-cta-arrow {
-  color: var(--text-secondary);
 }
 
 /* ── 버전 ── */

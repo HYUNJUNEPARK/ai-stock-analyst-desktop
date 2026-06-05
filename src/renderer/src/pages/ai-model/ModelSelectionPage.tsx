@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
-import ComingSoonDialog from '../../components/ComingSoonDialog'
 import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
 import './ModelSelectionPage.css'
@@ -14,7 +13,7 @@ const models = [
     description: '강력한 추론 능력과 광범위한 지식을 갖춘 AI 모델',
     icon: gptIcon,
     accentColor: '#10a37f',
-    comingSoon: false
+    disabled: false
   },
   {
     id: 'claude' as const,
@@ -23,24 +22,20 @@ const models = [
     description: '안전하고 정확한 분석에 특화된 차세대 AI 모델',
     icon: claudeIcon,
     accentColor: '#D4A853',
-    comingSoon: true
+    disabled: true
   }
 ]
 
 export default function ModelSelectionPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { setSelectedModel } = useApp()
-  const [showComingSoonPopup, setShowComingSoonPopup] = useState(false)
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Page] ModelSelectionPage 렌더링')
   }, [])
 
   function handleSelect(id: 'gpt' | 'claude'): void {
-    if (id === 'claude') {
-      setShowComingSoonPopup(true)
-      return
-    }
+    if (id === 'claude') return
     setSelectedModel(id)
     navigate(ROUTES.LANDING)
   }
@@ -61,18 +56,14 @@ export default function ModelSelectionPage(): React.JSX.Element {
           {models.map((model, index) => (
             <button
               key={model.id}
-              className={`model-card ${model.comingSoon ? 'model-card--coming-soon' : ''}`}
+              className={`model-card ${model.disabled ? 'model-card--disabled' : ''}`}
               onClick={() => handleSelect(model.id)}
+              disabled={model.disabled}
               aria-label={`${model.name} 선택`}
               style={
                 { '--card-index': index, '--accent-color': model.accentColor } as React.CSSProperties
               }
             >
-              {/* Coming Soon 배지 */}
-              {model.comingSoon && (
-                <span className="model-card-badge">Coming Soon</span>
-              )}
-
               {/* 아이콘 */}
               <div className="model-card-icon-wrap">
                 <img
@@ -92,7 +83,7 @@ export default function ModelSelectionPage(): React.JSX.Element {
               {/* CTA */}
               <div className="model-card-cta">
                 <span className="model-card-cta-label">
-                  {model.comingSoon ? '준비 중' : '시작하기'}
+                  {model.disabled ? '준비 중' : '시작하기'}
                 </span>
                 <svg
                   className="model-card-cta-arrow"
@@ -118,11 +109,6 @@ export default function ModelSelectionPage(): React.JSX.Element {
       {/* 버전 */}
       <div className="model-selection-version">v{__APP_VERSION__}</div>
 
-      <ComingSoonDialog
-        visible={showComingSoonPopup}
-        message={'Claude 모델 지원은 현재 준비 중입니다.'}
-        onClose={() => setShowComingSoonPopup(false)}
-      />
     </div>
   )
 }
