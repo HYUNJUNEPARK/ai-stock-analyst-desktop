@@ -10,11 +10,11 @@
  */
 
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readdirSync } from 'fs'
 import { execSync, spawn, spawnSync } from 'child_process'
 import { homedir } from 'os'
 import type { BrowserWindow } from 'electron'
-import { safeSend } from './spawn'
+import { safeSend, writeTerminalLog, writeTerminalWarn } from './spawn'
 import { CLI_BIN } from '../constants'
 
 /**
@@ -44,12 +44,12 @@ export function getEnhancedPath(): string {
       timeout: 5000
     }).trim()
     if (shellPath) {
-      console.log('[getEnhancedPath] 쉘에서 PATH 획득 성공')
+      writeTerminalLog('[getEnhancedPath] 쉘에서 PATH 획득 성공')
       _cachedEnhancedPath = shellPath
       return _cachedEnhancedPath
     }
   } catch (err) {
-    console.warn('[getEnhancedPath] 쉘 PATH 획득 실패, 폴백 사용:', (err as Error).message)
+    writeTerminalWarn('[getEnhancedPath] 쉘 PATH 획득 실패, 폴백 사용:', (err as Error).message)
   }
 
   // 폴백: 일반적인 npm/node 설치 경로를 수동으로 추가
@@ -65,7 +65,7 @@ export function getEnhancedPath(): string {
   ].filter(existsSync)
 
   _cachedEnhancedPath = [...new Set([...currentPath.split(':'), ...extraPaths])].join(':')
-  console.log('[getEnhancedPath] 폴백 PATH 구성:', _cachedEnhancedPath)
+  writeTerminalLog('[getEnhancedPath] 폴백 PATH 구성:', _cachedEnhancedPath)
   return _cachedEnhancedPath
 }
 
@@ -81,7 +81,6 @@ function findNvmBinPaths(home: string): string[] {
   if (!existsSync(nvmNodeDir)) return []
 
   try {
-    const { readdirSync } = require('fs')
     const versions: string[] = readdirSync(nvmNodeDir)
     // 가장 최신 버전이 먼저 오도록 역순 정렬
     return versions
@@ -102,7 +101,7 @@ function findNvmBinPaths(home: string): string[] {
  *     Windows: ~/.ai-cli-launcher/node_modules/.bin/claude.cmd
  */
 export function getCliCommand(name: 'claude' | 'codex'): string {
-  console.log(`CLI 경로 조회: ${name}`)
+  writeTerminalLog(`CLI 경로 조회: ${name}`)
   const ext = process.platform === 'win32' ? '.cmd' : ''
   return join(CLI_BIN, `${name}${ext}`)
 }
@@ -124,7 +123,7 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   command: string | null
   source: 'local' | 'path' | 'missing'
 } {
-  console.log(`CLI 탐색 시작: ${name}`)
+  writeTerminalLog(`CLI 탐색 시작: ${name}`)
   const localCommand = getCliCommand(name)
   if (existsSync(localCommand)) {
     return { command: localCommand, source: 'local' }
@@ -139,11 +138,11 @@ export function resolveCliCommand(name: 'claude' | 'codex'): {
   })
 
   if (result.status === 0) {
-    console.log(`CLI 탐색 완료: ${name} → 시스템 PATH 사용 (${fallbackCommand})`)
+    writeTerminalLog(`CLI 탐색 완료: ${name} → 시스템 PATH 사용 (${fallbackCommand})`)
     return { command: fallbackCommand, source: 'path' }
   }
 
-  console.log(`CLI 탐색 완료: ${name} → 설치되지 않음`)
+  writeTerminalLog(`CLI 탐색 완료: ${name} → 설치되지 않음`)
   return { command: null, source: 'missing' }
 }
 

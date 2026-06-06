@@ -14,6 +14,7 @@ import { registerWindowsHandlers } from './ipc/windows'
 import { registerCliAuthHandlers } from './ipc/cli-auth'
 import { registerPromptHandlers } from './ipc/prompt'
 import { registerStockAnalysisHandlers } from './ipc/stock-analysis'
+import { writeTerminalLog } from './utils/spawn'
 import icon from '../../resources/icon.png?asset'
 
 /**
@@ -28,7 +29,7 @@ import icon from '../../resources/icon.png?asset'
  * 프로덕션에서는 빌드된 index.html 파일을 로드한다.
  */
 export function createWindow(): BrowserWindow {
-  console.log('[createWindow] 메인 윈도우 생성 시작')
+  writeTerminalLog('[createWindow] 메인 윈도우 생성 시작')
 
   const mainWindow = new BrowserWindow({
     width: 960,

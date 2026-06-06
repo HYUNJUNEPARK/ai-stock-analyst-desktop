@@ -12,7 +12,7 @@ import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { CLI_PREFIX } from '../constants'
-import { spawnCommand, safeSend } from '../utils/spawn'
+import { spawnCommand, safeSend, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 import { getEnhancedPath } from '../utils/cli'
 import { resolveCliCommand, streamLines } from '../utils/cli'
 
@@ -45,7 +45,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    * Windows에서는 npm.cmd를 사용해야 실행 가능 (npm은 .cmd 래퍼로 제공됨)
    */
   ipcMain.on(IPC.START_CLI_INSTALL, (_event, model: string) => {
-    console.log(`[start-cli-install] "${model}" 모델 설치 시작`)
+    writeTerminalLog(`[start-cli-install] "${model}" 모델 설치 시작`)
     const pkg = CLI_PACKAGES[model]
     if (!pkg) {
       safeSend(win,IPC.INSTALL_COMPLETE, {
@@ -76,7 +76,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
 
     child.on('close', (code) => {
       if (code === 0) {
-        console.log(`[start-cli-install] "${model}" 모델 설치 완료`)
+        writeTerminalLog(`[start-cli-install] "${model}" 모델 설치 완료`)
         safeSend(win,IPC.INSTALL_COMPLETE, { success: true })
       } else {
         const stderrText = stderrChunks.join('').trim()
@@ -84,8 +84,8 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
         const detail = lastLines
           ? `설치 중 오류가 발생했습니다. (exit code: ${code})\n${lastLines}`
           : `설치 중 오류가 발생했습니다. (exit code: ${code})`
-        console.error(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
-        if (stderrText) console.error(`[start-cli-install] stderr:\n${stderrText}`)
+        writeTerminalError(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
+        if (stderrText) writeTerminalError(`[start-cli-install] stderr:\n${stderrText}`)
         safeSend(win,IPC.INSTALL_COMPLETE, {
           success: false,
           error: detail
@@ -113,7 +113,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
    *   GPT   : ~/.codex/auth.json 파일의 accessToken / oauthToken / apiKey 존재 여부 검사
    */
   ipcMain.handle(IPC.CHECK_CLI_STATUS, (_event, model: string) => {
-    console.log(`[check-cli-status] CLI 상태 확인: 모델=${model}`)
+    writeTerminalLog(`[check-cli-status] CLI 상태 확인: 모델=${model}`)
     const cliName = model === 'claude' ? 'claude' : 'codex'
     const resolved = resolveCliCommand(cliName)
 

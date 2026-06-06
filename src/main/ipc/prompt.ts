@@ -7,7 +7,7 @@
 
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
-import { spawnCommand, safeSend } from '../utils/spawn'
+import { spawnCommand, safeSend, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 import { getCliCommand, getEnhancedPath } from '../utils/cli'
 
 /**
@@ -35,7 +35,7 @@ export function registerPromptHandlers(win: BrowserWindow): void {
   ipcMain.on(
     IPC.RUN_PROMPT,
     (_event, { model, prompt }: { model: string; prompt: string }) => {
-      console.log(`[run-prompt] 프롬프트 실행 시작: 모델=${model}`)
+      writeTerminalLog(`[run-prompt] 프롬프트 실행 시작: 모델=${model}`)
 
       let cmd: string
       let args: string[]
@@ -69,10 +69,10 @@ export function registerPromptHandlers(win: BrowserWindow): void {
 
       child.on('close', (code) => {
         if (code === 0) {
-          console.log(`[run-prompt] 프롬프트 실행 완료: 모델=${model}`)
+          writeTerminalLog(`[run-prompt] 프롬프트 실행 완료: 모델=${model}`)
           safeSend(win,IPC.PROMPT_RESPONSE_DONE, { success: true })
         } else {
-          console.error(`[run-prompt] 프롬프트 실행 실패: 모델=${model} (exit code: ${code})`)
+          writeTerminalError(`[run-prompt] 프롬프트 실행 실패: 모델=${model} (exit code: ${code})`)
           safeSend(win,IPC.PROMPT_RESPONSE_DONE, {
             success: false,
             error: `CLI 실행 실패 (exit code: ${code})`

@@ -13,3 +13,5 @@ src/main/ai/claude/.claude/settings.local.json
 src/main/ai/claude/reports/
 src/main/ai/gpt/reports/
 src/main/ai/gpt/reports/
+
+.electron-builder-cache/

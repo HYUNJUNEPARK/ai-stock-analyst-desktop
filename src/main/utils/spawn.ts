@@ -7,6 +7,7 @@
 
 import { spawn, type ChildProcessByStdio, type SpawnOptions } from 'child_process'
 import { type BrowserWindow } from 'electron'
+import { inspect } from 'util'
 import iconv from 'iconv-lite'
 
 /** spawn 옵션 중 stdio가 ['ignore', 'pipe', 'pipe']로 고정된 타입 */
@@ -32,7 +33,7 @@ export function spawnCommand(
   args: string[],
   options: PipedSpawnOptions
 ): PipedChildProcess {
-  console.log(`프로세스 실행: ${command} ${JSON.stringify(args)}`)
+  writeTerminalLog(`프로세스 실행: ${command} ${JSON.stringify(args)}`)
   if (process.platform === 'win32' && /\.(cmd|bat)$/i.test(command)) {
     return spawn(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], options)
   }
@@ -78,4 +79,26 @@ export function writeTerminalLine(message: string, isError = false): void {
   }
 
   console.log(message)
+}
+
+function formatTerminalPart(part: unknown): string {
+  if (typeof part === 'string') return part
+  if (part instanceof Error) return part.stack ?? part.message
+  return inspect(part, { depth: 3, colors: false, breakLength: 120 })
+}
+
+function formatTerminalMessage(parts: unknown[]): string {
+  return parts.map(formatTerminalPart).join(' ')
+}
+
+export function writeTerminalLog(...parts: unknown[]): void {
+  writeTerminalLine(formatTerminalMessage(parts))
+}
+
+export function writeTerminalWarn(...parts: unknown[]): void {
+  writeTerminalLine(formatTerminalMessage(parts), true)
+}
+
+export function writeTerminalError(...parts: unknown[]): void {
+  writeTerminalLine(formatTerminalMessage(parts), true)
 }

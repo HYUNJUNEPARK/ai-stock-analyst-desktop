@@ -33,7 +33,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { IPC } from '../../shared/ipcChannels'
 import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
-import { spawnCommand, writeTerminalLine, safeSend } from '../utils/spawn'
+import { spawnCommand, writeTerminalError, writeTerminalLine, writeTerminalLog, safeSend } from '../utils/spawn'
 import { getCliCommand, resolveCliCommand, getEnhancedPath } from '../utils/cli'
 
 /** 에러 로그 저장 디렉토리: ~/.ai-cli-launcher/logs */
@@ -52,7 +52,7 @@ function saveErrorLog(model: string, logLines: string[]): string {
     writeFileSync(filepath, logLines.join('\n'), 'utf-8')
     return filepath
   } catch (err) {
-    console.error(`[stock-analysis] 에러 로그 파일 저장 실패: ${err instanceof Error ? err.message : String(err)}`)
+    writeTerminalError(`[stock-analysis] 에러 로그 파일 저장 실패: ${err instanceof Error ? err.message : String(err)}`)
     return ''
   }
 }
@@ -127,7 +127,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    *   null이면 취소에 의한 종료로 간주하고 에러 이벤트를 renderer에 보내지 않는다.
    */
   ipcMain.on(IPC.CANCEL_STOCK_ANALYSIS, () => {
-    console.log('[cancel-stock-analysis] 주식 분석 취소 요청')
+    writeTerminalLog('[cancel-stock-analysis] 주식 분석 취소 요청')
     if (activeAnalysisChild) {
       const pid = activeAnalysisChild.pid
       activeAnalysisChild = null   // 먼저 null로 설정 → close 핸들러에서 취소 여부 판단
@@ -153,7 +153,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
   ipcMain.on(
     IPC.RUN_STOCK_ANALYSIS,
     (_event, { model, prompt }: { model: string; prompt: string }) => {
-      console.log(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
+      writeTerminalLog(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
       const env: NodeJS.ProcessEnv = { ...process.env, PATH: getEnhancedPath() }
 
       if (model === 'gpt') {
@@ -183,7 +183,7 @@ interface AnalysisContext {
 function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   const resolvedCodex = resolveCliCommand('codex')
   if (!resolvedCodex.command) {
-    console.error('[stock-analysis:gpt] Codex CLI를 찾을 수 없음')
+    writeTerminalError('[stock-analysis:gpt] Codex CLI를 찾을 수 없음')
     const envLines = collectEnvironmentInfo('gpt', null, 'missing')
     envLines.push('[error] Codex CLI를 찾을 수 없음')
     const logPath = saveErrorLog('gpt', envLines)
@@ -237,7 +237,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error)
-      console.error(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${reportPath}, error=${detail}`)
+      writeTerminalError(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${reportPath}, error=${detail}`)
       errorLogLines.push(`[error] 리포트 파일 읽기 실패: ${detail}`)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
         success: false,
@@ -339,7 +339,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
     if (code === 0) {
       if (!finalReportPath) {
-        console.error('[stock-analysis:gpt] 프로세스 정상 종료했으나 리포트 경로 미확인')
+        writeTerminalError('[stock-analysis:gpt] 프로세스 정상 종료했으나 리포트 경로 미확인')
         errorLogLines.push('[error] 프로세스 정상 종료했으나 리포트 경로 미확인')
         safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
           success: false,
@@ -354,7 +354,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
         safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error)
-        console.error(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${finalReportPath}, error=${detail}`)
+        writeTerminalError(`[stock-analysis:gpt] 리포트 파일 읽기 실패: path=${finalReportPath}, error=${detail}`)
         errorLogLines.push(`[error] 리포트 파일 읽기 실패: ${detail}`)
         safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
           success: false,
@@ -367,7 +367,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
     // 취소가 아닌 오류 종료일 때만 에러 이벤트 전송
     if (!wasCancelled) {
-      console.error(`[stock-analysis:gpt] 프로세스 비정상 종료: exit code=${code}`)
+      writeTerminalError(`[stock-analysis:gpt] 프로세스 비정상 종료: exit code=${code}`)
       errorLogLines.push(`[error] 프로세스 비정상 종료 (exit code: ${code})`)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
         success: false,
@@ -379,7 +379,7 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
 
   child.on('error', (err) => {
     setActiveChild(null)
-    console.error(`[stock-analysis:gpt] CLI 실행 오류: ${err.message}`)
+    writeTerminalError(`[stock-analysis:gpt] CLI 실행 오류: ${err.message}`)
     errorLogLines.push(`[error] CLI 실행 오류: ${err.message}`)
     safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
       success: false,
@@ -454,7 +454,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, { success: true })
     } else {
       const detail = (ev.error as string) ?? 'unknown'
-      console.error(`[stock-analysis:claude] result 이벤트 실패: ${detail}`)
+      writeTerminalError(`[stock-analysis:claude] result 이벤트 실패: ${detail}`)
       errorLogLines.push(`[error] Claude result 실패: ${detail}`)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
         success: false,
@@ -552,7 +552,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
     if (analysisCompleted || wasCancelled) return
 
-    console.error(`[stock-analysis:claude] 프로세스 종료: exit code=${code}, analysisCompleted=${analysisCompleted}`)
+    writeTerminalError(`[stock-analysis:claude] 프로세스 종료: exit code=${code}, analysisCompleted=${analysisCompleted}`)
     errorLogLines.push(`[error] 프로세스 종료 (exit code: ${code})`)
     safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
       success: false,
@@ -565,7 +565,7 @@ function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiv
 
   child.on('error', (err) => {
     setActiveChild(null)
-    console.error(`[stock-analysis:claude] CLI 실행 오류: ${err.message}`)
+    writeTerminalError(`[stock-analysis:claude] CLI 실행 오류: ${err.message}`)
     errorLogLines.push(`[error] CLI 실행 오류: ${err.message}`)
     safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
       success: false,

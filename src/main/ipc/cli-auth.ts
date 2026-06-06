@@ -10,7 +10,7 @@
 
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
-import { spawnCommand, safeSend } from '../utils/spawn'
+import { spawnCommand, safeSend, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 import { resolveCliCommand, streamLines, getEnhancedPath } from '../utils/cli'
 
 /**
@@ -28,7 +28,7 @@ import { resolveCliCommand, streamLines, getEnhancedPath } from '../utils/cli'
  * @param args - CLI에 전달할 추가 인수 (예: ['login'])
  */
 function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[] = []): void {
-  console.log(`[${name}] CLI 로그인 시작:`)
+  writeTerminalLog(`[${name}] CLI 로그인 시작:`)
   const resolved = resolveCliCommand(name)
 
   if (!resolved.command) {
@@ -59,9 +59,9 @@ function runCliLogin(win: BrowserWindow, name: 'claude' | 'codex', args: string[
 
   child.on('close', (code) => {
     if (code === 0) {
-      console.log(`[${name}] CLI 로그인 완료`)
+      writeTerminalLog(`[${name}] CLI 로그인 완료`)
     } else {
-      console.error(`[${name}] CLI 로그인 실패 (exit code: ${code})`)
+      writeTerminalError(`[${name}] CLI 로그인 실패 (exit code: ${code})`)
     }
     safeSend(win,IPC.CLI_LOGIN_COMPLETE, {
       success: code === 0,
@@ -93,7 +93,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
   ipcMain.on(IPC.RUN_CLAUDE_LOGIN, () => {
-    console.log('[run-claude-login] Claude CLI 로그인 요청')
+    writeTerminalLog('[run-claude-login] Claude CLI 로그인 요청')
     runCliLogin(win, 'claude', ['login'])
   })
 
@@ -105,7 +105,7 @@ export function registerCliAuthHandlers(win: BrowserWindow): void {
    * 진행/완료 이벤트: 'cli-login-progress', 'cli-login-complete' 채널로 전송
    */
   ipcMain.on(IPC.RUN_GPT_LOGIN, () => {
-    console.log('[run-gpt-login] GPT CLI 로그인 요청')
+    writeTerminalLog('[run-gpt-login] GPT CLI 로그인 요청')
     runCliLogin(win, 'codex', ['login'])
   })
 }

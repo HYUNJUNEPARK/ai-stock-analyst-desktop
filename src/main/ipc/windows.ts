@@ -12,6 +12,7 @@ import { ipcMain, BrowserWindow, shell } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { writeTerminalError, writeTerminalLog } from '../utils/spawn'
 import icon from '../../../resources/icon.png?asset'
 
 function createPrerequisitesWindow(): void {
@@ -293,23 +294,23 @@ export function registerWindowsHandlers(): void {
   })
 
   ipcMain.handle(IPC.OPEN_REPORTS_WINDOW, () => {
-    console.log('[open-reports-window] 보고서 목록 새 창 열기')
+    writeTerminalLog('[open-reports-window] 보고서 목록 새 창 열기')
     try {
       createReportsWindow()
       return { success: true }
     } catch (error) {
-      console.error('[open-reports-window] 보고서 목록 새 창 열기 실패:', error)
+      writeTerminalError('[open-reports-window] 보고서 목록 새 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
 
   ipcMain.handle(IPC.OPEN_REPORT_DETAIL_WINDOW, (_event, name: string, model: string) => {
-    console.log(`[open-report-detail-window] 보고서 새 창 열기: ${name}`)
+    writeTerminalLog(`[open-report-detail-window] 보고서 새 창 열기: ${name}`)
     try {
       createReportDetailWindow(name, model)
       return { success: true }
     } catch (error) {
-      console.error('[open-report-detail-window] 보고서 새 창 열기 실패:', error)
+      writeTerminalError('[open-report-detail-window] 보고서 새 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
@@ -319,18 +320,18 @@ export function registerWindowsHandlers(): void {
       createErrorLogWindow(errorLog)
       return { success: true }
     } catch (error) {
-      console.error('[open-error-log-window] 에러 로그 창 열기 실패:', error)
+      writeTerminalError('[open-error-log-window] 에러 로그 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
 
   ipcMain.handle(IPC.OPEN_GUIDE_WINDOW, (_event, guide: string) => {
-    console.log(`[open-guide-window] 가이드 새 창 열기: ${guide}`)
+    writeTerminalLog(`[open-guide-window] 가이드 새 창 열기: ${guide}`)
     try {
       createGuideWindow(guide)
       return { success: true }
     } catch (error) {
-      console.error('[open-guide-window] 가이드 새 창 열기 실패:', error)
+      writeTerminalError('[open-guide-window] 가이드 새 창 열기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })

@@ -14,7 +14,7 @@ import { readFileSync } from 'fs'
 import { spawnSync } from 'child_process'
 import { STOCK_CLAUDE_DIR } from '../constants'
 import { resolveCliCommand } from '../utils/cli'
-import { spawnCommand } from '../utils/spawn'
+import { spawnCommand, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 
 /**
  * 이번 주 월요일 ~ 오늘 날짜 범위를 계산한다.
@@ -133,7 +133,7 @@ export function registerCliStatsHandlers(): void {
    *   { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
    */
   ipcMain.handle(IPC.CHECK_CLI_STATS, (_event, model: string) => {
-    console.log(`[check-cli-stats] CLI 사용 통계 조회: 모델=${model}`)
+    writeTerminalLog(`[check-cli-stats] CLI 사용 통계 조회: 모델=${model}`)
     const { weekStart, weekEnd, mondayTs } = getWeekRange()
 
     if (model === 'claude') {
@@ -163,10 +163,10 @@ export function registerCliStatsHandlers(): void {
             }
           }
         }
-        console.log(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions} 메시지=${messages}`)
+        writeTerminalLog(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions} 메시지=${messages}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, messages, toolCalls, tokensByModel } }
       } catch (err) {
-        console.error(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
+        writeTerminalError(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `stats-cache.json 읽기 실패: ${(err as Error).message}` }
       }
     }
@@ -191,10 +191,10 @@ export function registerCliStatsHandlers(): void {
           if (modelName) tokensByModel[modelName] = (tokensByModel[modelName] ?? 0) + Number(tokenCount ?? 0)
           sessions += Number(sessionCount ?? 0)
         }
-        console.log(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions}`)
+        writeTerminalLog(`[check-cli-stats] CLI 사용 통계 조회 완료: 모델=${model} 세션=${sessions}`)
         return { success: true, weekStart, weekEnd, weekly: { sessions, tokensByModel } }
       } catch (err) {
-        console.error(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
+        writeTerminalError(`[check-cli-stats] CLI 사용 통계 조회 실패: 모델=${model}`, (err as Error).message)
         return { success: false, error: `state_5.sqlite 읽기 실패: ${(err as Error).message}` }
       }
     }

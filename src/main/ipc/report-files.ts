@@ -14,6 +14,7 @@ import { writeFileSync, rmSync, readFileSync, existsSync, readdirSync, statSync,
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
 import { STOCK_GPT_REPORTS_DIR } from '../constants'
+import { writeTerminalError, writeTerminalLog } from '../utils/spawn'
 
 /**
  * 보고서 파일 CRUD 및 PDF 저장 IPC 핸들러를 등록한다.
@@ -32,7 +33,7 @@ export function registerReportFilesHandlers(): void {
    *   [{ name: '삼성전자_260101.json', model: 'gpt', createdAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle(IPC.LIST_GPT_REPORT_FILES, () => {
-    console.log('[list-gpt-report-files] GPT 보고서 목록 조회')
+    writeTerminalLog('[list-gpt-report-files] GPT 보고서 목록 조회')
     try {
       if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
 
@@ -77,10 +78,10 @@ export function registerReportFilesHandlers(): void {
           })
       }).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-      console.log(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
+      writeTerminalLog(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
       return files
     } catch (error) {
-      console.error('[list-gpt-report-files] GPT 보고서 목록 조회 실패:', error)
+      writeTerminalError('[list-gpt-report-files] GPT 보고서 목록 조회 실패:', error)
       return []
     }
   })
@@ -91,7 +92,7 @@ export function registerReportFilesHandlers(): void {
    * 용도: 특정 보고서 파일의 JSON 내용을 읽어 반환
    */
   ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
-    console.log(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
+    writeTerminalLog(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
     try {
       const stockDir = join(STOCK_GPT_REPORTS_DIR, name)
       const filePath = join(stockDir, 'aggressive-investment-strategist.json')
@@ -103,7 +104,7 @@ export function registerReportFilesHandlers(): void {
       }
       return { success: true, data }
     } catch (error) {
-      console.error('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
+      writeTerminalError('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
@@ -117,7 +118,7 @@ export function registerReportFilesHandlers(): void {
    * 반환값: { financial, news, sector } — 각 역할의 마크다운 내용
    */
   ipcMain.handle(IPC.READ_ARTIFACT_FILES, (_event, artifactDir: string) => {
-    console.log(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
+    writeTerminalLog(`[read-artifact-files] artifact 파일 읽기: ${artifactDir}`)
     const read = (filename: string): string => {
       try {
         return readFileSync(join(artifactDir, filename), 'utf-8')
@@ -142,7 +143,7 @@ export function registerReportFilesHandlers(): void {
    *       삭제 후 날짜 폴더가 비어 있으면 날짜 폴더도 함께 삭제한다.
    */
   ipcMain.handle(IPC.DELETE_GPT_REPORT_FILE, (_event, name: string) => {
-    console.log(`[delete-gpt-report-file] 보고서 삭제: ${name}`)
+    writeTerminalLog(`[delete-gpt-report-file] 보고서 삭제: ${name}`)
     try {
       const stockDirPath = join(STOCK_GPT_REPORTS_DIR, name)
       if (!existsSync(stockDirPath)) {
@@ -156,10 +157,10 @@ export function registerReportFilesHandlers(): void {
         rmSync(dateDirPath, { recursive: true, force: true })
       }
 
-      console.log(`[delete-gpt-report-file] 보고서 삭제 완료: ${name}`)
+      writeTerminalLog(`[delete-gpt-report-file] 보고서 삭제 완료: ${name}`)
       return { success: true }
     } catch (error) {
-      console.error('[delete-gpt-report-file] 보고서 삭제 실패:', error)
+      writeTerminalError('[delete-gpt-report-file] 보고서 삭제 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
@@ -289,13 +290,13 @@ export function registerReportFilesHandlers(): void {
         })
 
         writeFileSync(filePath, pdfBuffer)
-        console.log(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
+        writeTerminalLog(`[save-report-pdf] PDF 저장 완료: ${filePath}`)
         return { success: true, filePath }
       } finally {
-        try { debugger_.detach() } catch (_) { /* 이미 detach된 경우 무시 */ }
+        try { debugger_.detach() } catch { /* 이미 detach된 경우 무시 */ }
       }
     } catch (err) {
-      console.error('[save-report-pdf] PDF 저장 실패:', err)
+      writeTerminalError('[save-report-pdf] PDF 저장 실패:', err)
       return { success: false, error: (err as Error).message }
     } finally {
       if (cssKey !== undefined) {
@@ -421,12 +422,12 @@ export function registerReportFilesHandlers(): void {
           const filePath = join(outputDir, tab.filename)
           writeFileSync(filePath, pdfBuffer)
           saved.push(tab.filename)
-          console.log(`[save-report-pdf-bundle] ${tab.filename} 저장 완료`)
+          writeTerminalLog(`[save-report-pdf-bundle] ${tab.filename} 저장 완료`)
         } finally {
-          try { debugger_.detach() } catch (_) { /* 이미 detach된 경우 무시 */ }
+          try { debugger_.detach() } catch { /* 이미 detach된 경우 무시 */ }
         }
       } catch (err) {
-        console.error(`[save-report-pdf-bundle] ${tab.filename} 저장 실패:`, err)
+        writeTerminalError(`[save-report-pdf-bundle] ${tab.filename} 저장 실패:`, err)
         errors.push(`${tab.filename}: ${(err as Error).message}`)
       } finally {
         if (cssKey !== undefined) {
