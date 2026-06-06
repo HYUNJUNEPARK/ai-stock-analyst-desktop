@@ -14,8 +14,25 @@ import { existsSync, readdirSync } from 'fs'
 import { execSync, spawn, spawnSync } from 'child_process'
 import { homedir } from 'os'
 import type { BrowserWindow } from 'electron'
+import iconv from 'iconv-lite'
 import { safeSend, writeTerminalLog, writeTerminalWarn } from './spawn'
 import { CLI_BIN } from '../constants'
+
+const REPLACEMENT_CHAR = '\uFFFD'
+
+function countReplacementChars(value: string): number {
+  return [...value].filter((char) => char === REPLACEMENT_CHAR).length
+}
+
+export function decodeProcessOutput(data: Buffer): string {
+  const utf8 = data.toString('utf8')
+  if (process.platform !== 'win32' || !utf8.includes(REPLACEMENT_CHAR)) {
+    return utf8
+  }
+
+  const cp949 = iconv.decode(data, 'cp949')
+  return countReplacementChars(cp949) < countReplacementChars(utf8) ? cp949 : utf8
+}
 
 /**
  * 패키징된 Electron 앱에서 사용할 보강된 PATH를 반환한다.
@@ -58,7 +75,7 @@ export function getEnhancedPath(): string {
     join(home, '.npm-global', 'bin'),
     ...findNvmBinPaths(home),
     '/usr/local/bin',
-    '/opt/homebrew/bin',                       // Apple Silicon Homebrew
+    '/opt/homebrew/bin', // Apple Silicon Homebrew
     '/opt/homebrew/sbin',
     join(home, '.local', 'bin'),
     join(home, 'bin')
@@ -170,12 +187,34 @@ export function streamLines(
   const stream = child[source]
   if (!stream) return
 
+  let pending = Buffer.alloc(0)
+
+  function sendLine(lineBuffer: Buffer): void {
+    const line =
+      lineBuffer.length > 0 && lineBuffer[lineBuffer.length - 1] === 13
+        ? lineBuffer.subarray(0, lineBuffer.length - 1)
+        : lineBuffer
+    const decodedLine = decodeProcessOutput(line)
+    if (decodedLine.trim()) {
+      safeSend(win, channel, decodedLine)
+    }
+  }
+
   stream.on('data', (data: Buffer) => {
-    const lines = data.toString().split('\n')
-    for (const line of lines) {
-      if (line.trim()) {
-        safeSend(win, channel, line)
-      }
+    pending = Buffer.concat([pending, data])
+
+    let lineEnd = pending.indexOf(10)
+    while (lineEnd !== -1) {
+      sendLine(pending.subarray(0, lineEnd))
+      pending = pending.subarray(lineEnd + 1)
+      lineEnd = pending.indexOf(10)
+    }
+  })
+
+  stream.on('end', () => {
+    if (pending.length > 0) {
+      sendLine(pending)
+      pending = Buffer.alloc(0)
     }
   })
 }

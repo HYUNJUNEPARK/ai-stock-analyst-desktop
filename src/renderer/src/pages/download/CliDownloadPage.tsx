@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import PageFooter from '../../components/PageFooter'
 import InstallingState from './InstallingState'
@@ -8,13 +8,35 @@ import ErrorState from './ErrorState'
 import { ROUTES } from '../../routes'
 
 type Status = 'installing' | 'success' | 'error'
+type DownloadPreviewState = {
+  previewOnly?: boolean
+  previewStatus?: 'install-error'
+}
+
+const DEV_PREVIEW_INSTALL_ERROR =
+  '개발용 미리보기: npm install 프로세스가 exit code 1로 종료되었습니다.'
+const DEV_PREVIEW_INSTALL_LOGS = [
+  '> npm install --prefix ~/.ai-cli-launcher @openai/codex',
+  'npm ERR! code EACCES',
+  'npm ERR! syscall mkdir',
+  'npm ERR! path ~/.ai-cli-launcher/node_modules',
+  'npm ERR! 권한 문제로 CLI 패키지를 설치하지 못했습니다.'
+]
 
 export default function CliDownloadPage(): React.JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const { selectedModel } = useApp()
-  const [status, setStatus] = useState<Status>('installing')
-  const [logs, setLogs] = useState<string[]>([])
-  const [errorMsg, setErrorMsg] = useState('')
+  const previewState = location.state as DownloadPreviewState | null
+  const isInstallFailurePreview =
+    import.meta.env.DEV &&
+    previewState?.previewOnly === true &&
+    previewState.previewStatus === 'install-error'
+  const [status, setStatus] = useState<Status>(isInstallFailurePreview ? 'error' : 'installing')
+  const [logs, setLogs] = useState<string[]>(
+    isInstallFailurePreview ? DEV_PREVIEW_INSTALL_LOGS : []
+  )
+  const [errorMsg, setErrorMsg] = useState(isInstallFailurePreview ? DEV_PREVIEW_INSTALL_ERROR : '')
   const [showLogs, setShowLogs] = useState(false)
   const logRef = useRef<HTMLDivElement>(null)
 
@@ -32,6 +54,8 @@ export default function CliDownloadPage(): React.JSX.Element {
       navigate(ROUTES.ROOT)
       return
     }
+
+    if (isInstallFailurePreview) return
 
     // 설치 로그 수신 시마다 터미널에 추가하고 자동 스크롤
     window.api.onInstallProgress((data: string) => {
@@ -55,7 +79,7 @@ export default function CliDownloadPage(): React.JSX.Element {
 
     // CLI 설치 시작
     window.api.startCliInstall(selectedModel)
-  }, [selectedModel, navigate])
+  }, [selectedModel, navigate, isInstallFailurePreview])
 
   const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const command =
@@ -64,6 +88,13 @@ export default function CliDownloadPage(): React.JSX.Element {
       : 'npm install -g @openai/codex'
 
   function handleRetry(): void {
+    if (isInstallFailurePreview) {
+      setStatus('error')
+      setLogs(DEV_PREVIEW_INSTALL_LOGS)
+      setErrorMsg(DEV_PREVIEW_INSTALL_ERROR)
+      return
+    }
+
     setStatus('installing')
     setLogs([])
     setErrorMsg('')

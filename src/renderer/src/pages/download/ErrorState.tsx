@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { FiX, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiX, FiChevronDown } from 'react-icons/fi'
 
 export default function ErrorState({
   errorMsg,
@@ -59,6 +59,8 @@ export default function ErrorState({
         <>
           <button
             onClick={() => setShowLogs((v) => !v)}
+            aria-expanded={showLogs}
+            aria-controls="install-error-log"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -72,16 +74,35 @@ export default function ErrorState({
               marginBottom: 8
             }}
           >
-            {showLogs ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+            <FiChevronDown
+              size={14}
+              style={{
+                transform: showLogs ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.25s ease'
+              }}
+            />
             {showLogs ? '로그 숨기기' : '상세 로그 보기'}
           </button>
 
-          {showLogs && (
+          <div
+            style={{
+              width: '100%',
+              maxHeight: showLogs ? 196 : 0,
+              opacity: showLogs ? 1 : 0,
+              overflow: 'hidden',
+              transform: showLogs ? 'translateY(0)' : 'translateY(-4px)',
+              transition:
+                'max-height 0.35s ease, opacity 0.25s ease, transform 0.35s ease, margin-bottom 0.35s ease',
+              marginBottom: showLogs ? 16 : 0
+            }}
+            aria-hidden={!showLogs}
+          >
             <div
+              id="install-error-log"
               ref={logRef}
               className="terminal"
               role="log"
-              style={{ width: '100%', height: 180, marginBottom: 16 }}
+              style={{ width: '100%', height: 180 }}
             >
               {logs.map((line, i) => (
                 <div key={i} className="terminal-line">
@@ -89,7 +110,7 @@ export default function ErrorState({
                 </div>
               ))}
             </div>
-          )}
+          </div>
         </>
       )}
     </div>

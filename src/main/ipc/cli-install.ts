@@ -14,7 +14,7 @@ import { IPC } from '../../shared/ipcChannels'
 import { CLI_PREFIX } from '../constants'
 import { spawnCommand, safeSend, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 import { getEnhancedPath } from '../utils/cli'
-import { resolveCliCommand, streamLines } from '../utils/cli'
+import { decodeProcessOutput, resolveCliCommand, streamLines } from '../utils/cli'
 
 /**
  * 모델명 → npm 패키지명 매핑
@@ -33,7 +33,7 @@ const CLI_PACKAGES: Record<string, string> = {
 export function registerCliInstallHandlers(win: BrowserWindow): void {
   /**
    * CLI 설치
-   * 
+   *
    * IPC 채널: 'start-cli-install'
    * 방향: renderer → main (on = 단방향)
    * 용도: 선택된 모델의 CLI npm 패키지를 앱 전용 경로에 설치
@@ -48,7 +48,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     writeTerminalLog(`[start-cli-install] "${model}" 모델 설치 시작`)
     const pkg = CLI_PACKAGES[model]
     if (!pkg) {
-      safeSend(win,IPC.INSTALL_COMPLETE, {
+      safeSend(win, IPC.INSTALL_COMPLETE, {
         success: false,
         error: `알 수 없는 모델: ${model}`
       })
@@ -65,28 +65,28 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
-    const stderrChunks: string[] = []
+    const stderrChunks: Buffer[] = []
 
     streamLines(win, child, IPC.INSTALL_PROGRESS, 'stdout')
     streamLines(win, child, IPC.INSTALL_PROGRESS, 'stderr')
 
     child.stderr?.on('data', (chunk: Buffer) => {
-      stderrChunks.push(chunk.toString())
+      stderrChunks.push(Buffer.from(chunk))
     })
 
     child.on('close', (code) => {
       if (code === 0) {
         writeTerminalLog(`[start-cli-install] "${model}" 모델 설치 완료`)
-        safeSend(win,IPC.INSTALL_COMPLETE, { success: true })
+        safeSend(win, IPC.INSTALL_COMPLETE, { success: true })
       } else {
-        const stderrText = stderrChunks.join('').trim()
+        const stderrText = decodeProcessOutput(Buffer.concat(stderrChunks)).trim()
         const lastLines = stderrText.split('\n').filter(Boolean).slice(-5).join('\n')
         const detail = lastLines
           ? `설치 중 오류가 발생했습니다. (exit code: ${code})\n${lastLines}`
           : `설치 중 오류가 발생했습니다. (exit code: ${code})`
         writeTerminalError(`[start-cli-install] "${model}" 모델 설치 실패 (exit code: ${code})`)
         if (stderrText) writeTerminalError(`[start-cli-install] stderr:\n${stderrText}`)
-        safeSend(win,IPC.INSTALL_COMPLETE, {
+        safeSend(win, IPC.INSTALL_COMPLETE, {
           success: false,
           error: detail
         })
@@ -94,7 +94,7 @@ export function registerCliInstallHandlers(win: BrowserWindow): void {
     })
 
     child.on('error', (err) => {
-      safeSend(win,IPC.INSTALL_COMPLETE, {
+      safeSend(win, IPC.INSTALL_COMPLETE, {
         success: false,
         error: `npm 실행 실패: ${err.message}`
       })

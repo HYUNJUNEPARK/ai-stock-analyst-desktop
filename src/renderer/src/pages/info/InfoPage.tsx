@@ -9,12 +9,15 @@ import developerInfo from '../../data/developer-info.json'
 import './InfoPage.css'
 
 const DEV_PREVIEW_PROMPT = '삼성전자'
+type LoadedModelInfo = {
+  model: 'gpt' | 'claude'
+  modelName: string | null
+}
 
 export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
-  const [modelName, setModelName] = useState<string | null>(null)
-  const [modelLoading, setModelLoading] = useState(false)
+  const [loadedModelInfo, setLoadedModelInfo] = useState<LoadedModelInfo | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
   useEffect(() => {
@@ -23,12 +26,24 @@ export default function InfoPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!selectedModel) return
-    setModelLoading(true)
-    setModelName(null)
+    let isCancelled = false
+
     window.api
       .getModelInfo(selectedModel)
-      .then((result) => setModelName(result.modelName))
-      .finally(() => setModelLoading(false))
+      .then((result) => {
+        if (!isCancelled) {
+          setLoadedModelInfo({ model: selectedModel, modelName: result.modelName })
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setLoadedModelInfo({ model: selectedModel, modelName: null })
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
   }, [selectedModel])
 
   useEffect(() => {
@@ -41,6 +56,8 @@ export default function InfoPage(): React.JSX.Element {
 
   const isGpt = selectedModel === 'gpt'
   const modelLabel = isGpt ? 'GPT' : 'Claude'
+  const modelName = loadedModelInfo?.model === selectedModel ? loadedModelInfo.modelName : null
+  const modelLoading = loadedModelInfo?.model !== selectedModel
 
   function handleOpenInvestmentGuide(): void {
     void window.api.openGuideWindow('investment')
@@ -59,6 +76,12 @@ export default function InfoPage(): React.JSX.Element {
     setCurrentPrompt(previewPrompt)
     navigate(ROUTES.RESPONSE, {
       state: { previewOnly: true, previewStatus, model: selectedModel, prompt: previewPrompt }
+    })
+  }
+
+  function navigateInstallFailurePreview(): void {
+    navigate(ROUTES.DOWNLOAD, {
+      state: { previewOnly: true, previewStatus: 'install-error' }
     })
   }
 
@@ -169,8 +192,7 @@ export default function InfoPage(): React.JSX.Element {
               <div className="info-row">
                 <span className="info-row-label">버전</span>
                 <span className="info-row-value">
-                  <span className="info-test-badge">TEST</span>
-                  v{__APP_VERSION__}
+                  <span className="info-test-badge">TEST</span>v{__APP_VERSION__}
                 </span>
               </div>
             </div>
@@ -204,13 +226,20 @@ export default function InfoPage(): React.JSX.Element {
 
                 <div className="info-row-separator" />
 
-                <button
-                  className="info-row info-row--tap"
-                  onClick={() => navigatePreview('error')}
-                >
+                <button className="info-row info-row--tap" onClick={() => navigatePreview('error')}>
                   <div className="info-row-body">
                     <span className="info-row-label">분석 실패 화면</span>
                     <span className="info-row-desc">에러 상태 화면 확인</span>
+                  </div>
+                  <FiChevronRight className="info-row-chevron" />
+                </button>
+
+                <div className="info-row-separator" />
+
+                <button className="info-row info-row--tap" onClick={navigateInstallFailurePreview}>
+                  <div className="info-row-body">
+                    <span className="info-row-label">설치 실패 화면</span>
+                    <span className="info-row-desc">CLI 설치 실패 상태 화면 확인</span>
                   </div>
                   <FiChevronRight className="info-row-chevron" />
                 </button>
