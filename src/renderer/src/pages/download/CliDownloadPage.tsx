@@ -17,9 +17,25 @@ const DEV_PREVIEW_INSTALL_ERROR =
   '개발용 미리보기: npm install 프로세스가 exit code 1로 종료되었습니다.'
 const DEV_PREVIEW_INSTALL_LOGS = [
   '> npm install --prefix ~/.ai-cli-launcher @openai/codex',
+  'npm info using npm@10.9.0',
+  'npm info using node@v22.19.1',
+  'npm http fetch GET 200 https://registry.npmjs.org/@openai%2fcodex 236ms',
+  'npm http fetch GET 200 https://registry.npmjs.org/@electron%2fget 144ms',
+  'npm http fetch GET 200 https://registry.npmjs.org/debug 118ms',
+  'npm WARN deprecated sample-package@1.0.0: 개발용 미리보기 경고입니다.',
+  'npm timing idealTree:init Completed in 42ms',
+  'npm timing idealTree:userRequests Completed in 18ms',
+  'npm timing idealTree:buildDeps Completed in 328ms',
+  'npm timing reify:loadTrees Completed in 411ms',
+  'npm timing reify:diffTrees Completed in 25ms',
+  'npm timing reify:retireShallow Completed in 2ms',
+  'npm timing reify:createSparse Completed in 36ms',
+  'npm timing reify:loadBundles Completed in 0ms',
   'npm ERR! code EACCES',
   'npm ERR! syscall mkdir',
   'npm ERR! path ~/.ai-cli-launcher/node_modules',
+  'npm ERR! errno -13',
+  'npm ERR! Error: EACCES: permission denied, mkdir ~/.ai-cli-launcher/node_modules',
   'npm ERR! 권한 문제로 CLI 패키지를 설치하지 못했습니다.'
 ]
 
@@ -146,12 +162,22 @@ export default function CliDownloadPage(): React.JSX.Element {
 
       {status === 'error' && (
         <PageFooter>
-          <button className="btn-primary danger" onClick={handleRetry}>
-            다시 시도
-          </button>
-          <button className="btn-ghost btn-gap" onClick={() => navigate(ROUTES.ROOT)}>
-            모델 다시 선택
-          </button>
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 320,
+              margin: '0 auto',
+              display: 'flex',
+              gap: 'var(--space-3)'
+            }}
+          >
+            <button className="btn-primary danger" onClick={handleRetry} style={{ flex: 1 }}>
+              다시 시도
+            </button>
+            <button className="btn-ghost" onClick={() => navigate(ROUTES.ROOT)} style={{ flex: 1 }}>
+              모델 다시 선택
+            </button>
+          </div>
         </PageFooter>
       )}
     </div>

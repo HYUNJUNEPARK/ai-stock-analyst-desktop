@@ -9,7 +9,7 @@
  *   - utils/spawn.ts (spawnCommand 타입)
  */
 
-import { join } from 'path'
+import { delimiter, join } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { execSync, spawn, spawnSync } from 'child_process'
 import { homedir } from 'os'
@@ -51,7 +51,15 @@ let _cachedEnhancedPath: string | null = null
 export function getEnhancedPath(): string {
   if (_cachedEnhancedPath) return _cachedEnhancedPath
 
-  const currentPath = process.env['PATH'] ?? ''
+  const currentPath = process.env['PATH'] ?? process.env['Path'] ?? ''
+  const home = homedir()
+
+  if (process.platform === 'win32') {
+    const extraPaths = getWindowsPathCandidates(home).filter(existsSync)
+    _cachedEnhancedPath = mergePathEntries(currentPath, extraPaths)
+    writeTerminalLog('[getEnhancedPath] Windows PATH 구성:', _cachedEnhancedPath)
+    return _cachedEnhancedPath
+  }
 
   // 사용자 쉘에서 실제 PATH 가져오기 시도
   try {
@@ -70,7 +78,6 @@ export function getEnhancedPath(): string {
   }
 
   // 폴백: 일반적인 npm/node 설치 경로를 수동으로 추가
-  const home = homedir()
   const extraPaths = [
     join(home, '.npm-global', 'bin'),
     ...findNvmBinPaths(home),
@@ -81,9 +88,31 @@ export function getEnhancedPath(): string {
     join(home, 'bin')
   ].filter(existsSync)
 
-  _cachedEnhancedPath = [...new Set([...currentPath.split(':'), ...extraPaths])].join(':')
+  _cachedEnhancedPath = mergePathEntries(currentPath, extraPaths)
   writeTerminalLog('[getEnhancedPath] 폴백 PATH 구성:', _cachedEnhancedPath)
   return _cachedEnhancedPath
+}
+
+function mergePathEntries(currentPath: string, extraPaths: string[]): string {
+  return [...new Set([...currentPath.split(delimiter).filter(Boolean), ...extraPaths])].join(
+    delimiter
+  )
+}
+
+function getWindowsPathCandidates(home: string): string[] {
+  const candidates = [
+    process.env['APPDATA'] ? join(process.env['APPDATA'], 'npm') : null,
+    join(home, 'AppData', 'Roaming', 'npm'),
+    process.env['ProgramFiles'] ? join(process.env['ProgramFiles'], 'nodejs') : null,
+    process.env['ProgramFiles(x86)'] ? join(process.env['ProgramFiles(x86)'], 'nodejs') : null,
+    process.env['LOCALAPPDATA'] ? join(process.env['LOCALAPPDATA'], 'Programs', 'nodejs') : null,
+    process.env['NVM_SYMLINK'] ?? null,
+    process.env['NVM_HOME'] ?? null,
+    process.env['ProgramData'] ? join(process.env['ProgramData'], 'chocolatey', 'bin') : null,
+    join(home, 'scoop', 'shims')
+  ]
+
+  return candidates.filter((path): path is string => Boolean(path))
 }
 
 /**

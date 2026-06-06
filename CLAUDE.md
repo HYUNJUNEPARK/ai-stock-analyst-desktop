@@ -191,6 +191,15 @@ npm run format       # Prettier
 
 ---
 
+## Codex Login Completion
+
+GPT/Codex login completes when either `codex login` exits successfully or
+`~/.codex/auth.json` contains a valid token. The auth-file check lets Windows
+advance after browser authentication without waiting for the browser window to
+close.
+
+---
+
 ## 코드 규칙
 
 - TypeScript strict 모드, `any` 지양

@@ -1,6 +1,6 @@
 import { FiRefreshCw } from 'react-icons/fi'
 import { MdOutlineError } from 'react-icons/md'
-import { VscOutput } from 'react-icons/vsc'
+import ErrorLogButton from '../../../components/ErrorLogButton'
 
 type ErrorResponseViewProps = {
   errorMsg: string
@@ -13,12 +13,6 @@ export default function ErrorResponseView({
   errorLog,
   onRetry
 }: ErrorResponseViewProps): React.JSX.Element {
-  function handleOpenErrorLog(): void {
-    if (errorLog) {
-      window.api.openErrorLogWindow(errorLog)
-    }
-  }
-
   return (
     <div
       style={{
@@ -60,22 +54,7 @@ export default function ErrorResponseView({
           <FiRefreshCw size={15} />
           다시 분석
         </button>
-        {errorLog && (
-          <button
-            className="btn-ghost"
-            onClick={handleOpenErrorLog}
-            aria-label="에러 로그 보기"
-            style={{
-              width: 'auto',
-              height: 'auto',
-              padding: '5px 12px',
-              borderRadius: 8
-            }}
-          >
-            <VscOutput size={15} />
-            에러 로그
-          </button>
-        )}
+        <ErrorLogButton errorLog={errorLog} />
       </div>
     </div>
   )
