@@ -239,13 +239,23 @@ function createErrorLogWindow(errorLog: string): void {
   .line-stderr { color: #fb923c; }
   .line-section { color: #475569; font-weight: 600; }
   .line-normal { color: #94a3b8; }
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; z-index: 20;
+    transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+    background: #f8fafc; color: #0f172a; border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: #fee2e2; color: #991b1b; }
 </style>
 </head>
 <body>
 <header>
   <h1>에러 로그</h1>
   <div class="header-actions">
-    <button onclick="navigator.clipboard.writeText(document.getElementById('log').innerText)">복사</button>
+    <button id="copy-button" type="button">복사</button>
   </div>
 </header>
 <main>
@@ -259,6 +269,58 @@ function createErrorLogWindow(errorLog: string): void {
     return `<span class="line line-normal">${line}</span>`
   }).join('\n')}</pre>
 </main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+  var toastTimer = null;
+
+  function showToast(message, isError) {
+    var toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.toggle('error', Boolean(isError));
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() {
+      toast.classList.remove('show');
+    }, 1800);
+  }
+
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      return document.execCommand('copy');
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
+  async function copyLog() {
+    var log = document.getElementById('log');
+    var text = log ? log.innerText : '';
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else if (!fallbackCopy(text)) {
+        throw new Error('copy command failed');
+      }
+      showToast('에러 로그를 복사했습니다.');
+    } catch (error) {
+      try {
+        if (!fallbackCopy(text)) throw error;
+        showToast('에러 로그를 복사했습니다.');
+      } catch (_) {
+        showToast('복사하지 못했습니다.', true);
+      }
+    }
+  }
+
+  document.getElementById('copy-button').addEventListener('click', copyLog);
+</script>
 </body>
 </html>`
 
