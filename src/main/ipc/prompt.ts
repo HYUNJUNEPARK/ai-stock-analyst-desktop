@@ -1,91 +1,65 @@
-/**
- * src/main/ipc/prompt.ts — 단발 프롬프트 실행 IPC 핸들러
- *
- * 담당 채널:
- *   - run-prompt : 사용자 프롬프트를 CLI로 실행하고 응답을 스트리밍 (단방향)
- */
-
 import { ipcMain, type BrowserWindow } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
-import { spawnCommand, safeSend, writeTerminalError, writeTerminalLog } from '../utils/spawn'
-import { getCliCommand, getEnhancedPath } from '../utils/cli'
+import { isCodexAuthErrorOutput } from '../utils/auth'
+import { decodeProcessOutput, getCliCommand, getEnhancedPath } from '../utils/cli'
+import { safeSend, spawnCommand, writeTerminalError, writeTerminalLog } from '../utils/spawn'
 
-/**
- * 단발 프롬프트 실행 IPC 핸들러를 등록한다.
- *
- * @param win - IPC 이벤트를 push할 BrowserWindow 인스턴스
- */
 export function registerPromptHandlers(win: BrowserWindow): void {
+  ipcMain.on(IPC.RUN_PROMPT, (_event, { model, prompt }: { model: string; prompt: string }) => {
+    writeTerminalLog(`[run-prompt] prompt execution started: model=${model}`)
 
-  /**
-   * IPC 채널: 'run-prompt'
-   * 방향: renderer → main (on = 단방향)
-   * 용도: 프롬프트 화면에서 사용자가 입력한 질문을 CLI로 실행
-   *
-   * 모델별 실행 명령:
-   *   GPT   : codex exec --skip-git-repo-check --color never <prompt>
-   *   Claude: claude -p <prompt> --output-format text
-   *
-   * 응답 스트리밍: stdout 데이터를 받는 즉시 'prompt-response-chunk' 채널로 전송
-   * 완료 결과: 프로세스 종료 시 'prompt-response-done' 채널로 전송
-   *
-   * stderr 처리:
-   *   Claude CLI는 진행 상태를 stderr에도 출력하므로 'error' 키워드가 있을 때만 전달
-   */
-  ipcMain.on(
-    IPC.RUN_PROMPT,
-    (_event, { model, prompt }: { model: string; prompt: string }) => {
-      writeTerminalLog(`[run-prompt] 프롬프트 실행 시작: 모델=${model}`)
+    const cmd = model === 'gpt' ? getCliCommand('codex') : getCliCommand('claude')
+    const args =
+      model === 'gpt'
+        ? ['exec', '--skip-git-repo-check', '--color', 'never', prompt]
+        : ['-p', prompt, '--output-format', 'text']
 
-      let cmd: string
-      let args: string[]
+    const child = spawnCommand(cmd, args, {
+      env: { ...process.env, PATH: getEnhancedPath() },
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
 
-      if (model === 'gpt') {
-        // 실행 명령: codex exec --skip-git-repo-check --color never <prompt>
-        cmd = getCliCommand('codex')
-        args = ['exec', '--skip-git-repo-check', '--color', 'never', prompt]
-      } else {
-        // 실행 명령: claude -p <prompt> --output-format text
-        cmd = getCliCommand('claude')
-        args = ['-p', prompt, '--output-format', 'text']
+    const stderrChunks: Buffer[] = []
+
+    child.stdout.on('data', (data: Buffer) => {
+      safeSend(win, IPC.PROMPT_RESPONSE_CHUNK, data.toString())
+    })
+
+    child.stderr.on('data', (data: Buffer) => {
+      stderrChunks.push(Buffer.from(data))
+      const text = decodeProcessOutput(Buffer.from(data))
+      if (text.toLowerCase().includes('error')) {
+        safeSend(win, IPC.PROMPT_RESPONSE_CHUNK, text)
+      }
+    })
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        writeTerminalLog(`[run-prompt] prompt execution completed: model=${model}`)
+        safeSend(win, IPC.PROMPT_RESPONSE_DONE, { success: true })
+        return
       }
 
-      const child = spawnCommand(cmd, args, {
-        env: { ...process.env, PATH: getEnhancedPath() },
-        stdio: ['ignore', 'pipe', 'pipe']
-      })
+      const stderrText = decodeProcessOutput(Buffer.concat(stderrChunks))
+      const authRequired = model === 'gpt' && isCodexAuthErrorOutput(stderrText)
 
-      child.stdout.on('data', (data: Buffer) => {
-        safeSend(win,IPC.PROMPT_RESPONSE_CHUNK, data.toString())
+      writeTerminalError(
+        `[run-prompt] prompt execution failed: model=${model} (exit code: ${code})`
+      )
+      safeSend(win, IPC.PROMPT_RESPONSE_DONE, {
+        success: false,
+        error: authRequired
+          ? 'Codex 인증이 만료되었거나 유효하지 않습니다. 다시 인증해 주세요.'
+          : `CLI 실행 실패 (exit code: ${code})`,
+        authRequired
       })
+    })
 
-      child.stderr.on('data', (data: Buffer) => {
-        // Claude CLI는 stderr에 진행 정보를 출력하기도 함 — error 관련 메시지만 전달
-        const text = data.toString()
-        if (text.toLowerCase().includes('error')) {
-          safeSend(win,IPC.PROMPT_RESPONSE_CHUNK, text)
-        }
+    child.on('error', (err) => {
+      safeSend(win, IPC.PROMPT_RESPONSE_DONE, {
+        success: false,
+        error: `CLI 실행 오류: ${err.message}`
       })
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          writeTerminalLog(`[run-prompt] 프롬프트 실행 완료: 모델=${model}`)
-          safeSend(win,IPC.PROMPT_RESPONSE_DONE, { success: true })
-        } else {
-          writeTerminalError(`[run-prompt] 프롬프트 실행 실패: 모델=${model} (exit code: ${code})`)
-          safeSend(win,IPC.PROMPT_RESPONSE_DONE, {
-            success: false,
-            error: `CLI 실행 실패 (exit code: ${code})`
-          })
-        }
-      })
-
-      child.on('error', (err) => {
-        safeSend(win,IPC.PROMPT_RESPONSE_DONE, {
-          success: false,
-          error: `CLI 실행 오류: ${err.message}`
-        })
-      })
-    }
-  )
+    })
+  })
 }

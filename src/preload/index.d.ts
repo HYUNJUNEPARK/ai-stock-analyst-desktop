@@ -95,14 +95,14 @@ declare global {
       /* 프롬프트 실행 */
       runPrompt: (params: { model: string; prompt: string }) => void
       onResponseChunk: (callback: (chunk: string) => void) => void
-      onResponseDone: (callback: (result: { success: boolean; error?: string }) => void) => void
+      onResponseDone: (callback: (result: { success: boolean; error?: string; authRequired?: boolean }) => void) => void
 
       /* 주식 멀티 에이전트 분석 */
       runStockAnalysis: (params: { model: string; prompt: string }) => void
       cancelStockAnalysis: () => void
       onStockAnalysisAgent: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
       onStockAnalysisChunk: (callback: (chunk: string) => void) => void
-      onStockAnalysisDone: (callback: (result: { success: boolean; error?: string; errorLog?: string }) => void) => void
+      onStockAnalysisDone: (callback: (result: { success: boolean; error?: string; errorLog?: string; authRequired?: boolean }) => void) => void
     }
   }
 }

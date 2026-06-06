@@ -194,9 +194,14 @@ npm run format       # Prettier
 ## Codex Login Completion
 
 GPT/Codex login completes when either `codex login` exits successfully or
-`~/.codex/auth.json` contains a valid token. The auth-file check lets Windows
+`~/.codex/auth.json` contains a usable session. The auth-file check lets Windows
 advance after browser authentication without waiting for the browser window to
 close.
+
+The GPT auth check treats API keys as usable, JWT access/id tokens as usable
+only before their `exp` time, and refresh tokens as a refreshable session. If a
+later Codex execution reports an authentication failure, the renderer shows a
+reauthentication action and routes the user back to `/auth`.
 
 ---
 

@@ -35,6 +35,7 @@ import { IPC } from '../../shared/ipcChannels'
 import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import { spawnCommand, writeTerminalError, writeTerminalLine, writeTerminalLog, safeSend } from '../utils/spawn'
 import { getCliCommand, resolveCliCommand, getEnhancedPath } from '../utils/cli'
+import { isCodexAuthErrorOutput } from '../utils/auth'
 
 /** 에러 로그 저장 디렉토리: ~/.ai-cli-launcher/logs */
 const LOG_DIR = join(homedir(), '.ai-cli-launcher', 'logs')
@@ -369,10 +370,15 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     if (!wasCancelled) {
       writeTerminalError(`[stock-analysis:gpt] 프로세스 비정상 종료: exit code=${code}`)
       errorLogLines.push(`[error] 프로세스 비정상 종료 (exit code: ${code})`)
+      const errorLog = buildAndSaveErrorLog()
+      const authRequired = isCodexAuthErrorOutput(`${lastUserErrorMsg}\n${errorLog}`)
       safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
         success: false,
-        error: lastUserErrorMsg || '분석에 실패하였습니다. 잠시 후 다시 시도해 주세요.',
-        errorLog: buildAndSaveErrorLog()
+        error: authRequired
+          ? 'Codex 인증이 만료되었거나 유효하지 않습니다. 다시 인증해 주세요.'
+          : lastUserErrorMsg || '분석에 실패하였습니다. 잠시 후 다시 시도해 주세요.',
+        errorLog,
+        authRequired
       })
     }
   })

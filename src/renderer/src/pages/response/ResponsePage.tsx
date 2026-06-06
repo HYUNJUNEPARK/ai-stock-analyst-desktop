@@ -15,7 +15,7 @@ import ErrorResponseView from './components/ErrorResponseView'
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
-  const { selectedModel, currentPrompt, setLastResponse } = useApp()
+  const { selectedModel, setSelectedModel, currentPrompt, setLastResponse } = useApp()
   const previewState = import.meta.env.DEV ? (location.state as ResponseLocationState) : null
   const isPreviewOnly = previewState?.previewOnly === true
   const previewStatus = previewState?.previewStatus ?? 'done'
@@ -37,6 +37,7 @@ export default function ResponsePage(): React.JSX.Element {
   const [agentStatuses, setAgentStatuses] = useState<Record<string, AgentStatus>>(() =>
     getPreviewAgentStatuses(isPreviewOnly, previewStatus)
   )
+  const [authRequired, setAuthRequired] = useState(false)
   const [isReportPanelOpen, setIsReportPanelOpen] = useState(false)
   const responseRef = useRef(initialResponse)
   const hasStartedRef = useRef(false)
@@ -71,7 +72,7 @@ export default function ResponsePage(): React.JSX.Element {
         setResponse(responseRef.current)
       })
 
-      window.api.onStockAnalysisDone((result: { success: boolean; error?: string; errorLog?: string }) => {
+      window.api.onStockAnalysisDone((result: { success: boolean; error?: string; errorLog?: string; authRequired?: boolean }) => {
         if (result.success) {
           setStatus('done')
           setLastResponse(responseRef.current)
@@ -79,6 +80,7 @@ export default function ResponsePage(): React.JSX.Element {
           setStatus('error')
           setErrorMsg(result.error ?? '분석에 실패했습니다.')
           setErrorLog(result.errorLog ?? '')
+          setAuthRequired(result.authRequired === true)
         }
       })
 
@@ -89,13 +91,14 @@ export default function ResponsePage(): React.JSX.Element {
         setResponse(responseRef.current)
       })
 
-      window.api.onResponseDone((result: { success: boolean; error?: string }) => {
+      window.api.onResponseDone((result: { success: boolean; error?: string; authRequired?: boolean }) => {
         if (result.success) {
           setStatus('done')
           setLastResponse(responseRef.current)
         } else {
           setStatus('error')
           setErrorMsg(result.error ?? '응답을 가져오지 못했습니다.')
+          setAuthRequired(result.authRequired === true)
         }
       })
 
@@ -116,6 +119,7 @@ export default function ResponsePage(): React.JSX.Element {
     responseRef.current = ''
     setErrorMsg('')
     setErrorLog('')
+    setAuthRequired(false)
     setAgentStatuses(getInitialAgentStatuses('idle'))
 
     if (isPreviewOnly) {
@@ -145,6 +149,11 @@ export default function ResponsePage(): React.JSX.Element {
 
   function closeReportPanel(): void {
     setIsReportPanelOpen(false)
+  }
+
+  function handleReauthenticate(): void {
+    setSelectedModel('gpt')
+    navigate(ROUTES.AUTH)
   }
 
 
@@ -187,7 +196,15 @@ export default function ResponsePage(): React.JSX.Element {
               {isCancelled && <AnalysisCancelledView onRetry={handleRetry} />}
 
               {/* 에러 */}
-              {isError && <ErrorResponseView errorMsg={errorMsg} errorLog={errorLog} onRetry={handleRetry} />}
+              {isError && (
+                <ErrorResponseView
+                  errorMsg={errorMsg}
+                  errorLog={errorLog}
+                  authRequired={authRequired}
+                  onRetry={handleRetry}
+                  onReauthenticate={handleReauthenticate}
+                />
+              )}
 
               {/* 분석 중 */}
               {!isCancelled && !isError && isStreamingEmpty && (

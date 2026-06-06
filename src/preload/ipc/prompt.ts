@@ -12,7 +12,7 @@ import { IPC } from '../../shared/ipcChannels'
 // main → renderer 이벤트를 받아 실행할 콜백 함수 보관소
 // renderer에서 onResponseChunk / onResponseDone을 호출해 콜백을 등록하면 여기에 저장된다
 let responseChunkCb: ((chunk: string) => void) | null = null
-let responseDoneCb: ((result: { success: boolean; error?: string }) => void) | null = null
+let responseDoneCb: ((result: { success: boolean; error?: string; authRequired?: boolean }) => void) | null = null
 
 /**
  * main → renderer 방향 IPC 이벤트를 리스닝한다.
@@ -22,7 +22,7 @@ export function registerPromptListeners(): void {
   // 응답 텍스트를 청크 단위로 스트리밍 수신
   ipcRenderer.on(IPC.PROMPT_RESPONSE_CHUNK, (_e, chunk: string) => responseChunkCb?.(chunk))
   // 응답 스트리밍 종료(성공 또는 오류) 신호 수신
-  ipcRenderer.on(IPC.PROMPT_RESPONSE_DONE, (_e, result: { success: boolean; error?: string }) =>
+  ipcRenderer.on(IPC.PROMPT_RESPONSE_DONE, (_e, result: { success: boolean; error?: string; authRequired?: boolean }) =>
     responseDoneCb?.(result)
   )
 }
@@ -42,7 +42,7 @@ export const promptApi = {
   },
 
   /** 응답 스트리밍이 완료(성공/실패)됐을 때 실행할 콜백을 등록한다 */
-  onResponseDone: (cb: (result: { success: boolean; error?: string }) => void) => {
+  onResponseDone: (cb: (result: { success: boolean; error?: string; authRequired?: boolean }) => void) => {
     responseDoneCb = cb
   },
 }

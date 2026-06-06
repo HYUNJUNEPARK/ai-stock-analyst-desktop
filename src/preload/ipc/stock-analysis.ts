@@ -16,7 +16,12 @@ import { IPC } from '../../shared/ipcChannels'
 let stockAnalysisAgentCb: ((event: { name: string; status: 'running' | 'done' }) => void) | null =
   null
 let stockAnalysisChunkCb: ((chunk: string) => void) | null = null
-let stockAnalysisDoneCb: ((result: { success: boolean; error?: string; errorLog?: string }) => void) | null = null
+let stockAnalysisDoneCb: ((result: {
+  success: boolean
+  error?: string
+  errorLog?: string
+  authRequired?: boolean
+}) => void) | null = null
 
 /**
  * main → renderer 방향 IPC 이벤트를 리스닝한다.
@@ -31,8 +36,10 @@ export function registerStockAnalysisListeners(): void {
   // 분석 결과 텍스트를 청크 단위로 스트리밍 수신
   ipcRenderer.on(IPC.STOCK_ANALYSIS_CHUNK, (_e, chunk: string) => stockAnalysisChunkCb?.(chunk))
   // 전체 분석 완료(성공 또는 오류) 신호 수신
-  ipcRenderer.on(IPC.STOCK_ANALYSIS_DONE, (_e, result: { success: boolean; error?: string; errorLog?: string }) =>
-    stockAnalysisDoneCb?.(result)
+  ipcRenderer.on(
+    IPC.STOCK_ANALYSIS_DONE,
+    (_e, result: { success: boolean; error?: string; errorLog?: string; authRequired?: boolean }) =>
+      stockAnalysisDoneCb?.(result)
   )
 }
 
@@ -59,7 +66,12 @@ export const stockAnalysisApi = {
   },
 
   /** 전체 분석이 완료(성공/실패)됐을 때 실행할 콜백을 등록한다 */
-  onStockAnalysisDone: (cb: (result: { success: boolean; error?: string; errorLog?: string }) => void) => {
+  onStockAnalysisDone: (cb: (result: {
+    success: boolean
+    error?: string
+    errorLog?: string
+    authRequired?: boolean
+  }) => void) => {
     stockAnalysisDoneCb = cb
   },
 }
