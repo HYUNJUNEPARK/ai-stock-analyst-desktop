@@ -98,7 +98,7 @@ declare global {
       onResponseDone: (callback: (result: { success: boolean; error?: string; authRequired?: boolean }) => void) => void
 
       /* 주식 멀티 에이전트 분석 */
-      runStockAnalysis: (params: { model: string; prompt: string }) => void
+      runStockAnalysis: (params: { model: string; prompt: string; market?: string }) => void
       cancelStockAnalysis: () => void
       onStockAnalysisAgent: (callback: (event: { name: string; status: 'running' | 'done' }) => void) => void
       onStockAnalysisChunk: (callback: (chunk: string) => void) => void

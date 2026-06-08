@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { Market } from '../data/market'
 
 type Model = 'gpt' | 'claude' | null
 
@@ -8,6 +9,8 @@ interface AppContextValue {
   setSelectedModel: (model: Model) => void
   currentPrompt: string
   setCurrentPrompt: (prompt: string) => void
+  currentMarket: Market
+  setCurrentMarket: (market: Market) => void
   lastResponse: string
   setLastResponse: (response: string) => void
 }
@@ -18,6 +21,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 export function AppProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const [selectedModel, setSelectedModel] = useState<Model>(null)
   const [currentPrompt, setCurrentPrompt] = useState('')
+  const [currentMarket, setCurrentMarket] = useState<Market>('auto')
   const [lastResponse, setLastResponse] = useState('')
 
   return (
@@ -27,6 +31,8 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
         setSelectedModel,
         currentPrompt,
         setCurrentPrompt,
+        currentMarket,
+        setCurrentMarket,
         lastResponse,
         setLastResponse
       }}

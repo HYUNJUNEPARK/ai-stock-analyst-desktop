@@ -100,6 +100,7 @@ async function main() {
     COMPANY: company,
     TICKER: ticker,
     REQUEST: options.request,
+    MARKET: options.market,
     AS_OF_DATE: asOfDate,
     AI_MODEL: aiInfo.model
   }
@@ -480,6 +481,7 @@ function parseArgs(argv) {
     company: '',
     ticker: '',
     request: '',
+    market: '',
     model: '',
     dryRun: false,
     help: false
@@ -497,6 +499,10 @@ function parseArgs(argv) {
     }
     if (arg === '--request') {
       options.request = argv[++i] ?? ''
+      continue
+    }
+    if (arg === '--market') {
+      options.market = argv[++i] ?? ''
       continue
     }
     if (arg === '--model') {

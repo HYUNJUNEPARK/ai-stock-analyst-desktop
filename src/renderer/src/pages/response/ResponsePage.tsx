@@ -15,7 +15,7 @@ import ErrorResponseView from './components/ErrorResponseView'
 export default function ResponsePage(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
-  const { selectedModel, setSelectedModel, currentPrompt, setLastResponse } = useApp()
+  const { selectedModel, setSelectedModel, currentPrompt, currentMarket, setLastResponse } = useApp()
   const previewState = import.meta.env.DEV ? (location.state as ResponseLocationState) : null
   const isPreviewOnly = previewState?.previewOnly === true
   const previewStatus = previewState?.previewStatus ?? 'done'
@@ -84,7 +84,7 @@ export default function ResponsePage(): React.JSX.Element {
         }
       })
 
-      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt })
+      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt, market: currentMarket })
     } else {
       window.api.onResponseChunk((chunk: string) => {
         responseRef.current += chunk
@@ -137,7 +137,7 @@ export default function ResponsePage(): React.JSX.Element {
     }
 
     if (isStockAnalysisModel(effectiveModel)) {
-      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt })
+      window.api.runStockAnalysis({ model: effectiveModel, prompt: effectivePrompt, market: currentMarket })
     } else {
       window.api.runPrompt({ model: effectiveModel, prompt: effectivePrompt })
     }

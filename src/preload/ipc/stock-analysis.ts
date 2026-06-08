@@ -49,7 +49,7 @@ export function registerStockAnalysisListeners(): void {
  */
 export const stockAnalysisApi = {
   /** 선택한 model로 주식 멀티 에이전트 분석을 시작한다 (단방향, 결과는 이벤트로 수신) */
-  runStockAnalysis: (params: { model: string; prompt: string }) =>
+  runStockAnalysis: (params: { model: string; prompt: string; market?: string }) =>
     ipcRenderer.send(IPC.RUN_STOCK_ANALYSIS, params),
 
   /** 진행 중인 주식 분석을 취소한다 (단방향) */

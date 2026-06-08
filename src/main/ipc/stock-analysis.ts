@@ -153,23 +153,31 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    */
   ipcMain.on(
     IPC.RUN_STOCK_ANALYSIS,
-    (_event, { model, prompt }: { model: string; prompt: string }) => {
-      writeTerminalLog(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}`)
+    (_event, { model, prompt, market }: { model: string; prompt: string; market?: string }) => {
+      writeTerminalLog(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}, 시장=${market ?? 'auto'}`)
       const env: NodeJS.ProcessEnv = { ...process.env, PATH: getEnhancedPath() }
 
       if (model === 'gpt') {
-        runGptAnalysis({ win, env, prompt, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
+        runGptAnalysis({ win, env, prompt, market, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
       } else {
-        runClaudeAnalysis({ win, env, prompt, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
+        runClaudeAnalysis({ win, env, prompt, market, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
       }
     }
   )
+}
+
+/** market 값을 프롬프트용 태그 문자열로 변환한다. 'auto'이거나 미지정이면 빈 문자열 반환. */
+function marketToTag(market?: string): string {
+  if (market === 'kr') return '[한국주식]'
+  if (market === 'us') return '[미국주식]'
+  return ''
 }
 
 interface AnalysisContext {
   win: BrowserWindow
   env: NodeJS.ProcessEnv
   prompt: string
+  market?: string
   sendLog: (msg: string) => void
   getActiveChild: () => ChildProcess | null
   setActiveChild: (child: ChildProcess | null) => void
@@ -181,7 +189,7 @@ interface AnalysisContext {
  * analyze-stock.mjs 스크립트를 Node.js로 실행하고,
  * 스크립트의 stdout 텍스트 라인을 파싱해 진행 상황과 최종 보고서를 renderer에 전달한다.
  */
-function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
+function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   const resolvedCodex = resolveCliCommand('codex')
   if (!resolvedCodex.command) {
     writeTerminalError('[stock-analysis:gpt] Codex CLI를 찾을 수 없음')
@@ -204,10 +212,14 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
   // .mjs 스크립트를 실행할 수 있다. (이 설정 없이는 앱이 새 창으로 다시 열림)
   env['ELECTRON_RUN_AS_NODE'] = '1'
 
-  // 실행 명령: node <STOCK_GPT_DIR>/scripts/analyze-stock.mjs --request <prompt>
+  // 실행 명령: node <STOCK_GPT_DIR>/scripts/analyze-stock.mjs --request <prompt> [--market <market>]
+  const scriptArgs = [join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs'), '--request', prompt]
+  const tag = marketToTag(market)
+  if (tag) scriptArgs.push('--market', tag)
+
   const child = spawn(
     process.execPath,
-    [join(STOCK_GPT_DIR, 'scripts', 'analyze-stock.mjs'), '--request', prompt],
+    scriptArgs,
     {
       env,
       cwd: STOCK_GPT_DIR,
@@ -413,12 +425,14 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
  * claude CLI를 stream-json 모드로 실행하고 JSON Lines 이벤트 스트림을 파싱해
  * 에이전트 진행 상황과 최종 보고서를 renderer에 전달한다.
  */
-function runClaudeAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
+function runClaudeAnalysis({ win, env, prompt, market, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
   // --output-format stream-json: 이벤트를 JSON Lines 형식으로 스트리밍 출력
   // --verbose: tool_use / tool_result 이벤트를 포함한 전체 이벤트 스트림 출력
   // 실행 명령: claude -p <prompt> --output-format stream-json --verbose
   const claudeCmd = getCliCommand('claude')
-  const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose']
+  const tag = marketToTag(market)
+  const claudePrompt = tag ? `${tag} ${prompt}` : prompt
+  const args = ['-p', claudePrompt, '--output-format', 'stream-json', '--verbose']
 
   // detached: true — Unix에서 별도 프로세스 그룹 생성, 취소 시 그룹 전체 종료 가능
   const child = spawnCommand(claudeCmd, args, {

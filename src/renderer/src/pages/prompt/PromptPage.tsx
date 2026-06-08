@@ -7,14 +7,14 @@ import { gptIcon as gptImg, claudeIcon as claudeImg } from '../../assets'
 import RecentReportModal, { RecentReport } from './components/RecentReportModal'
 import PromptInput from './components/PromptInput'
 import { ROUTES } from '../../routes'
-import { MARKET_OPTIONS, MARKET_PREFIX, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
+import { MARKET_OPTIONS, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
 import type { Market } from '../../data/market'
 
 const MAX_CHARS = 100
 
 export default function PromptPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
+  const { selectedModel, currentPrompt, setCurrentPrompt, setCurrentMarket } = useApp()
   const [text, setText] = useState(currentPrompt)
   const [market, setMarket] = useLocalStorage<Market>(MARKET_STORAGE_KEY, 'auto', isValidMarket)
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
@@ -39,6 +39,7 @@ export default function PromptPage(): React.JSX.Element {
       } catch (error) {
         console.error('[prompt] 보고서 목록 조회 실패:', error instanceof Error ? error.message : String(error))
         setCurrentPrompt(trimmed)
+        setCurrentMarket(market)
         navigate(ROUTES.RESPONSE)
         return
       }
@@ -64,13 +65,15 @@ export default function PromptPage(): React.JSX.Element {
       }
     }
 
-    setCurrentPrompt(MARKET_PREFIX[market] + trimmed)
+    setCurrentPrompt(trimmed)
+    setCurrentMarket(market)
     navigate(ROUTES.RESPONSE)
   }
 
   function handleConfirmAnalysis(): void {
     setRecentReport(null)
-    setCurrentPrompt(MARKET_PREFIX[market] + text.trim())
+    setCurrentPrompt(text.trim())
+    setCurrentMarket(market)
     navigate(ROUTES.RESPONSE)
   }
 
