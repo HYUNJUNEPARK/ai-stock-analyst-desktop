@@ -80,7 +80,7 @@ export default function ReportView({ data, zoomIndex = DEFAULT_ZOOM_INDEX }: { d
                   <img
                     src={modelIcon}
                     alt={isGpt ? 'GPT' : 'Claude'}
-                    style={{ width: 12, height: 12, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
+                    style={{ width: 18, height: 18, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }}
                   />
                   <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>{aiModel}</span>
                 </div>
