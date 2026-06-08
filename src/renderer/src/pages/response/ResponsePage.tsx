@@ -4,7 +4,6 @@ import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
 import { useApp } from '../../context/AppContext'
-import { marketKrIcon, marketUsIcon } from '../../assets'
 import { AGENT_CONFIG, DEV_PREVIEW_RESPONSE } from './constants'
 import type { AgentStatus, ResponseLocationState, Status } from './types'
 import { ROUTES } from '../../routes'
@@ -171,21 +170,6 @@ export default function ResponsePage(): React.JSX.Element {
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20, maxWidth: 760 }}>
           {/* 사용자가 입력한 프롬프트를 말풍선 형태로 오른쪽에 표시 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            {(currentMarket === 'kr' || currentMarket === 'us') && (
-              <img
-                src={currentMarket === 'kr' ? marketKrIcon : marketUsIcon}
-                alt={currentMarket === 'kr' ? '한국' : '미국'}
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                  border: '1px solid var(--border)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1)'
-                }}
-              />
-            )}
             <div
               style={{
                 maxWidth: '80%',
