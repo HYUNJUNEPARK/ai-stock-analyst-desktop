@@ -303,14 +303,26 @@ function runGptAnalysis({ win, env, prompt, sendLog, setActiveChild, getActiveCh
     }
   })
 
+  /** stderr에서 프롬프트 본문 영역을 감지해 에러 로그 노출을 방지하는 플래그 */
+  let stderrInPrompt = false
+
   child.stderr!.on('data', (data: Buffer) => {
     const text = data.toString().trim()
-    if (text) {
-      writeTerminalLine(`[stock-analysis:gpt] ${text}`, true)
-      errorLogLines.push(`[stderr] ${text}`)
-      // stderr의 마지막 줄만 UI에 표시 (중간 진행 출력이 많을 수 있으므로)
-      sendLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
+    if (!text) return
+    writeTerminalLine(`[stock-analysis:gpt] ${text}`, true)
+
+    // codex stderr에서 프롬프트 본문 필터링:
+    // "user" 라인이 오면 프롬프트 시작, "codex" 라인이 오면 응답 시작(프롬프트 끝)
+    for (const line of text.split(/\r?\n/)) {
+      const trimmed = line.trim()
+      if (!trimmed) continue
+      if (trimmed === 'user') { stderrInPrompt = true; continue }
+      if (stderrInPrompt && trimmed === 'codex') { stderrInPrompt = false; continue }
+      if (stderrInPrompt) continue
+      errorLogLines.push(`[stderr] ${trimmed}`)
     }
+
+    sendLog(`Codex CLI: ${text.split(/\r?\n/).at(-1) ?? text}`)
   })
 
   /**
