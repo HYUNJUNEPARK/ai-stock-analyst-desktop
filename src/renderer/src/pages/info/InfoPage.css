@@ -142,6 +142,35 @@
   animation: spin 0.8s linear infinite;
 }
 
+/* ── 시장 토글 ── */
+.info-market-toggle {
+  display: inline-flex;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.info-market-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  font-family: inherit;
+  color: var(--text-tertiary);
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.info-market-btn--active {
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 /* ── TEST 배지 ── */
 .info-test-badge {
   font-size: 10px;

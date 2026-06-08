@@ -2,10 +2,13 @@
 import { useNavigate } from 'react-router-dom'
 import { FaCircleInfo } from 'react-icons/fa6'
 import { useApp } from '../../context/AppContext'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { gptIcon as gptImg, claudeIcon as claudeImg } from '../../assets'
 import RecentReportModal, { RecentReport } from './components/RecentReportModal'
 import PromptInput from './components/PromptInput'
 import { ROUTES } from '../../routes'
+import { MARKET_OPTIONS, MARKET_PREFIX, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
+import type { Market } from '../../data/market'
 
 const MAX_CHARS = 100
 
@@ -13,6 +16,7 @@ export default function PromptPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [text, setText] = useState(currentPrompt)
+  const [market, setMarket] = useLocalStorage<Market>(MARKET_STORAGE_KEY, 'auto', isValidMarket)
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
 
   useEffect(() => {
@@ -60,13 +64,13 @@ export default function PromptPage(): React.JSX.Element {
       }
     }
 
-    setCurrentPrompt(trimmed)
+    setCurrentPrompt(MARKET_PREFIX[market] + trimmed)
     navigate(ROUTES.RESPONSE)
   }
 
   function handleConfirmAnalysis(): void {
     setRecentReport(null)
-    setCurrentPrompt(text.trim())
+    setCurrentPrompt(MARKET_PREFIX[market] + text.trim())
     navigate(ROUTES.RESPONSE)
   }
 
@@ -132,6 +136,56 @@ export default function PromptPage(): React.JSX.Element {
       >
         <div style={{ width: '100%', maxWidth: 400, padding: '0 8px' }}>
           <PromptInput value={text} onChange={handleChange} onSubmit={handleSubmit} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              marginTop: 14
+            }}
+          >
+            <span
+              style={{
+                fontSize: 13,
+                color: 'var(--text-tertiary)',
+                fontWeight: 500,
+                flexShrink: 0
+              }}
+            >
+              시장
+            </span>
+            <div
+              style={{
+                display: 'inline-flex',
+                background: 'var(--bg-tertiary)',
+                borderRadius: 20,
+                padding: 3
+              }}
+            >
+              {MARKET_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setMarket(opt.value)}
+                  style={{
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: 17,
+                    padding: '6px 16px',
+                    fontSize: 13,
+                    fontWeight: market === opt.value ? 600 : 400,
+                    fontFamily: 'inherit',
+                    color: market === opt.value ? 'var(--accent)' : 'var(--text-tertiary)',
+                    background: market === opt.value ? 'var(--bg-secondary)' : 'transparent',
+                    boxShadow: market === opt.value ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

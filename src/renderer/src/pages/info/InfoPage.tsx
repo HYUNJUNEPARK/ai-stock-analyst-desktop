@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiChevronRight } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
 import { ROUTES } from '../../routes'
+import { MARKET_OPTIONS, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
+import type { Market } from '../../data/market'
 import developerInfo from '../../data/developer-info.json'
 import './InfoPage.css'
 
@@ -21,6 +24,7 @@ export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
   const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [loadedModelInfo, setLoadedModelInfo] = useState<LoadedModelInfo | null>(null)
+  const [market, setMarket] = useLocalStorage<Market>(MARKET_STORAGE_KEY, 'auto', isValidMarket)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
   // 개발 환경에서만 페이지 마운트 로그 출력
@@ -125,6 +129,27 @@ export default function InfoPage(): React.JSX.Element {
                     modelLabel
                   )}
                 </span>
+              </div>
+            </div>
+          </section>
+
+          {/* ── 시장 설정 ── */}
+          <section className="info-section">
+            <h2 className="info-section-header">시장 설정</h2>
+            <div className="info-group">
+              <div className="info-row">
+                <span className="info-row-label">분석 시장</span>
+                <div className="info-market-toggle">
+                  {MARKET_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`info-market-btn${market === opt.value ? ' info-market-btn--active' : ''}`}
+                      onClick={() => setMarket(opt.value)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
