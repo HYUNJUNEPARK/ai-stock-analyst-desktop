@@ -8,7 +8,10 @@ import { ROUTES } from '../../routes'
 import developerInfo from '../../data/developer-info.json'
 import './InfoPage.css'
 
+/** 개발 미리보기에서 프롬프트가 비어 있을 때 사용하는 기본 종목명 */
 const DEV_PREVIEW_PROMPT = '삼성전자'
+
+/** getModelInfo 응답을 어떤 모델에 대해 받았는지 추적하기 위한 타입 */
 type LoadedModelInfo = {
   model: 'gpt' | 'claude'
   modelName: string | null
@@ -20,10 +23,15 @@ export default function InfoPage(): React.JSX.Element {
   const [loadedModelInfo, setLoadedModelInfo] = useState<LoadedModelInfo | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
+  // 개발 환경에서만 페이지 마운트 로그 출력
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Page] SettingsPage 렌더링')
   }, [])
 
+  // 선택된 모델이 변경될 때 CLI를 통해 모델 상세 정보(이름)를 조회한다.
+  // 단, 컴포넌트가 리마운트되면 loadedModelInfo가 null로 초기화되므로
+  // 같은 모델이라도 페이지 재진입 시 다시 호출된다.
+  // 언마운트 시 isCancelled 플래그로 stale 응답을 무시한다.
   useEffect(() => {
     if (!selectedModel) return
     let isCancelled = false
@@ -46,19 +54,24 @@ export default function InfoPage(): React.JSX.Element {
     }
   }, [selectedModel])
 
+  // 모델이 선택되지 않은 상태로 접근하면 모델 선택 화면으로 리다이렉트
   useEffect(() => {
     if (!selectedModel) {
       navigate(ROUTES.ROOT)
     }
   }, [navigate, selectedModel])
 
+  // 리다이렉트 중에는 빈 화면 렌더링 (위 useEffect에서 ROOT로 이동 처리)
   if (!selectedModel) return <></>
 
   const isGpt = selectedModel === 'gpt'
   const modelLabel = isGpt ? 'GPT' : 'Claude'
+  // 조회 완료된 모델 정보가 현재 선택된 모델과 일치할 때만 이름을 표시
   const modelName = loadedModelInfo?.model === selectedModel ? loadedModelInfo.modelName : null
+  // 아직 현재 모델에 대한 조회 응답이 오지 않았으면 로딩 상태로 처리
   const modelLoading = loadedModelInfo?.model !== selectedModel
 
+  // 각 가이드 버튼 클릭 시 별도 윈도우로 가이드 페이지를 연다
   function handleOpenInvestmentGuide(): void {
     void window.api.openGuideWindow('investment')
   }
@@ -71,6 +84,8 @@ export default function InfoPage(): React.JSX.Element {
     void window.api.openGuideWindow('technical-analysis')
   }
 
+  // 개발 미리보기: 특정 상태(done/streaming/error)의 응답 화면으로 이동한다.
+  // 현재 프롬프트가 비어 있으면 DEV_PREVIEW_PROMPT를 기본값으로 사용한다.
   function navigatePreview(previewStatus: string): void {
     const previewPrompt = currentPrompt.trim() || DEV_PREVIEW_PROMPT
     setCurrentPrompt(previewPrompt)
@@ -79,6 +94,7 @@ export default function InfoPage(): React.JSX.Element {
     })
   }
 
+  // 개발 미리보기: CLI 설치 실패 상태의 다운로드 화면으로 이동한다.
   function navigateInstallFailurePreview(): void {
     navigate(ROUTES.DOWNLOAD, {
       state: { previewOnly: true, previewStatus: 'install-error' }
