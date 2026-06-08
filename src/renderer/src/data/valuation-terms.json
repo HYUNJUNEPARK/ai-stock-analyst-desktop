@@ -1,7 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0.0",
-  "description": "PER·PBR·ROE·영업이익률·순이익률·부채비율의 개념, 공식, 수치 해석, 실전 활용 기준",
   "metrics": [
     {
       "id": "per",

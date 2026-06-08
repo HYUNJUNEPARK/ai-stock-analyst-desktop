@@ -48,6 +48,11 @@ export function decodeProcessOutput(data: Buffer): string {
  */
 let _cachedEnhancedPath: string | null = null
 
+/** PATH 캐시를 초기화한다. Node.js 등 새 런타임 설치 후 호출해야 한다. */
+export function clearPathCache(): void {
+  _cachedEnhancedPath = null
+}
+
 export function getEnhancedPath(): string {
   if (_cachedEnhancedPath) return _cachedEnhancedPath
 

@@ -12,6 +12,7 @@
  */
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { registerNodeInstallListeners, nodeInstallApi } from './ipc/node-install'
 import { registerCliInstallListeners, cliInstallApi } from './ipc/cli-install'
 import { registerCliAuthListeners, cliAuthApi } from './ipc/cli-auth'
 import { cliStatsApi } from './ipc/cli-stats'
@@ -22,6 +23,7 @@ import { registerStockAnalysisListeners, stockAnalysisApi } from './ipc/stock-an
 
 // main → renderer 방향 IPC 이벤트 수신 등록
 // (리스너는 콜백 등록 여부와 무관하게 앱 시작 시 항상 열려 있어야 한다)
+registerNodeInstallListeners()
 registerCliInstallListeners()
 registerCliAuthListeners()
 registerPromptListeners()
@@ -34,6 +36,7 @@ if (process.contextIsolated) {
 
     // 기능별 api 객체를 병합해 window.api 단일 네임스페이스로 노출
     contextBridge.exposeInMainWorld('api', {
+      ...nodeInstallApi,   // Node.js 설치 확인 및 자동 설치
       ...cliInstallApi,    // CLI 설치 및 상태 확인
       ...cliAuthApi,       // CLI 로그인 인증
       ...cliStatsApi,      // CLI 사용 통계

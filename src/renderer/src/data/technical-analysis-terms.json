@@ -1,6 +1,4 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0.0",
   "description": "기술적 분석 보고서에 등장하는 주요 용어·지표의 개념, 해석 기준, 실전 활용법 — 주식 초보자용",
   "categories": [
     {

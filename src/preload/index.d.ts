@@ -9,6 +9,17 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: {
+      /* Node.js 설치 확인 및 자동 설치 */
+      checkNodeStatus: () => Promise<{
+        nodeInstalled: boolean
+        nodeVersion: string | null
+        npmInstalled: boolean
+        npmVersion: string | null
+      }>
+      installNode: () => void
+      onNodeInstallProgress: (callback: (data: string) => void) => void
+      onNodeInstallComplete: (callback: (result: { success: boolean; error?: string }) => void) => void
+
       /* CLI 설치 */
       startCliInstall: (model: string) => void
       onInstallProgress: (callback: (data: string) => void) => void

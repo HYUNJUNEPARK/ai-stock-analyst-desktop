@@ -7,6 +7,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { registerNodeInstallHandlers } from './ipc/node-install'
 import { registerCliInstallHandlers } from './ipc/cli-install'
 import { registerCliStatsHandlers } from './ipc/cli-stats'
 import { registerReportFilesHandlers } from './ipc/report-files'
@@ -72,6 +73,7 @@ export function createWindow(): BrowserWindow {
  *   2. 이 함수에서 import 후 호출한다.
  */
 export function registerHandlers(win: BrowserWindow): void {
+  registerNodeInstallHandlers(win)   // Node.js 설치 확인 및 자동 설치
   registerCliInstallHandlers(win)    // CLI 설치, 설치/인증 상태 확인
   registerCliStatsHandlers()         // CLI 사용 통계
   registerReportFilesHandlers()      // 보고서 파일 CRUD + PDF 저장

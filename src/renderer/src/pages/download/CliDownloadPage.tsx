@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
 import PageFooter from '../../components/PageFooter'
+import NodeCheckState from './NodeCheckState'
 import InstallingState from './InstallingState'
 import SuccessState from './SuccessState'
 import ErrorState from './ErrorState'
 import { ROUTES } from '../../routes'
 
-type Status = 'installing' | 'success' | 'error'
+type Status = 'checking-node' | 'node-missing' | 'installing' | 'success' | 'error'
 type DownloadPreviewState = {
   previewOnly?: boolean
   previewStatus?: 'install-error'
 }
 
-const DEV_PREVIEW_INSTALL_ERROR =
-  '개발용 미리보기: npm install 프로세스가 exit code 1로 종료되었습니다.'
+const DEV_PREVIEW_INSTALL_ERROR = '개발용 미리보기: npm install 프로세스가 exit code 1로 종료되었습니다.'
 const DEV_PREVIEW_INSTALL_LOGS = [
   '> npm install --prefix ~/.ai-cli-launcher @openai/codex',
   'npm info using npm@10.9.0',
@@ -48,32 +48,28 @@ export default function CliDownloadPage(): React.JSX.Element {
     import.meta.env.DEV &&
     previewState?.previewOnly === true &&
     previewState.previewStatus === 'install-error'
-  const [status, setStatus] = useState<Status>(isInstallFailurePreview ? 'error' : 'installing')
+  const [status, setStatus] = useState<Status>(
+    isInstallFailurePreview ? 'error' : 'checking-node'
+  )
   const [logs, setLogs] = useState<string[]>(
     isInstallFailurePreview ? DEV_PREVIEW_INSTALL_LOGS : []
   )
   const [errorMsg, setErrorMsg] = useState(isInstallFailurePreview ? DEV_PREVIEW_INSTALL_ERROR : '')
   const [showLogs, setShowLogs] = useState(false)
   const logRef = useRef<HTMLDivElement>(null)
+  const cliInstallStarted = useRef(false)
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Page] CliDownloadPage 렌더링')
   }, [])
 
-  // [selectedModel, navigate] : selectedModel을 가드 조건과 startCliInstall 인수로
-  // 직접 사용한다. 빈 배열([])이면 마운트 시 selectedModel이 아직 null인 경우
-  // 가드를 통과하지 못하고, 이후 값이 채워져도 effect가 재실행되지 않아
-  // 설치가 시작되지 않는 버그가 발생한다.
-  useEffect(() => {
-    // 모델이 선택되지 않은 상태로 직접 접근하면 홈으로 리다이렉트
-    if (!selectedModel) {
-      navigate(ROUTES.ROOT)
-      return
-    }
+  /** Node.js 확인 완료 후 CLI 설치를 시작한다 */
+  const startCliInstall = useCallback(() => {
+    if (!selectedModel || cliInstallStarted.current) return
+    cliInstallStarted.current = true
 
-    if (isInstallFailurePreview) return
+    setStatus('installing')
 
-    // 설치 로그 수신 시마다 터미널에 추가하고 자동 스크롤
     window.api.onInstallProgress((data: string) => {
       setLogs((prev) => [...prev, data])
       setTimeout(() => {
@@ -83,7 +79,6 @@ export default function CliDownloadPage(): React.JSX.Element {
       }, 0)
     })
 
-    // 설치 완료 이벤트: 성공/실패 여부에 따라 상태를 전환
     window.api.onInstallComplete((result: { success: boolean; error?: string }) => {
       if (result.success) {
         setStatus('success')
@@ -93,9 +88,32 @@ export default function CliDownloadPage(): React.JSX.Element {
       }
     })
 
-    // CLI 설치 시작
     window.api.startCliInstall(selectedModel)
-  }, [selectedModel, navigate, isInstallFailurePreview])
+  }, [selectedModel])
+
+  /** Node.js 설치가 확인되면 CLI 설치로 넘어간다 */
+  const handleNodeReady = useCallback(() => {
+    startCliInstall()
+  }, [startCliInstall])
+
+  // 마운트 시 Node.js 설치 여부를 먼저 확인한다
+  useEffect(() => {
+    if (!selectedModel) {
+      navigate(ROUTES.ROOT)
+      return
+    }
+
+    if (isInstallFailurePreview) return
+
+    window.api.checkNodeStatus().then((nodeStatus) => {
+      if (nodeStatus.nodeInstalled && nodeStatus.npmInstalled) {
+        // Node.js가 이미 설치되어 있으면 바로 CLI 설치 진행
+        startCliInstall()
+      } else {
+        setStatus('node-missing')
+      }
+    })
+  }, [selectedModel, navigate, isInstallFailurePreview, startCliInstall])
 
   const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const command =
@@ -111,10 +129,11 @@ export default function CliDownloadPage(): React.JSX.Element {
       return
     }
 
+    cliInstallStarted.current = false
     setStatus('installing')
     setLogs([])
     setErrorMsg('')
-    window.api.startCliInstall(selectedModel!)
+    startCliInstall()
   }
 
   return (
@@ -124,6 +143,17 @@ export default function CliDownloadPage(): React.JSX.Element {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
+          {status === 'checking-node' && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="spinner-lg" style={{ marginBottom: 20 }} />
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                Node.js 설치 상태를 확인하고 있습니다...
+              </p>
+            </div>
+          )}
+          {status === 'node-missing' && (
+            <NodeCheckState onNodeReady={handleNodeReady} />
+          )}
           {status === 'installing' && (
             <InstallingState logs={logs} command={command} logRef={logRef} />
           )}

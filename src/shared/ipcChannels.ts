@@ -4,6 +4,12 @@
  * 채널명을 변경할 때는 이 파일 한 곳만 수정하면 된다.
  */
 export const IPC = {
+  // Node.js 확인 및 설치
+  CHECK_NODE_STATUS: 'check-node-status',
+  INSTALL_NODE: 'install-node',
+  NODE_INSTALL_PROGRESS: 'node-install-progress',
+  NODE_INSTALL_COMPLETE: 'node-install-complete',
+
   // CLI 설치 및 상태 확인
   START_CLI_INSTALL: 'start-cli-install',
   INSTALL_PROGRESS: 'install-progress',
