@@ -86,7 +86,7 @@ export function registerHandlers(win: BrowserWindow): void {
  * optimizer.watchWindowShortcuts: 개발 환경에서 F12 DevTools 단축키 등을 활성화한다.
  */
 export function setupApp(): void {
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.aistockanalytics.desktop')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

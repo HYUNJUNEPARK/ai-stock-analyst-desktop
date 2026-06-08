@@ -26,15 +26,25 @@
 import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp, registerHandlers } from './window'
 
+let mainWindow: BrowserWindow | null = null
+
 app.whenReady().then(() => {
-  setupApp()    // 앱 ID 설정, 단축키 최적화 등 초기 설정
-  const mainWindow = createWindow()
-  registerHandlers(mainWindow)   // IPC 핸들러는 앱 시작 시 한 번만 등록
+  setupApp() // 앱 ID 설정, 단축키 최적화 등 초기 설정
+  mainWindow = createWindow()
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
+  registerHandlers(mainWindow) // IPC 핸들러는 앱 시작 시 한 번만 등록
 
   // macOS: Dock 아이콘 클릭 시 창이 없으면 새로 생성 (macOS 관례)
   // createWindow만 호출하고 registerHandlers는 호출하지 않는다.
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      mainWindow = createWindow()
+      mainWindow.on('closed', () => {
+        mainWindow = null
+      })
+    }
   })
 })
 

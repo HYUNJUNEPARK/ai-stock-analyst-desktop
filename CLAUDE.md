@@ -8,7 +8,7 @@ GPT/Claude 모델 기반 종목 분석 **Electron 데스크탑 앱**.
 - **제품명**: AI 투자 솔루션
 - **기술 스택**: Electron 39 + React 19 + TypeScript 5.9 + electron-vite 5
 - **지원 플랫폼**: Windows (NSIS), macOS (DMG), Linux (AppImage/deb/snap)
-- **앱 ID**: `com.electron.app`
+- **앱 ID**: `com.aistockanalytics.desktop`
 
 ---
 
