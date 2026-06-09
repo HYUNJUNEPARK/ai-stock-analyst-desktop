@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiChevronRight } from 'react-icons/fi'
+import { FiChevronRight, FiLogOut } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { ROUTES } from '../../routes'
 import { MARKET_OPTIONS, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
 import type { Market } from '../../data/market'
+import { gptIcon, claudeIcon } from '../../assets'
 import developerInfo from '../../data/developer-info.json'
 import './InfoPage.css'
 
@@ -22,10 +24,11 @@ type LoadedModelInfo = {
 
 export default function InfoPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const { selectedModel, currentPrompt, setCurrentPrompt } = useApp()
+  const { selectedModel, setSelectedModel, currentPrompt, setCurrentPrompt } = useApp()
   const [loadedModelInfo, setLoadedModelInfo] = useState<LoadedModelInfo | null>(null)
   const [market, setMarket] = useLocalStorage<Market>(MARKET_STORAGE_KEY, 'auto', isValidMarket)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false)
 
   // 개발 환경에서만 페이지 마운트 로그 출력
   useEffect(() => {
@@ -123,13 +126,27 @@ export default function InfoPage(): React.JSX.Element {
                       <span className="info-spinner" />
                       확인 중...
                     </span>
-                  ) : modelName ? (
-                    <span className="info-model-badge">{modelName}</span>
                   ) : (
-                    modelLabel
+                    <>
+                      <img
+                        className="info-model-icon"
+                        src={isGpt ? gptIcon : claudeIcon}
+                        alt={modelLabel}
+                      />
+                      {modelName ? (
+                        <span className="info-model-badge">{modelName}</span>
+                      ) : (
+                        modelLabel
+                      )}
+                    </>
                   )}
                 </span>
               </div>
+              <div className="info-row-separator" />
+              <button className="info-row info-row--tap info-row--disconnect" onClick={() => setIsDisconnectDialogOpen(true)}>
+                <span className="info-row-label">세션 연결 해제</span>
+                <FiLogOut className="info-row-chevron" />
+              </button>
             </div>
           </section>
 
@@ -291,6 +308,24 @@ export default function InfoPage(): React.JSX.Element {
       </div>
 
       <ReportSidePanel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
+
+      {isDisconnectDialogOpen && (
+        <ConfirmDialog
+          title="세션 연결 해제"
+          message={`현재 모델과의 세션을 해제합니다. 해제 후 다시 인증이 필요합니다.`}
+          confirmLabel="연결 해제"
+          cancelLabel="취소"
+          onConfirm={async () => {
+            const result = await window.api.clearAuth(selectedModel)
+            setIsDisconnectDialogOpen(false)
+            if (result.success) {
+              setSelectedModel(null)
+              navigate(ROUTES.ROOT)
+            }
+          }}
+          onCancel={() => setIsDisconnectDialogOpen(false)}
+        />
+      )}
     </div>
   )
 }

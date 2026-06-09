@@ -16,11 +16,12 @@ export const IPC = {
   INSTALL_COMPLETE: 'install-complete',
   CHECK_CLI_STATUS: 'check-cli-status',
 
-  // CLI 인증 
+  // CLI 인증
   RUN_CLAUDE_LOGIN: 'run-claude-login',
   RUN_GPT_LOGIN: 'run-gpt-login',
   CLI_LOGIN_PROGRESS: 'cli-login-progress',
   CLI_LOGIN_COMPLETE: 'cli-login-complete',
+  CLEAR_AUTH: 'clear-auth',
 
   // 프롬프트
   RUN_PROMPT: 'run-prompt',

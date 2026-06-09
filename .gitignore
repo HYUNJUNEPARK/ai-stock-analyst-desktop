@@ -8,10 +8,8 @@ out
 docs
 
 # 멀티 에이전트 생성 파일 (에이전트 메모리, 분석 리포트)
-src/main/ai/claude/.claude/agent-memory/
-src/main/ai/claude/.claude/settings.local.json
+src/main/ai/claude/.claude/
 src/main/ai/claude/reports/
-src/main/ai/gpt/reports/
 src/main/ai/gpt/reports/
 
 .electron-builder-cache/

@@ -103,6 +103,9 @@ declare global {
       onCliLoginProgress: (callback: (data: string) => void) => void
       onCliLoginComplete: (callback: (result: { success: boolean; error?: string }) => void) => void
 
+      /* 인증 정보 삭제 */
+      clearAuth: (model: string) => Promise<{ success: boolean; error?: string }>
+
       /* 프롬프트 실행 */
       runPrompt: (params: { model: string; prompt: string }) => void
       onResponseChunk: (callback: (chunk: string) => void) => void

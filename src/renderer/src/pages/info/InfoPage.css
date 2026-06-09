@@ -112,12 +112,21 @@
   margin-left: 18px;
 }
 
+/* ── 모델 아이콘 ── */
+.info-model-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
 /* ── 모델 배지 ── */
 .info-model-badge {
   font-size: var(--text-xs);
+  font-weight: 700;
   font-family: 'SF Mono', 'Menlo', monospace;
   color: var(--text-secondary);
-  background: var(--bg-primary);
+  background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 2px 8px;
@@ -169,6 +178,16 @@
   color: var(--accent);
   background: var(--bg-secondary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ── 세션 해제 버튼 ── */
+.info-row--disconnect .info-row-label {
+  color: var(--accent);
+}
+
+.info-row--disconnect .info-row-chevron {
+  color: var(--accent);
+  opacity: 0.8;
 }
 
 /* ── TEST 배지 ── */

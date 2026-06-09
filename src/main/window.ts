@@ -13,6 +13,7 @@ import { registerCliStatsHandlers } from './ipc/cli-stats'
 import { registerReportFilesHandlers } from './ipc/report-files'
 import { registerWindowsHandlers } from './ipc/windows'
 import { registerCliAuthHandlers } from './ipc/cli-auth'
+import { registerClearAuthHandlers } from './ipc/clear-auth'
 import { registerPromptHandlers } from './ipc/prompt'
 import { registerStockAnalysisHandlers } from './ipc/stock-analysis'
 import { writeTerminalLog } from './utils/spawn'
@@ -79,6 +80,7 @@ export function registerHandlers(win: BrowserWindow): void {
   registerReportFilesHandlers()      // 보고서 파일 CRUD + PDF 저장
   registerWindowsHandlers()          // 보조 창 열기, 외부 URL
   registerCliAuthHandlers(win)       // Claude/GPT 로그인
+  registerClearAuthHandlers()        // 인증 정보 삭제
   registerPromptHandlers(win)        // 단발 프롬프트 실행
   registerStockAnalysisHandlers(win) // 주식 멀티 에이전트 분석
 }
