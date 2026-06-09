@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ModelSelectionPage from './pages/ai-model/ModelSelectionPage'
-import LandingPage from './pages/landing/LandingPage'
+import StatusCheckPage from './pages/status-check/StatusCheckPage'
 import CliDownloadPage from './pages/download/CliDownloadPage'
 import AuthPage from './pages/auth/AuthPage'
 import PromptPage from './pages/prompt/PromptPage'
@@ -17,7 +17,7 @@ function App(): React.JSX.Element {
   return (
     <Routes>
       <Route path={ROUTES.ROOT} element={<ModelSelectionPage />} />
-      <Route path={ROUTES.LANDING} element={<LandingPage />} />
+      <Route path={ROUTES.STATUS_CHECK} element={<StatusCheckPage />} />
       <Route path={ROUTES.DOWNLOAD} element={<CliDownloadPage />} />
       <Route path={ROUTES.AUTH} element={<AuthPage />} />
       <Route path={ROUTES.INFO} element={<InfoPage />} />

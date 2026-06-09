@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
-import ClaudeAuthPage from './ClaudeAuthPage'
-import GptAuthPage from './GptAuthPage'
+import ClaudeAuthPage from './claude/ClaudeAuthPage'
+import GptAuthPage from './gpt/GptAuthPage'
 import { ROUTES } from '../../routes'
 
 export default function AuthPage(): React.JSX.Element {

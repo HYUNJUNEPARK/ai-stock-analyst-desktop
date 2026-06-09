@@ -60,7 +60,7 @@ src/
 │       │   ├── response/        # 분석 진행/결과
 │       │   ├── report/          # 리포트 조회/관리
 │       │   ├── guide/           # 교육 가이드
-│       │   ├── landing/         # 랜딩
+│       │   ├── status-check/    # 상태 확인
 │       │   └── info/            # 앱 정보
 │       ├── hooks/               # 커스텀 훅
 │       ├── data/                # 정적 데이터 (JSON)

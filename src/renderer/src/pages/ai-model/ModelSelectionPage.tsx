@@ -23,7 +23,7 @@ const models = [
     description: '안전하고 정확한 분석에\n특화된 차세대 AI 모델',
     icon: claudeIcon,
     accentColor: '#D4A853',
-    disabled: true
+    disabled: false
   }
 ]
 
@@ -36,9 +36,8 @@ export default function ModelSelectionPage(): React.JSX.Element {
   }, [])
 
   function handleSelect(id: 'gpt' | 'claude'): void {
-    if (id === 'claude') return
     setSelectedModel(id)
-    navigate(ROUTES.LANDING)
+    navigate(ROUTES.STATUS_CHECK)
   }
 
   return (

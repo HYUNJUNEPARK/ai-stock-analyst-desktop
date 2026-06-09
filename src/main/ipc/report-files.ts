@@ -13,7 +13,7 @@ import { ipcMain, BrowserWindow, dialog } from 'electron'
 import { writeFileSync, rmSync, readFileSync, existsSync, readdirSync, statSync, mkdirSync } from 'fs'
 import { IPC } from '../../shared/ipcChannels'
 import { join } from 'path'
-import { STOCK_GPT_REPORTS_DIR } from '../constants'
+import { STOCK_GPT_REPORTS_DIR, STOCK_CLAUDE_REPORTS_DIR } from '../constants'
 import { writeTerminalError, writeTerminalLog } from '../utils/spawn'
 
 /**
@@ -33,23 +33,35 @@ export function registerReportFilesHandlers(): void {
    *   [{ name: '삼성전자_260101.json', model: 'gpt', createdAt: '2026-01-01T...' }, ...]
    */
   ipcMain.handle(IPC.LIST_GPT_REPORT_FILES, () => {
-    writeTerminalLog('[list-gpt-report-files] GPT 보고서 목록 조회')
+    writeTerminalLog('[list-gpt-report-files] 보고서 목록 조회')
     try {
-      if (!existsSync(STOCK_GPT_REPORTS_DIR)) return []
+      const allFiles: Array<{
+        name: string; company: string; ticker: string; asOfDate: string;
+        model: string; createdAt: string; updatedAt: string
+      }> = []
 
-      const dateFolders = readdirSync(STOCK_GPT_REPORTS_DIR).filter((name) => {
-        if (name.startsWith('.') || name === 'useless') return false
-        return statSync(join(STOCK_GPT_REPORTS_DIR, name)).isDirectory()
-      })
+      // GPT + Claude 리포트 디렉토리를 모두 스캔
+      const reportDirs: Array<{ dir: string; model: string }> = [
+        { dir: STOCK_GPT_REPORTS_DIR, model: 'gpt' },
+        { dir: STOCK_CLAUDE_REPORTS_DIR, model: 'claude' }
+      ]
 
-      const files = dateFolders.flatMap((dateFolder) => {
-        const datePath = join(STOCK_GPT_REPORTS_DIR, dateFolder)
-        return readdirSync(datePath)
-          .filter((name) => {
+      for (const { dir: reportsDir, model } of reportDirs) {
+        if (!existsSync(reportsDir)) continue
+
+        const dateFolders = readdirSync(reportsDir).filter((name) => {
+          if (name.startsWith('.') || name === 'useless') return false
+          return statSync(join(reportsDir, name)).isDirectory()
+        })
+
+        for (const dateFolder of dateFolders) {
+          const datePath = join(reportsDir, dateFolder)
+          const stockFolders = readdirSync(datePath).filter((name) => {
             if (name.startsWith('.')) return false
             return statSync(join(datePath, name)).isDirectory()
           })
-          .map((stockFolder) => {
+
+          for (const stockFolder of stockFolders) {
             const stockPath = join(datePath, stockFolder)
             const jsonPath = join(stockPath, 'aggressive-investment-strategist.json')
             const stats = statSync(stockPath)
@@ -66,22 +78,24 @@ export function registerReportFilesHandlers(): void {
             } catch {
               // JSON 파싱 실패 시 빈 값 유지
             }
-            return {
+            allFiles.push({
               name: `${dateFolder}/${stockFolder}`,
               company,
               ticker,
               asOfDate,
-              model: 'gpt',
+              model,
               createdAt,
               updatedAt: stats.mtime.toISOString()
-            }
-          })
-      }).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            })
+          }
+        }
+      }
 
-      writeTerminalLog(`[list-gpt-report-files] GPT 보고서 목록 조회 완료: ${files.length}개`)
-      return files
+      allFiles.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      writeTerminalLog(`[list-gpt-report-files] 보고서 목록 조회 완료: ${allFiles.length}개`)
+      return allFiles
     } catch (error) {
-      writeTerminalError('[list-gpt-report-files] GPT 보고서 목록 조회 실패:', error)
+      writeTerminalError('[list-gpt-report-files] 보고서 목록 조회 실패:', error)
       return []
     }
   })
@@ -91,10 +105,21 @@ export function registerReportFilesHandlers(): void {
    * 방향: renderer → main → renderer (handle = 양방향)
    * 용도: 특정 보고서 파일의 JSON 내용을 읽어 반환
    */
-  ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string) => {
-    writeTerminalLog(`[read-gpt-report-file] GPT 보고서 파일 읽기: ${name}`)
+  ipcMain.handle(IPC.READ_GPT_REPORT_FILE, (_event, name: string, model?: string) => {
+    writeTerminalLog(`[read-gpt-report-file] 보고서 파일 읽기: ${name} (model=${model ?? 'auto'})`)
     try {
-      const stockDir = join(STOCK_GPT_REPORTS_DIR, name)
+      // model 기반으로 리포트 디렉토리 결정. 미지정 시 GPT 먼저, Claude 폴백
+      let stockDir = join(STOCK_GPT_REPORTS_DIR, name)
+      if (model === 'claude') {
+        stockDir = join(STOCK_CLAUDE_REPORTS_DIR, name)
+      } else if (!model || model === 'gpt') {
+        if (!existsSync(join(stockDir, 'aggressive-investment-strategist.json'))) {
+          const claudeDir = join(STOCK_CLAUDE_REPORTS_DIR, name)
+          if (existsSync(join(claudeDir, 'aggressive-investment-strategist.json'))) {
+            stockDir = claudeDir
+          }
+        }
+      }
       const filePath = join(stockDir, 'aggressive-investment-strategist.json')
       const content = readFileSync(filePath, 'utf-8')
       const data = JSON.parse(content)
@@ -104,7 +129,7 @@ export function registerReportFilesHandlers(): void {
       }
       return { success: true, data }
     } catch (error) {
-      writeTerminalError('[read-gpt-report-file] GPT 보고서 파일 읽기 실패:', error)
+      writeTerminalError('[read-gpt-report-file] 보고서 파일 읽기 실패:', error)
       return { success: false, error: (error as Error).message }
     }
   })
@@ -142,17 +167,27 @@ export function registerReportFilesHandlers(): void {
    * 용도: 지정한 종목 폴더(dateFolder/stockFolder)를 재귀 삭제한다.
    *       삭제 후 날짜 폴더가 비어 있으면 날짜 폴더도 함께 삭제한다.
    */
-  ipcMain.handle(IPC.DELETE_GPT_REPORT_FILE, (_event, name: string) => {
-    writeTerminalLog(`[delete-gpt-report-file] 보고서 삭제: ${name}`)
+  ipcMain.handle(IPC.DELETE_GPT_REPORT_FILE, (_event, name: string, model?: string) => {
+    writeTerminalLog(`[delete-gpt-report-file] 보고서 삭제: ${name} (model=${model ?? 'auto'})`)
     try {
-      const stockDirPath = join(STOCK_GPT_REPORTS_DIR, name)
+      // model 기반으로 리포트 디렉토리 결정
+      let reportsDir = STOCK_GPT_REPORTS_DIR
+      if (model === 'claude') {
+        reportsDir = STOCK_CLAUDE_REPORTS_DIR
+      } else if (!existsSync(join(STOCK_GPT_REPORTS_DIR, name))) {
+        if (existsSync(join(STOCK_CLAUDE_REPORTS_DIR, name))) {
+          reportsDir = STOCK_CLAUDE_REPORTS_DIR
+        }
+      }
+
+      const stockDirPath = join(reportsDir, name)
       if (!existsSync(stockDirPath)) {
         return { success: false, error: '파일이 존재하지 않습니다.' }
       }
       rmSync(stockDirPath, { recursive: true, force: true })
 
       // 날짜 폴더가 비어 있으면 함께 삭제
-      const dateDirPath = join(STOCK_GPT_REPORTS_DIR, name.split('/')[0])
+      const dateDirPath = join(reportsDir, name.split('/')[0])
       if (existsSync(dateDirPath) && readdirSync(dateDirPath).length === 0) {
         rmSync(dateDirPath, { recursive: true, force: true })
       }

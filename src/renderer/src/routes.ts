@@ -1,6 +1,6 @@
 export const ROUTES = {
   ROOT: '/',
-  LANDING: '/landing',
+  STATUS_CHECK: '/status-check',
   DOWNLOAD: '/download',
   AUTH: '/auth',
   PROMPT: '/prompt',

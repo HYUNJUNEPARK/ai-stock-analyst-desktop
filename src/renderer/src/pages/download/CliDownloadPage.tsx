@@ -8,12 +8,15 @@ import SuccessState from './SuccessState'
 import ErrorState from './ErrorState'
 import { ROUTES } from '../../routes'
 
+// 페이지 상태 흐름: checking-node → node-missing → installing → success | error
 type Status = 'checking-node' | 'node-missing' | 'installing' | 'success' | 'error'
+// 개발 모드에서 설치 실패 화면을 미리보기 위한 route state 타입
 type DownloadPreviewState = {
   previewOnly?: boolean
   previewStatus?: 'install-error'
 }
 
+// DEV 전용: 설치 실패 미리보기용 더미 데이터
 const DEV_PREVIEW_INSTALL_ERROR = '개발용 미리보기: npm install 프로세스가 exit code 1로 종료되었습니다.'
 const DEV_PREVIEW_INSTALL_LOGS = [
   '> npm install --prefix ~/.ai-cli-launcher @openai/codex',
@@ -39,10 +42,15 @@ const DEV_PREVIEW_INSTALL_LOGS = [
   'npm ERR! 권한 문제로 CLI 패키지를 설치하지 못했습니다.'
 ]
 
+/**
+ * CLI 설치 페이지 — Node.js 확인 → CLI npm 설치(Codex, Claude code) → 완료/실패 흐름을 오케스트레이션한다.
+ * 각 상태별 UI는 같은 폴더의 하위 컴포넌트(NodeCheckState, InstallingState 등)에 위임.
+ */
 export default function CliDownloadPage(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
   const { selectedModel } = useApp()
+  // DEV 모드: route state로 설치 실패 화면을 바로 띄울 수 있음
   const previewState = location.state as DownloadPreviewState | null
   const isInstallFailurePreview =
     import.meta.env.DEV &&
@@ -115,12 +123,14 @@ export default function CliDownloadPage(): React.JSX.Element {
     })
   }, [selectedModel, navigate, isInstallFailurePreview, startCliInstall])
 
+  // 선택된 모델에 따라 UI 라벨과 설치 명령어 결정
   const modelLabel = selectedModel === 'gpt' ? 'GPT' : 'Claude'
   const command =
     selectedModel === 'claude'
       ? 'npm install -g @anthropic-ai/claude-code'
       : 'npm install -g @openai/codex'
 
+  /** 설치 실패 시 상태를 초기화하고 재시도 */
   function handleRetry(): void {
     if (isInstallFailurePreview) {
       setStatus('error')
@@ -143,6 +153,7 @@ export default function CliDownloadPage(): React.JSX.Element {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         <div className="content-container" style={{ paddingTop: 20, paddingBottom: 20 }}>
+          {/* 상태별 컴포넌트: NodeCheckState → InstallingState → SuccessState | ErrorState */}
           {status === 'checking-node' && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className="spinner-lg" style={{ marginBottom: 20 }} />
@@ -170,6 +181,7 @@ export default function CliDownloadPage(): React.JSX.Element {
         </div>
       </div>
 
+      {/* 푸터: 성공 시 로그인 이동 / 실패 시 재시도·모델 재선택 */}
       {status === 'success' && (
         <PageFooter>
           <button className="btn-primary" onClick={() => navigate(ROUTES.AUTH)}>

@@ -68,3 +68,6 @@ export const STOCK_GPT_DIR = is.dev
 
 /** GPT 분석 결과 마크다운 보고서가 저장되는 디렉토리 */
 export const STOCK_GPT_REPORTS_DIR = join(STOCK_GPT_DIR, 'reports')
+
+/** Claude 분석 결과 보고서가 저장되는 디렉토리 */
+export const STOCK_CLAUDE_REPORTS_DIR = join(STOCK_CLAUDE_DIR, 'reports')
