@@ -151,7 +151,10 @@ export default function ResponsePage(): React.JSX.Element {
     setIsReportPanelOpen(false)
   }
 
-  function handleReauthenticate(): void {
+  async function handleReauthenticate(): Promise<void> {
+    if (effectiveModel) {
+      await window.api.clearAuth(effectiveModel)
+    }
     setSelectedModel('gpt')
     navigate(ROUTES.AUTH)
   }
