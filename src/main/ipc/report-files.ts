@@ -266,6 +266,10 @@ export function registerReportFilesHandlers(): void {
       .nav-bar {
         display: none !important;
       }
+      /* PDF 저장 중 오버레이 숨김 — 블러·스피너가 PDF에 찍히는 문제 방지 */
+      .pdf-saving-overlay {
+        display: none !important;
+      }
       /* content-container의 상하 여백 제거 */
       .content-container {
         padding-top: 0 !important;
@@ -393,6 +397,10 @@ export function registerReportFilesHandlers(): void {
         overflow: visible !important;
       }
       .nav-bar {
+        display: none !important;
+      }
+      /* PDF 저장 중 오버레이 숨김 — 블러·스피너가 PDF에 찍히는 문제 방지 */
+      .pdf-saving-overlay {
         display: none !important;
       }
       .content-container {

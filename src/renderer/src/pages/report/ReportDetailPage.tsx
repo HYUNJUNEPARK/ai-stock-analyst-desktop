@@ -235,6 +235,7 @@ export default function ReportDetailPage(): React.JSX.Element {
 
         {savingPdf && (
           <div
+            className="pdf-saving-overlay"
             style={{
               position: 'fixed',
               inset: 0,
