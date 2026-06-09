@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
+import { FiActivity, FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
 import { useApp } from '../../context/AppContext'
@@ -242,6 +242,11 @@ export default function ResponsePage(): React.JSX.Element {
               icon: <FiPieChart size={13} />,
               label: '투자 지표 용어 사전',
               onClick: () => window.api.openGuideWindow('valuation')
+            },
+            {
+              icon: <FiActivity size={13} />,
+              label: '기술적 분석 용어 사전',
+              onClick: () => window.api.openGuideWindow('technical-analysis')
             },
             {
               icon: <FiBookOpen size={13} />,
