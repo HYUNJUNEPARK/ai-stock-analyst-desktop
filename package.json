@@ -1,6 +1,6 @@
 {
   "name": "ai-stock-analytics",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "AI Investment Solutions",
   "main": "./out/main/index.js",
   "author": "hunejune park",

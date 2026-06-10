@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiChevronRight, FiLogOut } from 'react-icons/fi'
+import { FiChevronRight, FiExternalLink, FiLogOut } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
 import { useLocalStorage } from '../../hooks/useLocalStorage'
 import NavBar from '../../components/NavBar'
@@ -142,6 +142,16 @@ export default function InfoPage(): React.JSX.Element {
                   )}
                 </span>
               </div>
+              <div className="info-row-separator" />
+              <button
+                className="info-row info-row--tap"
+                onClick={() => {
+                  if (isGpt) window.api.openExternalUrl('https://chatgpt.com/codex/settings/usage')
+                }}
+              >
+                <span className="info-row-label">사용량 확인</span>
+                <FiExternalLink className="info-row-chevron" />
+              </button>
               <div className="info-row-separator" />
               <button className="info-row info-row--tap info-row--disconnect" onClick={() => setIsDisconnectDialogOpen(true)}>
                 <span className="info-row-label">세션 연결 해제</span>
