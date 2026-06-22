@@ -10,7 +10,8 @@ import RecentReportPage from './pages/report/RecentReportPage'
 import ReportDetailPage from './pages/report/ReportDetailPage'
 import InvestmentTypePage from './pages/guide/investment/InvestmentTypePage'
 import ValuationTermsPage from './pages/guide/valuation/ValuationTermsPage'
-import TechnicalAnalysisTermsPage from './pages/guide/technical-analysis/TechnicalAnalysisTermsPage'
+import TechnicalAnalysisTermsPage from './pages/guide/technical-analysis/terms-page/TechnicalAnalysisTermsPage'
+import TechnicalAnalysisCategoryPage from './pages/guide/technical-analysis/category-page/TechnicalAnalysisCategoryPage'
 import { ROUTES } from './routes'
 
 function App(): React.JSX.Element {
@@ -26,6 +27,7 @@ function App(): React.JSX.Element {
       <Route path={ROUTES.GUIDE_INVESTMENT} element={<InvestmentTypePage />} />
       <Route path={ROUTES.GUIDE_VALUATION} element={<ValuationTermsPage />} />
       <Route path={ROUTES.GUIDE_TECHNICAL_ANALYSIS} element={<TechnicalAnalysisTermsPage />} />
+      <Route path={ROUTES.GUIDE_TECHNICAL_ANALYSIS_CATEGORY(':categoryId')} element={<TechnicalAnalysisCategoryPage />} />
       <Route path={ROUTES.PROMPT} element={<PromptPage />} />
       <Route path={ROUTES.RESPONSE} element={<ResponsePage />} />
       <Route path="*" element={<Navigate to={ROUTES.ROOT} replace />} />

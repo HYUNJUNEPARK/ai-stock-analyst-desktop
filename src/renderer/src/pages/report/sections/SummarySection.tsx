@@ -27,6 +27,7 @@ import {
   getAgentVerdictColor,
   calcPctFromCurrent,
 } from '../utils'
+import { BulletList } from './shared'
 
 export default function SummarySection({ data }: { data: Report }): React.JSX.Element {
   const verdictColor = VERDICT_COLORS[data.verdict] ?? 'var(--accent)'
@@ -251,34 +252,7 @@ export function InvestTypeSection({ investType }: { investType: InvestType }): R
           <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: 6, letterSpacing: '0.03em' }}>
             아이디어 무효화 조건
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {investType.investmentThesisBreakers.map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                  paddingLeft: 12,
-                  position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: '0.45em',
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    background: '#dc2626',
-                    display: 'inline-block',
-                  }}
-                />
-                {item}
-              </div>
-            ))}
-          </div>
+          <BulletList items={investType.investmentThesisBreakers} color="#dc2626" />
         </div>
       )}
     </div>

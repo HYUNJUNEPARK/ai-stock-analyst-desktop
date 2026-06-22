@@ -3,6 +3,7 @@
  * 증권사 목표주가, 시나리오별 적정가, 가격대별 투자 판단을 표시한다.
  */
 import LinkText from '../components/LinkText'
+import { tryParseJson, getSentimentStyle } from './shared'
 
 export type ValuationData = {
   company: string
@@ -19,22 +20,16 @@ export type ValuationData = {
   }
 }
 
-export function tryParseValuationJson(text: string): ValuationData | null {
-  if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
-  try {
-    const parsed = JSON.parse(stripped)
-    if (parsed && parsed.finalVerdict && parsed.fairValueScenarios) return parsed as ValuationData
-    return null
-  } catch {
-    return null
-  }
+function isValuationData(v: unknown): v is ValuationData {
+  return v != null && typeof v === 'object' && 'finalVerdict' in v && 'fairValueScenarios' in v
 }
 
-function getJudgmentStyle(judgment: string): { color: string; bg: string; border: string } {
-  if (judgment.includes('저평가')) return { color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' }
-  if (judgment.includes('고평가')) return { color: '#dc2626', bg: '#fef2f2', border: '#fecaca' }
-  return { color: '#d97706', bg: '#fffbeb', border: '#fde68a' }
+export function tryParseValuationJson(text: string): ValuationData | null {
+  return tryParseJson(text, isValuationData)
+}
+
+function getJudgmentStyle(judgment: string) {
+  return getSentimentStyle(judgment.includes('저평가') ? '긍정' : judgment.includes('고평가') ? '부정' : '')
 }
 
 export default function ValuationAnalysisSection({ data }: { data: ValuationData }): React.JSX.Element {

@@ -4,6 +4,7 @@
  */
 import { FiAlertTriangle, FiTrendingUp } from 'react-icons/fi'
 import LinkText from '../components/LinkText'
+import { tryParseJson, TableCard, MetricCard, RiskSection } from './shared'
 
 export type FinancialData = {
   company: string
@@ -23,16 +24,12 @@ export type FinancialData = {
   grade: { rating: string; criteria: Record<string, string>; rationale: string }
 }
 
+function isFinancialData(v: unknown): v is FinancialData {
+  return v != null && typeof v === 'object' && 'currentPrice' in v && 'grade' in v
+}
+
 export function tryParseFinancialJson(text: string): FinancialData | null {
-  if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
-  try {
-    const parsed = JSON.parse(stripped)
-    if (parsed && parsed.currentPrice && parsed.grade) return parsed as FinancialData
-    return null
-  } catch {
-    return null
-  }
+  return tryParseJson(text, isFinancialData)
 }
 
 const GRADE_COLORS: Record<string, string> = {
@@ -89,7 +86,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       </div>
 
       {/* 매출 추이 */}
-      <FinancialTableCard
+      <TableCard
         title="매출 추이"
         icon={<FiTrendingUp size={15} />}
         columns={['연도', '매출액', 'YoY']}
@@ -99,14 +96,14 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
 
       {/* 수익성 지표 (영업이익률 + 순이익률) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <FinancialTableCard
+        <TableCard
           title="영업이익"
           columns={['연도', '금액', '이익률']}
           rows={data.operatingProfit.data.map((d) => [d.year, d.amount, d.margin])}
           badge={data.operatingProfit.industryAvg ? `업종 ${data.operatingProfit.industryAvg}` : undefined}
           interpretation={data.operatingProfit.interpretation}
         />
-        <FinancialTableCard
+        <TableCard
           title="순이익률"
           columns={['연도', '이익률']}
           rows={data.netMargin.data.map((d) => [d.year, d.margin])}
@@ -116,13 +113,13 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
 
       {/* 밸류에이션 지표 (PER + PBR) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <FinancialMetricCard
+        <MetricCard
           title="PER"
           value={data.per.current}
           sub={data.per.industryAvg ? `업종 ${data.per.industryAvg}` : undefined}
           interpretation={data.per.interpretation}
         />
-        <FinancialMetricCard
+        <MetricCard
           title="PBR"
           value={data.pbr.current}
           sub={data.pbr.industryAvg ? `업종 ${data.pbr.industryAvg}` : undefined}
@@ -131,7 +128,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       </div>
 
       {/* EPS 추이 */}
-      <FinancialTableCard
+      <TableCard
         title="EPS (주당순이익)"
         columns={['연도', 'EPS', 'YoY']}
         rows={data.eps.data.map((d) => [d.year, d.eps, d.yoyChange])}
@@ -139,7 +136,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       />
 
       {/* ROE 추이 */}
-      <FinancialTableCard
+      <TableCard
         title="ROE (자기자본이익률)"
         columns={['연도', 'ROE']}
         rows={data.roe.data.map((d) => [d.year, d.roe])}
@@ -148,12 +145,12 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
 
       {/* 안정성 지표 (부채비율 + 유동비율) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <FinancialMetricCard
+        <MetricCard
           title="부채비율"
           value={data.debtRatio.current}
           interpretation={data.debtRatio.interpretation}
         />
-        <FinancialMetricCard
+        <MetricCard
           title="유동비율"
           value={data.currentRatio.current}
           interpretation={data.currentRatio.interpretation}
@@ -161,60 +158,7 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       </div>
 
       {/* 리스크 요인 */}
-      {data.risks?.length > 0 && (
-        <div
-          style={{
-            border: '1px solid #fecaca',
-            borderRadius: 12,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              padding: '10px 14px',
-              background: '#fef2f2',
-              borderBottom: '1px solid #fecaca',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 700,
-              color: '#991b1b',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <FiAlertTriangle size={15} />
-            리스크 요인
-          </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
-            {data.risks.map((risk, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                  paddingLeft: 14,
-                  position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: '0.45em',
-                    width: 5,
-                    height: 5,
-                    borderRadius: '50%',
-                    background: '#ef4444',
-                    display: 'inline-block',
-                  }}
-                />
-                <LinkText>{risk}</LinkText>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <RiskSection title="리스크 요인" risks={data.risks} icon={<FiAlertTriangle size={15} />} />
 
       {/* 등급 기준표 */}
       <div
@@ -258,145 +202,6 @@ export default function FinancialAnalysisSection({ data }: { data: FinancialData
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
         본 분석은 공개된 재무 데이터를 기반으로 하며 투자 권유가 아닙니다.
       </div>
-    </div>
-  )
-}
-
-function FinancialTableCard({
-  title,
-  icon,
-  columns,
-  rows,
-  badge,
-  interpretation,
-}: {
-  title: string
-  icon?: React.ReactNode
-  columns: string[]
-  rows: string[][]
-  badge?: string
-  interpretation: string
-}): React.JSX.Element {
-  return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div
-        style={{
-          padding: '10px 14px',
-          background: '#fff',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
-          {icon}
-          {title}
-        </div>
-        {badge && (
-          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', background: '#fff', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px' }}>
-            {badge}
-          </span>
-        )}
-      </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col}
-                style={{
-                  padding: '8px 14px',
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 600,
-                  color: 'var(--text-tertiary)',
-                  textAlign: 'left',
-                  borderBottom: '1px solid var(--border)',
-                  background: '#fff',
-                }}
-              >
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i}>
-              {row.map((cell, j) => (
-                <td
-                  key={j}
-                  style={{
-                    padding: '7px 14px',
-                    fontSize: 'var(--text-xs)',
-                    color: j === 0 ? 'var(--text-secondary)' : 'var(--text-primary)',
-                    fontWeight: j === 0 ? 400 : 600,
-                    borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none',
-                    background: '#fff',
-                  }}
-                >
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {interpretation && (
-        <div
-          style={{
-            padding: '10px 14px',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.65,
-            borderTop: '1px solid var(--border)',
-            background: '#fff',
-          }}
-        >
-          <LinkText>{interpretation}</LinkText>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function FinancialMetricCard({
-  title,
-  value,
-  sub,
-  interpretation,
-}: {
-  title: string
-  value: string
-  sub?: string
-  interpretation: string
-}): React.JSX.Element {
-  return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
-        {title}
-      </div>
-      <div style={{ padding: '14px', background: '#fff' }}>
-        <div style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--text-primary)' }}>{value}</div>
-        {sub && (
-          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: 4 }}>{sub}</div>
-        )}
-      </div>
-      {interpretation && (
-        <div
-          style={{
-            padding: '10px 14px',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.65,
-            borderTop: '1px solid var(--border)',
-            background: '#fff',
-          }}
-        >
-          <LinkText>{interpretation}</LinkText>
-        </div>
-      )}
     </div>
   )
 }

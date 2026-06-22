@@ -11,4 +11,5 @@ export const ROUTES = {
   GUIDE_INVESTMENT: '/guide/investment',
   GUIDE_VALUATION: '/guide/valuation',
   GUIDE_TECHNICAL_ANALYSIS: '/guide/technical-analysis',
+  GUIDE_TECHNICAL_ANALYSIS_CATEGORY: (categoryId: string) => `/guide/technical-analysis/${categoryId}`,
 } as const

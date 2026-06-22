@@ -1,5 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import NavBar from '../../../components/NavBar'
+import { SectionTitle } from '../technical-analysis/components/SectionTitle'
+import { Label } from '../technical-analysis/components/Label'
 import data from '../../../data/invest-type-criteria.json'
 
 const RISK_COLOR: Record<string, string> = {
@@ -177,21 +179,6 @@ export default function InvestmentTypePage(): React.JSX.Element {
   )
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return (
-    <div style={{
-      fontSize: 12,
-      fontWeight: 600,
-      color: 'var(--text-tertiary)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      marginBottom: 10,
-    }}>
-      {children}
-    </div>
-  )
-}
-
 function Badge({ children, color }: { children: React.ReactNode; color: string }): React.JSX.Element {
   return (
     <span style={{
@@ -204,13 +191,5 @@ function Badge({ children, color }: { children: React.ReactNode; color: string }
     }}>
       {children}
     </span>
-  )
-}
-
-function Label({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return (
-    <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 2 }}>
-      {children}
-    </div>
   )
 }

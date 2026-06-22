@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiPackage } from 'react-icons/fi'
 import { useApp } from '../../context/AppContext'
-import { gptIcon2 as gptIcon, claudeIcon2 as claudeIcon} from '../../assets'
+import { gptIcon, claudeIcon } from '../../assets'
 import { ROUTES } from '../../routes'
 import './ModelSelectionPage.css'
 

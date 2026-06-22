@@ -4,6 +4,7 @@
  */
 import { IoNewspaperOutline } from 'react-icons/io5'
 import LinkText from '../components/LinkText'
+import { tryParseJson, getSentimentStyle } from './shared'
 
 export type NewsData = {
   company: string
@@ -30,16 +31,12 @@ export type NewsData = {
   }
 }
 
+function isNewsData(v: unknown): v is NewsData {
+  return v != null && typeof v === 'object' && 'articles' in v && 'verdict' in v
+}
+
 export function tryParseNewsJson(text: string): NewsData | null {
-  if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
-  try {
-    const parsed = JSON.parse(stripped)
-    if (parsed && parsed.articles && parsed.verdict) return parsed as NewsData
-    return null
-  } catch {
-    return null
-  }
+  return tryParseJson(text, isNewsData)
 }
 
 const TAG_STYLES: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
@@ -53,12 +50,6 @@ function getTagStyle(tag: string): { emoji: string; color: string; bg: string; b
     if (tag.includes(key)) return style
   }
   return TAG_STYLES['미확인']
-}
-
-function getSentimentStyle(sentiment: string): { emoji: string; color: string; bg: string; border: string } {
-  if (sentiment.includes('긍정')) return { emoji: '🟢', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' }
-  if (sentiment.includes('부정')) return { emoji: '🔴', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' }
-  return { emoji: '🟠', color: '#d97706', bg: '#fffbeb', border: '#fde68a' }
 }
 
 export default function NewsAnalysisSection({ data }: { data: NewsData }): React.JSX.Element {

@@ -3,6 +3,7 @@
  * 이동평균선, RSI/MACD, 볼린저밴드, 거래량, 지지/저항선 등 기술적 지표를 표시한다.
  */
 import LinkText from '../components/LinkText'
+import { tryParseJson, TableCard, MetricCard } from './shared'
 
 export type PriceData = {
   company: string
@@ -36,16 +37,12 @@ export type PriceData = {
   }
 }
 
+function isPriceData(v: unknown): v is PriceData {
+  return v != null && typeof v === 'object' && 'technicalSummary' in v && 'movingAverages' in v
+}
+
 export function tryParsePriceJson(text: string): PriceData | null {
-  if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
-  try {
-    const parsed = JSON.parse(stripped)
-    if (parsed && parsed.technicalSummary && parsed.movingAverages) return parsed as PriceData
-    return null
-  } catch {
-    return null
-  }
+  return tryParseJson(text, isPriceData)
 }
 
 function getSignalColor(signal: string): string {
@@ -111,7 +108,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
       )}
 
       {/* 이동평균선 */}
-      <SimpleTable
+      <TableCard
         title="이동평균선"
         columns={['구분', '수치', '현재가 대비']}
         rows={data.movingAverages.data.map((d) => [d.period + ' MA', d.value, d.position])}
@@ -171,7 +168,7 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
 
       {/* 지지/저항선 */}
       {data.supportResistance?.length > 0 && (
-        <SimpleTable
+        <TableCard
           title="지지선 / 저항선"
           columns={['구분', '가격', '근거']}
           rows={data.supportResistance.map((s) => [s.type, s.price, s.rationale])}
@@ -233,49 +230,6 @@ export default function PriceAnalysisSection({ data }: { data: PriceData }): Rea
       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
         본 분석은 기술적 지표 기반이며 투자 권유가 아닙니다.
       </div>
-    </div>
-  )
-}
-
-function SimpleTable({ title, columns, rows, interpretation }: { title: string; columns: string[]; rows: string[][]; interpretation?: string }): React.JSX.Element {
-  return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th key={c} style={{ padding: '8px 14px', fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textAlign: 'left', borderBottom: '1px solid var(--border)', background: '#fff' }}>{c}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i}>
-              {row.map((cell, j) => (
-                <td key={j} style={{ padding: '7px 14px', fontSize: 'var(--text-xs)', color: j === 0 ? 'var(--text-secondary)' : 'var(--text-primary)', fontWeight: j === 0 ? 400 : 600, borderBottom: i < rows.length - 1 ? '1px solid var(--border)' : 'none', background: '#fff' }}>{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {interpretation && (
-        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#fff' }}><LinkText>{interpretation}</LinkText></div>
-      )}
-    </div>
-  )
-}
-
-function MetricCard({ title, value, interpretation }: { title: string; value: string; interpretation?: string }): React.JSX.Element {
-  return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-      <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</div>
-      <div style={{ padding: '14px', background: '#fff' }}>
-        <div style={{ fontSize: 'var(--text-ls)', fontWeight: 800, color: 'var(--text-primary)' }}>{value}</div>
-      </div>
-      {interpretation && (
-        <div style={{ padding: '10px 14px', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.65, borderTop: '1px solid var(--border)', background: '#fff' }}><LinkText>{interpretation}</LinkText></div>
-      )}
     </div>
   )
 }

@@ -4,6 +4,7 @@
  */
 import { FiAlertTriangle } from 'react-icons/fi'
 import LinkText from '../components/LinkText'
+import { tryParseJson, BulletList, BulletCard, RiskSection } from './shared'
 
 export type InvestTypeData = {
   company: string
@@ -25,16 +26,12 @@ export type InvestTypeData = {
   risks: string[]
 }
 
+function isInvestTypeData(v: unknown): v is InvestTypeData {
+  return v != null && typeof v === 'object' && 'investType' in v && 'rationale' in v
+}
+
 export function tryParseInvestTypeJson(text: string): InvestTypeData | null {
-  if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
-  try {
-    const parsed = JSON.parse(stripped)
-    if (parsed && parsed.investType && parsed.rationale) return parsed as InvestTypeData
-    return null
-  } catch {
-    return null
-  }
+  return tryParseJson(text, isInvestTypeData)
 }
 
 const TYPE_COLORS: { keyword: string; color: string }[] = [
@@ -121,39 +118,10 @@ export default function InvestTypeAnalysisSection({ data }: { data: InvestTypeDa
       </div>
 
       {/* 주요 확인 지표 */}
-      {data.keyIndicators?.length > 0 && (
-        <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: '#fff', borderBottom: '1px solid var(--border)', fontSize: 'var(--text-sm)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            주요 확인 지표
-          </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
-            {data.keyIndicators.map((item, i) => (
-              <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#2563eb', display: 'inline-block' }} />
-                <LinkText>{item}</LinkText>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <BulletCard title="주요 확인 지표" items={data.keyIndicators} color="#2563eb" />
 
       {/* 주요 리스크 */}
-      {data.risks?.length > 0 && (
-        <div style={{ border: '1px solid #fecaca', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: '#fef2f2', borderBottom: '1px solid #fecaca', fontSize: 'var(--text-sm)', fontWeight: 700, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <FiAlertTriangle size={15} />
-            주요 리스크
-          </div>
-          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, background: '#fff' }}>
-            {data.risks.map((risk, i) => (
-              <div key={i} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: 14, position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 0, top: '0.45em', width: 5, height: 5, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-                <LinkText>{risk}</LinkText>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <RiskSection title="주요 리스크" risks={data.risks} icon={<FiAlertTriangle size={15} />} />
     </div>
   )
 }
