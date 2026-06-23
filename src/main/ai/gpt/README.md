@@ -9,7 +9,7 @@
 - `scripts/analyze-stock.mjs`: `codex exec` 기반 오케스트레이터
 - `scripts/lib/`: 오케스트레이터 하위 모듈 (codex.mjs, utils.mjs)
 - `reports/`: 최종 리포트 저장 경로
-- `../../shared/`: AI 모델 공통 모듈 (공공데이터 API, Finnhub API, 종목 검증, 주가 조회, 일봉 히스토리, 기술적 지표 계산, 상수)
+- `../../shared/`: AI 모델 공통 모듈 (공공데이터 API, Finnhub API, FMP API, 종목 검증, 주가 조회, 일봉 히스토리, 기술적 지표 계산, 상수)
 
 ## 사용법
 
@@ -19,6 +19,7 @@
 - 웹 검색이 가능한 Codex 환경
 - `.env` 또는 `.env.local`에 `DATA_GO_KR_SERVICE_KEY` 설정 (한국 종목 검증/주가 조회, 없으면 AI fallback)
 - `.env` 또는 `.env.local`에 `FINNHUB_API_KEY` 설정 (미국 종목 검증/주가 조회, 없으면 AI fallback)
+- `.env` 또는 `.env.local`에 `FMP_API_KEY` 설정 (미국 종목 일봉 히스토리/기술적 지표, 없으면 AI fallback)
 
 실행 예시:
 
@@ -86,7 +87,7 @@ input-validator ──► price-fetcher ──┐
 ### Wave 1 — 4개 에이전트 병렬 실행
 
 `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`가 동시에 실행됩니다.
-한국 종목의 `price-analyst`는 실행 전에 공공데이터포털에서 250일치 일봉 데이터를 조회하여 이동평균, RSI, MACD, 볼린저밴드, 거래량, 52주 고/저, 지지/저항선을 사전 계산합니다 (`TECHNICAL_DATA`로 주입). AI는 이 수치를 그대로 사용하고 해석/판정만 담당합니다.
+`price-analyst`는 실행 전에 일봉 데이터를 조회하여 이동평균, RSI, MACD, 볼린저밴드, 거래량, 52주 고/저, 지지/저항선을 사전 계산합니다 (`TECHNICAL_DATA`로 주입). 한국 종목은 공공데이터포털(250일), 미국 종목은 FMP API(251일)를 사용합니다. AI는 이 수치를 그대로 사용하고 해석/판정만 담당합니다. API 실패 시 AI가 웹 검색으로 직접 조회합니다.
 나머지 에이전트는 서로 독립적으로 웹 검색을 통해 데이터를 수집하고 분석합니다.
 
 ### Wave 1b — valuation-analyst 부분 순차 실행

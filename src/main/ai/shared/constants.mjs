@@ -22,3 +22,10 @@ export const FINNHUB_API = {
   /** 실시간 시세 조회 */
   QUOTE: 'https://finnhub.io/api/v1/quote',
 }
+
+// ── FMP (Financial Modeling Prep) API URLs ───────────────────────────
+/** @see https://site.financialmodelingprep.com/developer/docs */
+export const FMP_API = {
+  /** 일봉 히스토리 (EOD full) */
+  HISTORICAL_PRICE: 'https://financialmodelingprep.com/stable/historical-price-eod/full',
+}

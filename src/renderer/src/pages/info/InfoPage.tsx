@@ -301,6 +301,22 @@ export default function InfoPage(): React.JSX.Element {
                   Stock Symbol Search, Quote
                 </span>
               </div>
+              <div className="info-row-separator" />
+              <button
+                className="info-row info-row--tap"
+                onClick={() =>
+                  window.api.openExternalUrl('https://site.financialmodelingprep.com')
+                }
+              >
+                <span className="info-row-label">FMP</span>
+                <FiExternalLink className="info-row-chevron" />
+              </button>
+              <div className="info-row-separator" />
+              <div className="info-row">
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                  Historical Price EOD
+                </span>
+              </div>
             </div>
           </section>
 
