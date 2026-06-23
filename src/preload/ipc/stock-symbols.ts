@@ -9,7 +9,7 @@ import { ipcRenderer } from 'electron'
 import { IPC } from '../../shared/ipcChannels'
 
 export const stockSymbolsApi = {
-  /** 종목명 또는 코드로 로컬 캐시를 검색하여 후보 목록을 반환한다 */
-  searchStockSymbols: (query: string, limit?: number) =>
-    ipcRenderer.invoke(IPC.SEARCH_STOCK_SYMBOLS, query, limit)
+  /** 종목명 또는 코드로 검색하여 후보 목록을 반환한다 */
+  searchStockSymbols: (query: string, limit?: number, market?: string) =>
+    ipcRenderer.invoke(IPC.SEARCH_STOCK_SYMBOLS, query, limit, market)
 }

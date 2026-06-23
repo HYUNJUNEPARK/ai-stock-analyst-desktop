@@ -11,6 +11,7 @@ type Props = {
   value: string
   onChange: (value: string) => void
   onSubmit: () => void
+  market?: string
 }
 
 /** 자동완성 검색 디바운스 시간 (ms) */
@@ -20,7 +21,7 @@ const MAX_RESULTS = 6
 /** 자동완성이 작동하는 최소 입력 글자 수 */
 const MIN_QUERY_LENGTH = 1
 
-export default function PromptInput({ value, onChange, onSubmit }: Props): React.JSX.Element {
+export default function PromptInput({ value, onChange, onSubmit, market = 'auto' }: Props): React.JSX.Element {
   const [suggestions, setSuggestions] = useState<StockSymbol[]>([])
   const [activeIndex, setActiveIndex] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -37,7 +38,7 @@ export default function PromptInput({ value, onChange, onSubmit }: Props): React
     }
 
     try {
-      const results = await window.api.searchStockSymbols(query, MAX_RESULTS)
+      const results = await window.api.searchStockSymbols(query, MAX_RESULTS, market)
       setSuggestions(results)
       setShowSuggestions(results.length > 0)
       setActiveIndex(-1)
@@ -45,7 +46,7 @@ export default function PromptInput({ value, onChange, onSubmit }: Props): React
       setSuggestions([])
       setShowSuggestions(false)
     }
-  }, [])
+  }, [market])
 
   /** 입력값이 바뀔 때 디바운스로 검색 실행 */
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function PromptInput({ value, onChange, onSubmit }: Props): React
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [value, searchSymbols])
+  }, [value, market, searchSymbols])
 
   /** 외부 클릭 시 드롭다운 닫기 */
   useEffect(() => {
@@ -135,7 +136,7 @@ export default function PromptInput({ value, onChange, onSubmit }: Props): React
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-          placeholder="종목명 입력  예) 삼성전자"
+          placeholder={market === 'us' ? '종목명 입력  예) Apple, TSLA' : '종목명 입력  예) 삼성전자'}
           aria-label="종목명 입력"
           autoComplete="off"
           autoFocus

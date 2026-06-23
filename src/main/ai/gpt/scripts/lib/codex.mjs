@@ -19,6 +19,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { validateWithLocalSymbols } from '../../../shared/local-symbols.mjs'
 import { fetchStockPrice } from '../../../shared/stock-price.mjs'
+import { validateWithFinnhub, fetchUsStockPrice } from '../../../shared/finnhub.mjs'
 
 // ── 경로 설정 (analyze-stock.mjs에서 initCodex()로 주입) ─────────────
 let projectRoot = ''
@@ -122,11 +123,15 @@ export async function runRole({ role, context, outputPath, model }) {
  * [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
  */
 export async function runValidation({ context, outputPath, model }) {
-  // 한국 종목은 로컬 마스터로 먼저 검증
+  // 한국 종목: 공공데이터포털 로컬 마스터로 검증
   const localResult = await validateWithLocalSymbols({ context, outputPath })
   if (localResult) return localResult
 
-  // 로컬 매칭 실패 → AI fallback
+  // 미국 종목: Finnhub API로 검증
+  const finnhubResult = await validateWithFinnhub({ context, outputPath })
+  if (finnhubResult) return finnhubResult
+
+  // API 매칭 실패 → AI fallback
   const promptTemplate = await loadPromptTemplate('input-validator')
   const prompt = applyTemplate(promptTemplate, context)
   const timeoutMs = ROLE_TIMEOUT['input-validator']
@@ -153,22 +158,30 @@ export async function runValidation({ context, outputPath, model }) {
  * 조회 실패 시에도 분석을 중단하지 않고 빈 값으로 계속 진행한다.
  */
 export async function runPriceFetcher({ context, outputPath, model }) {
-  // 한국 종목은 공공데이터포털 API로 먼저 조회 (AI 호출 없음, 즉시 완료)
-  const localResult = await fetchStockPrice({
-    ticker: context.TICKER,
-    company: context.COMPANY,
-    market: context.MARKET
-  })
-  if (localResult) {
+  // 한국 종목: 공공데이터포털 API로 조회
+  // 미국 종목: Finnhub API로 조회
+  const apiResult =
+    (await fetchStockPrice({
+      ticker: context.TICKER,
+      company: context.COMPANY,
+      market: context.MARKET
+    })) ||
+    (await fetchUsStockPrice({
+      ticker: context.TICKER,
+      company: context.COMPANY,
+      market: context.MARKET
+    }))
+
+  if (apiResult) {
     const { writeFile } = await import('node:fs/promises')
-    await writeFile(outputPath, JSON.stringify(localResult, null, 2), 'utf8')
+    await writeFile(outputPath, JSON.stringify(apiResult, null, 2), 'utf8')
     console.log(
-      `[price] 공공데이터 API 조회 성공: ${localResult.company} ${localResult.priceFormatted}`
+      `[price] API 조회 성공 (${apiResult.source}): ${apiResult.company} ${apiResult.priceFormatted}`
     )
-    return localResult
+    return apiResult
   }
 
-  // 공공데이터 조회 실패 → AI fallback
+  // API 조회 실패 → AI fallback
   const promptTemplate = await loadPromptTemplate('price-fetcher')
   const prompt = applyTemplate(promptTemplate, context)
   const timeoutMs = ROLE_TIMEOUT['price-fetcher']

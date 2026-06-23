@@ -18,6 +18,7 @@ export default function PromptPage(): React.JSX.Element {
   const [text, setText] = useState(currentPrompt)
   const [market, setMarket] = useLocalStorage<Market>(MARKET_STORAGE_KEY, 'auto', isValidMarket)
   const [recentReport, setRecentReport] = useState<RecentReport | null>(null)
+  const [showMarketToast, setShowMarketToast] = useState(false)
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log('[Page] PromptPage 렌더링')
@@ -138,55 +139,86 @@ export default function PromptPage(): React.JSX.Element {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         <div style={{ width: '100%', maxWidth: 400, padding: '0 8px' }}>
-          <PromptInput value={text} onChange={handleChange} onSubmit={handleSubmit} />
+          <PromptInput value={text} onChange={handleChange} onSubmit={handleSubmit} market={market} />
           <div
             style={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
+              gap: 6,
               marginTop: 14
             }}
           >
-            <span
-              style={{
-                fontSize: 13,
-                color: 'var(--text-tertiary)',
-                fontWeight: 500,
-                flexShrink: 0
-              }}
-            >
-              시장
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: 'var(--text-tertiary)',
+                  fontWeight: 500,
+                  flexShrink: 0
+                }}
+              >
+                시장
+              </span>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  background: 'var(--bg-tertiary)',
+                  borderRadius: 20,
+                  padding: 3
+                }}
+              >
+                {MARKET_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setMarket(opt.value)
+                      if (opt.value === 'us') {
+                        setShowMarketToast(true)
+                      }
+                    }}
+                    style={{
+                      border: 'none',
+                      cursor: 'pointer',
+                      borderRadius: 17,
+                      padding: '6px 16px',
+                      fontSize: 13,
+                      fontWeight: market === opt.value ? 600 : 400,
+                      fontFamily: 'inherit',
+                      color: market === opt.value ? 'var(--accent)' : 'var(--text-tertiary)',
+                      background: market === opt.value ? 'var(--bg-secondary)' : 'transparent',
+                      boxShadow: market === opt.value ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 미장 선택 시 영문 검색 안내 말풍선 */}
             <div
               style={{
-                display: 'inline-flex',
-                background: 'var(--bg-tertiary)',
-                borderRadius: 20,
-                padding: 3
+                opacity: showMarketToast ? 1 : 0,
+                transform: showMarketToast ? 'translateY(0)' : 'translateY(-4px)',
+                transition: 'opacity 0.3s, transform 0.3s',
+                pointerEvents: 'none',
+                fontSize: 12,
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
+                padding: '6px 14px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+              }}
+              onTransitionEnd={() => {
+                if (showMarketToast) {
+                  setTimeout(() => setShowMarketToast(false), 2000)
+                }
               }}
             >
-              {MARKET_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setMarket(opt.value)}
-                  style={{
-                    border: 'none',
-                    cursor: 'pointer',
-                    borderRadius: 17,
-                    padding: '6px 16px',
-                    fontSize: 13,
-                    fontWeight: market === opt.value ? 600 : 400,
-                    fontFamily: 'inherit',
-                    color: market === opt.value ? 'var(--accent)' : 'var(--text-tertiary)',
-                    background: market === opt.value ? 'var(--bg-secondary)' : 'transparent',
-                    boxShadow: market === opt.value ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
+              미국 종목은 영어로 검색해 주세요 (예: Apple, TSLA)
             </div>
           </div>
         </div>

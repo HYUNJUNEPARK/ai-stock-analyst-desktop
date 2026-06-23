@@ -111,8 +111,8 @@ declare global {
       onResponseChunk: (callback: (chunk: string) => void) => void
       onResponseDone: (callback: (result: { success: boolean; error?: string; authRequired?: boolean }) => void) => void
 
-      /* 종목 검색 (로컬 종목 마스터) */
-      searchStockSymbols: (query: string, limit?: number) => Promise<Array<{
+      /* 종목 검색 (한국: 공공데이터포털, 미국: Finnhub) */
+      searchStockSymbols: (query: string, limit?: number, market?: string) => Promise<Array<{
         ticker: string
         name: string
         market: string

@@ -395,5 +395,5 @@ function extractKrTicker(text) {
 
 /** 시장 값에 미국 시장 키워드가 포함되어 있는지 판별한다. */
 function isUsMarket(market) {
-  return /\b(us|미국|nasdaq|nyse|amex)\b/i.test(String(market || ''))
+  return /(^|[\s,])us([\s,]|$)|미국|nasdaq|nyse|amex/i.test(String(market || ''))
 }

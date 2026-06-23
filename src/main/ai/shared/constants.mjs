@@ -13,3 +13,12 @@ export const PUBLIC_DATA_API = {
   //  신청일 2026-06-23 만료예정일 2028-06-23
   KR_STOCK_PRICE: 'https://apis.data.go.kr/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo',
 }
+
+// ── Finnhub API URLs ────────────────────────────────────────────────────
+/** @see https://finnhub.io/docs/api */
+export const FINNHUB_API = {
+  /** 종목 심볼 검색 */
+  SYMBOL_SEARCH: 'https://finnhub.io/api/v1/search',
+  /** 실시간 시세 조회 */
+  QUOTE: 'https://finnhub.io/api/v1/quote',
+}

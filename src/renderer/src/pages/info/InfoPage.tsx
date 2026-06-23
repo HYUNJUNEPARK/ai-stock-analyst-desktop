@@ -300,10 +300,18 @@ export default function InfoPage(): React.JSX.Element {
                 <FiExternalLink className="info-row-chevron" />
               </button>
               <div className="info-row-separator" />
-              <div className="info-row">
-                <span className="info-row-label">제공</span>
-                <span className="info-row-value">공공데이터포털 (data.go.kr)</span>
-              </div>
+              <button
+                className="info-row info-row--tap"
+                onClick={() =>
+                  window.api.openExternalUrl('https://finnhub.io')
+                }
+              >
+                <div className="info-row-body">
+                  <span className="info-row-label">Finnhub Stock API</span>
+                  <span className="info-row-desc">미국 종목 검색·자동완성 및 실시간 시세 조회</span>
+                </div>
+                <FiExternalLink className="info-row-chevron" />
+              </button>
             </div>
           </section>
 

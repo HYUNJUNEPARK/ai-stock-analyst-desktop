@@ -19,8 +19,8 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 
 | Agent | Wave | Responsibility |
 | --- | --- | --- |
-| `input-validator` | Wave 0 (sequential) | Validates the request and extracts company name/ticker. KR stocks: local symbol cache (public data API, no AI call). US stocks / fallback: AI validation. |
-| `price-fetcher` | Wave 0 (sequential) | Locks the reference closing price. KR stocks: public data API (금융위원회_주식시세정보, no AI call). US stocks / fallback: AI price lookup. |
+| `input-validator` | Wave 0 (sequential) | Validates the request and extracts company name/ticker. KR stocks: public data API (local symbol cache). US stocks: Finnhub API (/search). Fallback: AI validation. |
+| `price-fetcher` | Wave 0 (sequential) | Locks the reference closing price. KR stocks: public data API (금융위원회_주식시세정보). US stocks: Finnhub API (/quote). Fallback: AI price lookup. |
 | `financial-analyst-kr` | Wave 1 – Chain A (parallel) | Financial statement analysis: revenue, margins, PER, PBR, ROE, debt ratio, valuation |
 | `sector-researcher` | Wave 1 – Chain A (parallel) | Industry trend, peers, regulation, macro and structural context |
 | `news-sentiment-analyst` | Wave 1 – Chain B (parallel) | Recent 1-month news scan, bullish/bearish classification, sentiment read |
@@ -29,23 +29,36 @@ The execution model mirrors `stock-claude`, but the orchestration is implemented
 | `invest-type-classifier` | Wave 2 – Step 1 | Investment type classification using all 5 specialist outputs |
 | `aggressive-investment-strategist` | Wave 2 – Step 2 | Final investment call synthesized from all analyses including valuation and technical signals |
 
-## Public Data API (공공데이터포털)
+## External APIs
 
-Wave 0의 `input-validator`와 `price-fetcher`는 한국 종목에 한해 공공데이터포털 API를 사용하여 AI 호출 없이 즉시 처리한다.
+Wave 0의 `input-validator`와 `price-fetcher`는 외부 API를 사용하여 AI 호출 없이 즉시 처리한다. API 조회 실패 시 AI fallback으로 자동 전환된다.
+
+### 한국 종목 — 공공데이터포털 (data.go.kr)
 
 | API | 용도 | 모듈 |
 | --- | --- | --- |
 | 금융위원회_KRX상장종목정보 | 종목명/코드 검증 + 자동완성 캐시 | `shared/local-symbols.mjs` |
 | 금융위원회_주식시세정보 | 기준일 종가 조회 | `shared/stock-price.mjs` |
 
+- 인증키: `.env` 또는 `.env.local`의 `DATA_GO_KR_SERVICE_KEY`
+
+### 미국 종목 — Finnhub (finnhub.io)
+
+| API | 용도 | 모듈 |
+| --- | --- | --- |
+| /search | 종목 심볼 검색 + 자동완성 | `shared/finnhub.mjs` |
+| /quote | 실시간 시세 조회 | `shared/finnhub.mjs` |
+
+- 인증키: `.env` 또는 `.env.local`의 `FINNHUB_API_KEY`
+
+### 공통
+
 - API URL 상수: `shared/constants.mjs`
 - API 공통 유틸: `shared/public-data-api.mjs`
-- 인증키: `.env` 또는 `.env.local`의 `DATA_GO_KR_SERVICE_KEY`
-- 한국 종목 조회 실패 또는 미국 종목인 경우 AI fallback으로 자동 전환
 
 ## Execution Rules
 
-- Wave 0 runs sequentially: `input-validator` validates the request, then `price-fetcher` locks the reference price (`CURRENT_PRICE`). Both try the public data API first for KR stocks, falling back to AI on failure.
+- Wave 0 runs sequentially: `input-validator` validates the request, then `price-fetcher` locks the reference price (`CURRENT_PRICE`). KR stocks use the public data API, US stocks use Finnhub API, both falling back to AI on failure.
 - Wave 1 runs 4 agents in parallel via `Promise.allSettled`: `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`.
 - `valuation-analyst` runs after Chain A (`financial-analyst-kr` + `sector-researcher`) completes. It receives those two outputs as context and may run in parallel with Chain B (`news-sentiment-analyst` + `price-analyst`).
 - `invest-type-classifier` runs only after `valuation-analyst` completes. It receives all 5 specialist outputs as context.
@@ -61,7 +74,7 @@ Wave 0의 `input-validator`와 `price-fetcher`는 한국 종목에 한해 공공
 - `scripts/analyze-stock.mjs`: Codex-based orchestration entrypoint
 - `scripts/lib/`: orchestrator sub-modules (codex.mjs, utils.mjs)
 - `reports/`: final Markdown reports and optional intermediate artifacts
-- `../../shared/`: modules shared across AI models (constants, public data API, local symbols, stock price)
+- `../../shared/`: modules shared across AI models (constants, public data API, local symbols, stock price, finnhub)
 
 ## Safety
 

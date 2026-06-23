@@ -1,11 +1,15 @@
 /**
- * src/main/ipc/stock-symbols.ts — 로컬 종목 마스터 검색 IPC 핸들러
+ * src/main/ipc/stock-symbols.ts — 종목 검색 IPC 핸들러
  *
  * 담당 채널:
- *   - search-stock-symbols : 종목명/코드로 로컬 캐시를 검색하여 후보 목록 반환 (양방향)
+ *   - search-stock-symbols : 종목명/코드로 검색하여 후보 목록 반환 (양방향)
  *
- * 캐시 파일 위치: ~/.ai-cli-launcher/stock-symbols/local-symbols.json
- * (공공데이터포털 API로 갱신되는 KRX 전체 상장 종목 목록)
+ * 검색 소스:
+ *   1. 한국 종목: 로컬 캐시 (~/.ai-cli-launcher/stock-symbols/local-symbols.json)
+ *   2. 미국 종목: Finnhub API (/search)
+ *
+ * 한국 종목은 로컬 캐시에서 즉시 검색하고, 영문 입력이면 Finnhub API로
+ * 미국 종목을 추가 검색하여 결과를 병합한다.
  */
 
 import { ipcMain } from 'electron'
@@ -52,10 +56,9 @@ function loadSymbols(): SymbolRecord[] {
 }
 
 /**
- * 검색어로 종목 목록을 필터링한다.
- * 종목명, 법인명, 종목코드를 대상으로 매칭하고 관련도 순으로 정렬한다.
+ * 한국 종목: 로컬 캐시에서 종목명/코드/법인명으로 검색하고 관련도 순으로 정렬한다.
  */
-function searchSymbols(query: string, limit: number): SymbolRecord[] {
+function searchKrSymbols(query: string, limit: number): SymbolRecord[] {
   const symbols = loadSymbols()
   if (!query || symbols.length === 0) return []
 
@@ -68,28 +71,17 @@ function searchSymbols(query: string, limit: number): SymbolRecord[] {
     const ticker = symbol.ticker
     let score = 0
 
-    // 종목코드 prefix 매칭 (숫자 입력 시)
     if (ticker.startsWith(q)) {
       score = 200 + (q.length === 6 && ticker === q ? 100 : 0)
-    }
-    // 종목명 정확 일치
-    else if (name === q) {
+    } else if (name === q) {
       score = 150
-    }
-    // 종목명 prefix 매칭 (가장 자연스러운 자동완성)
-    else if (name.startsWith(q)) {
+    } else if (name.startsWith(q)) {
       score = 120 + q.length
-    }
-    // 법인명 prefix 매칭
-    else if (corp && corp.startsWith(q)) {
+    } else if (corp && corp.startsWith(q)) {
       score = 100 + q.length
-    }
-    // 종목명 포함 매칭
-    else if (name.includes(q)) {
+    } else if (name.includes(q)) {
       score = 70 + q.length
-    }
-    // 법인명 포함 매칭
-    else if (corp && corp.includes(q)) {
+    } else if (corp && corp.includes(q)) {
       score = 50 + q.length
     }
 
@@ -102,11 +94,67 @@ function searchSymbols(query: string, limit: number): SymbolRecord[] {
   return results.slice(0, limit).map((r) => r.symbol)
 }
 
+// ── Finnhub API (미국 종목) ──────────────────────────────────────────
+
+/** 영문(라틴 알파벳) 입력인지 판별한다. */
+function isLatinQuery(query: string): boolean {
+  return /^[a-zA-Z]/.test(query)
+}
+
+/**
+ * 미국 종목: Finnhub /search API로 검색한다.
+ * 영문 입력이 아니거나 API 키가 없으면 빈 배열을 반환한다.
+ */
+async function searchUsSymbols(query: string, limit: number): Promise<SymbolRecord[]> {
+  if (!isLatinQuery(query)) return []
+
+  const apiKey = (process.env.FINNHUB_API_KEY || '').trim()
+  if (!apiKey) return []
+
+  try {
+    const url = `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${apiKey}`
+    const response = await fetch(url)
+    if (!response.ok) return []
+
+    const data = await response.json()
+    const results = (data.result || []) as Array<{
+      symbol: string
+      description: string
+      type: string
+    }>
+
+    // 미국 보통주만 필터 (해외 거래소 제외)
+    return results
+      .filter((r) => r.type === 'Common Stock' && !r.symbol.includes('.'))
+      .slice(0, limit)
+      .map((r) => ({
+        ticker: r.symbol,
+        name: r.description,
+        market: 'US',
+        isin: '',
+        corpName: ''
+      }))
+  } catch {
+    return []
+  }
+}
+
 export function registerStockSymbolsHandlers(): void {
   ipcMain.handle(
     IPC.SEARCH_STOCK_SYMBOLS,
-    (_event, query: string, limit = 8) => {
-      return searchSymbols(query, limit)
+    async (_event, query: string, limit = 8, market = 'auto') => {
+      // 시장 지정 시 해당 소스만 검색
+      if (market === 'kr') return searchKrSymbols(query, limit)
+      if (market === 'us') return searchUsSymbols(query, limit)
+
+      // auto: 한국 종목 우선, 부족하면 미국 종목 병합
+      const krResults = searchKrSymbols(query, limit)
+      if (krResults.length >= limit) return krResults
+
+      const remaining = limit - krResults.length
+      const usResults = await searchUsSymbols(query, remaining)
+
+      return [...krResults, ...usResults].slice(0, limit)
     }
   )
 }

@@ -2,8 +2,8 @@ export type Market = 'auto' | 'kr' | 'us'
 
 export const MARKET_OPTIONS: { value: Market; label: string }[] = [
   { value: 'auto', label: '자동' },
-  { value: 'kr', label: '한국' },
-  { value: 'us', label: '미국' }
+  { value: 'kr', label: '국장' },
+  { value: 'us', label: '미장' }
 ]
 
 export const MARKET_PREFIX: Record<Market, string> = {
