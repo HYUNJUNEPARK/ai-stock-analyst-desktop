@@ -29,18 +29,29 @@ import { config as loadDotenv } from 'dotenv'
 import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp, registerHandlers } from './window'
 
+// 빌드 타임에 주입된 API 키를 process.env에 설정 (child process 상속용)
+// Dev 모드에서는 __ENV_*__ 가 치환되지 않으므로 .env 파일에서 로드
+declare const __ENV_DATA_GO_KR_SERVICE_KEY__: string
+declare const __ENV_FINNHUB_API_KEY__: string
+declare const __ENV_FMP_API_KEY__: string
+
+const buildTimeEnv: Record<string, string> = {
+  DATA_GO_KR_SERVICE_KEY: typeof __ENV_DATA_GO_KR_SERVICE_KEY__ === 'string' ? __ENV_DATA_GO_KR_SERVICE_KEY__ : '',
+  FINNHUB_API_KEY: typeof __ENV_FINNHUB_API_KEY__ === 'string' ? __ENV_FINNHUB_API_KEY__ : '',
+  FMP_API_KEY: typeof __ENV_FMP_API_KEY__ === 'string' ? __ENV_FMP_API_KEY__ : ''
+}
+
+for (const [key, value] of Object.entries(buildTimeEnv)) {
+  if (value && !process.env[key]) {
+    process.env[key] = value
+  }
+}
+
+// Dev 모드: .env 파일에서 추가 로드 (빌드 타임 값이 없는 경우 fallback)
 for (const envFile of ['.env.local', '.env']) {
-  // Production: extraResources로 번들된 .env 파일 (process.resourcesPath)
-  // Dev: 프로젝트 루트의 .env 파일 (process.cwd())
-  const candidates = [
-    join(process.resourcesPath, envFile),
-    join(process.cwd(), envFile)
-  ]
-  for (const envPath of candidates) {
-    if (existsSync(envPath)) {
-      loadDotenv({ path: envPath, override: false, quiet: true })
-      break
-    }
+  const envPath = join(process.cwd(), envFile)
+  if (existsSync(envPath)) {
+    loadDotenv({ path: envPath, override: false, quiet: true })
   }
 }
 
