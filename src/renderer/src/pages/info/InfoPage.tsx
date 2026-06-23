@@ -266,6 +266,47 @@ export default function InfoPage(): React.JSX.Element {
             </div>
           </section>
 
+          {/* ── 데이터 출처 ── */}
+          <section className="info-section">
+            <h2 className="info-section-header">데이터 출처</h2>
+            <div className="info-group">
+              <button
+                className="info-row info-row--tap"
+                onClick={() =>
+                  window.api.openExternalUrl(
+                    'https://www.data.go.kr/data/15094775/openapi.do'
+                  )
+                }
+              >
+                <div className="info-row-body">
+                  <span className="info-row-label">금융위원회_KRX상장종목정보</span>
+                  <span className="info-row-desc">종목 검색 및 자동완성 데이터</span>
+                </div>
+                <FiExternalLink className="info-row-chevron" />
+              </button>
+              <div className="info-row-separator" />
+              <button
+                className="info-row info-row--tap"
+                onClick={() =>
+                  window.api.openExternalUrl(
+                    'https://www.data.go.kr/data/15094808/openapi.do'
+                  )
+                }
+              >
+                <div className="info-row-body">
+                  <span className="info-row-label">금융위원회_주식시세정보</span>
+                  <span className="info-row-desc">종목별 시가·종가·거래량 조회</span>
+                </div>
+                <FiExternalLink className="info-row-chevron" />
+              </button>
+              <div className="info-row-separator" />
+              <div className="info-row">
+                <span className="info-row-label">제공</span>
+                <span className="info-row-value">공공데이터포털 (data.go.kr)</span>
+              </div>
+            </div>
+          </section>
+
           {/* ── 개발용 미리보기 (DEV only) ── */}
           {import.meta.env.DEV && (
             <section className="info-section">

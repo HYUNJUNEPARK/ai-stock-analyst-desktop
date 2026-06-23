@@ -7,7 +7,9 @@
 - `AGENTS.md`: Codex 작업 규칙 (에이전트가 참조)
 - `prompts/`: 역할별 프롬프트 템플릿
 - `scripts/analyze-stock.mjs`: `codex exec` 기반 오케스트레이터
+- `scripts/lib/`: 오케스트레이터 하위 모듈 (codex.mjs, utils.mjs)
 - `reports/`: 최종 리포트 저장 경로
+- `../../shared/`: AI 모델 공통 모듈 (공공데이터 API, 종목 검증, 주가 조회, 상수)
 
 ## 사용법
 
@@ -15,6 +17,7 @@
 
 - `codex login` 완료
 - 웹 검색이 가능한 Codex 환경
+- `.env` 또는 `.env.local`에 `DATA_GO_KR_SERVICE_KEY` 설정 (한국 종목 로컬 검증/주가 조회용, 없으면 AI fallback)
 
 실행 예시:
 
@@ -43,10 +46,12 @@ node scripts/analyze-stock.mjs --company "삼성전자" --ticker "005930" --requ
 
 ## 에이전트 구성
 
-총 7개의 전문 에이전트로 구성됩니다.
+총 9개의 전문 에이전트로 구성됩니다.
 
 | 에이전트 | 역할 |
 |---------|------|
+| `input-validator` | 입력 검증 — 유효한 종목 요청인지 판단, 정식 기업명·티커 추출. 한국 종목은 공공데이터 API로 즉시 검증 |
+| `price-fetcher` | 기준 주가 확정 — 모든 에이전트가 사용할 기준 종가 조회. 한국 종목은 공공데이터 API(금융위원회_주식시세정보)로 즉시 조회 |
 | `financial-analyst-kr` | 재무제표 분석 — 매출 추이, 영업이익률, 순이익률, PER, PBR, ROE, 부채비율, 유동비율, 재무 건전성 등급 산출 |
 | `sector-researcher` | 업종 리서치 — 글로벌 시장 흐름, 주요 경쟁사 실적 비교, 정책·규제 변화, 업종 전망 판정 |
 | `news-sentiment-analyst` | 뉴스 감성 분석 — 최근 1개월 뉴스 수집, 호재·악재·미확인 분류, 시장 심리 판정 |
@@ -60,13 +65,22 @@ node scripts/analyze-stock.mjs --company "삼성전자" --ticker "005930" --requ
 ## 실행 순서
 
 ```
-┌─ financial-analyst-kr ──┐
-│                         ├──► valuation-analyst ──────────────┐
-└─ sector-researcher ─────┘    (financial + sector 결과 주입)   │
-                                                                ├──► invest-type-classifier ──► aggressive-investment-strategist
-┌─ news-sentiment-analyst ──────────────────────────────────────┤
-└─ price-analyst ───────────────────────────────────────────────┘
+input-validator ──► price-fetcher ──┐
+  (종목 검증)        (기준 주가)      │
+                                     ▼
+                    ┌─ financial-analyst-kr ──┐
+                    │                         ├──► valuation-analyst ──────────────┐
+                    └─ sector-researcher ─────┘    (financial + sector 결과 주입)   │
+                                                                                    ├──► invest-type-classifier ──► aggressive-investment-strategist
+                    ┌─ news-sentiment-analyst ──────────────────────────────────────┤
+                    └─ price-analyst ───────────────────────────────────────────────┘
 ```
+
+### Wave 0 — 입력 검증 + 기준 주가 확정 (순차)
+
+`input-validator`가 사용자 입력을 검증하고 정식 기업명/티커를 추출합니다.
+이어서 `price-fetcher`가 기준 종가(`CURRENT_PRICE`)를 확정합니다.
+한국 종목은 공공데이터포털 API로 즉시 처리되며 (AI 호출 없음), 미국 종목이거나 API 실패 시 AI fallback으로 전환됩니다.
 
 ### Wave 1 — 4개 에이전트 병렬 실행
 
