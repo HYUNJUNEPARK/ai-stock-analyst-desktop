@@ -9,7 +9,7 @@ import ConfirmDialog from '../../components/ConfirmDialog'
 import { ROUTES } from '../../routes'
 import { MARKET_OPTIONS, MARKET_STORAGE_KEY, isValidMarket } from '../../data/market'
 import type { Market } from '../../data/market'
-import { gptIcon, claudeIcon, publicDataApiIcon, finnhubApiIcon } from '../../assets'
+import { gptIcon, claudeIcon } from '../../assets'
 import developerInfo from '../../data/developer-info.json'
 import './InfoPage.css'
 
@@ -271,47 +271,35 @@ export default function InfoPage(): React.JSX.Element {
             <h2 className="info-section-header">데이터 출처</h2>
             <div className="info-group">
               <button
-                className="info-row info-row--tap info-source-provider"
+                className="info-row info-row--tap"
                 onClick={() =>
-                  window.api.openExternalUrl(
-                    'https://www.data.go.kr'
-                  )
+                  window.api.openExternalUrl('https://www.data.go.kr')
                 }
               >
-                <img className="info-source-icon" src={publicDataApiIcon} alt="" />
-                <div className="info-row-body">
-                  <span className="info-row-label">공공데이터포털</span>
-                  <span className="info-row-desc">국장 종목 검증, 자동완성, 기준 주가 조회</span>
-                </div>
+                <span className="info-row-label">공공데이터포털</span>
                 <FiExternalLink className="info-row-chevron" />
               </button>
               <div className="info-row-separator" />
-              <div className="info-row info-source-api">
-                <div className="info-row-body">
-                  <span className="info-source-api-label">
-                    금융위원회_KRX상장종목정보, 금융위원회_주식시세정보
-                  </span>
-                </div>
+              <div className="info-row">
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                  금융위원회_KRX상장종목정보, 금융위원회_주식시세정보
+                </span>
               </div>
               <div className="info-row-separator" />
               <button
-                className="info-row info-row--tap info-source-provider"
+                className="info-row info-row--tap"
                 onClick={() =>
                   window.api.openExternalUrl('https://finnhub.io')
                 }
               >
-                <img className="info-source-icon" src={finnhubApiIcon} alt="" />
-                <div className="info-row-body">
-                  <span className="info-row-label">Finnhub</span>
-                  <span className="info-row-desc">미장 종목 검증, 자동완성, 실시간 시세 조회</span>
-                </div>
+                <span className="info-row-label">Finnhub</span>
                 <FiExternalLink className="info-row-chevron" />
               </button>
               <div className="info-row-separator" />
-              <div className="info-row info-source-api">
-                <div className="info-row-body">
-                  <span className="info-source-api-label">Stock Symbol Search, Quote</span>
-                </div>
+              <div className="info-row">
+                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                  Stock Symbol Search, Quote
+                </span>
               </div>
             </div>
           </section>

@@ -20,6 +20,7 @@ import process from 'node:process'
 import { validateWithLocalSymbols } from '../../../shared/local-symbols.mjs'
 import { fetchStockPrice } from '../../../shared/stock-price.mjs'
 import { validateWithFinnhub, fetchUsStockPrice } from '../../../shared/finnhub.mjs'
+import { fetchKrTechnicalData } from '../../../shared/kr-stock-history.mjs'
 
 // ── 경로 설정 (analyze-stock.mjs에서 initCodex()로 주입) ─────────────
 let projectRoot = ''

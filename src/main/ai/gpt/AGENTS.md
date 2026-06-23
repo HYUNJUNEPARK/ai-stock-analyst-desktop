@@ -39,6 +39,7 @@ Wave 0의 `input-validator`와 `price-fetcher`는 외부 API를 사용하여 AI 
 | --- | --- | --- |
 | 금융위원회_KRX상장종목정보 | 종목명/코드 검증 + 자동완성 캐시 | `shared/local-symbols.mjs` |
 | 금융위원회_주식시세정보 | 기준일 종가 조회 | `shared/stock-price.mjs` |
+| 금융위원회_주식시세정보 | 250일치 일봉 조회 → 기술적 지표 사전 계산 | `shared/kr-stock-history.mjs` |
 
 - 인증키: `.env` 또는 `.env.local`의 `DATA_GO_KR_SERVICE_KEY`
 
@@ -55,11 +56,12 @@ Wave 0의 `input-validator`와 `price-fetcher`는 외부 API를 사용하여 AI 
 
 - API URL 상수: `shared/constants.mjs`
 - API 공통 유틸: `shared/public-data-api.mjs`
+- 기술적 지표 계산: `shared/technical-indicators.mjs` (SMA, RSI, MACD, 볼린저밴드, 거래량, 52주, 지지/저항)
 
 ## Execution Rules
 
 - Wave 0 runs sequentially: `input-validator` validates the request, then `price-fetcher` locks the reference price (`CURRENT_PRICE`). KR stocks use the public data API, US stocks use Finnhub API, both falling back to AI on failure.
-- Wave 1 runs 4 agents in parallel via `Promise.allSettled`: `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`.
+- Wave 1 runs 4 agents in parallel via `Promise.allSettled`: `financial-analyst-kr`, `sector-researcher`, `news-sentiment-analyst`, `price-analyst`. For KR stocks, `price-analyst` receives pre-computed technical indicators (`TECHNICAL_DATA`) calculated from 250-day daily candle data via the public data API, eliminating "확인 불가" responses.
 - `valuation-analyst` runs after Chain A (`financial-analyst-kr` + `sector-researcher`) completes. It receives those two outputs as context and may run in parallel with Chain B (`news-sentiment-analyst` + `price-analyst`).
 - `invest-type-classifier` runs only after `valuation-analyst` completes. It receives all 5 specialist outputs as context.
 - `aggressive-investment-strategist` runs only after `invest-type-classifier` is complete.
@@ -74,7 +76,7 @@ Wave 0의 `input-validator`와 `price-fetcher`는 외부 API를 사용하여 AI 
 - `scripts/analyze-stock.mjs`: Codex-based orchestration entrypoint
 - `scripts/lib/`: orchestrator sub-modules (codex.mjs, utils.mjs)
 - `reports/`: final Markdown reports and optional intermediate artifacts
-- `../../shared/`: modules shared across AI models (constants, public data API, local symbols, stock price, finnhub)
+- `../../shared/`: modules shared across AI models (constants, public data API, local symbols, stock price, finnhub, kr-stock-history, technical-indicators)
 
 ## Safety
 

@@ -32,6 +32,14 @@ src/
 │   │   ├── cli.ts               # CLI 경로 해석, 스트림 유틸
 │   │   └── spawn.ts             # child_process 헬퍼
 │   └── ai/                      # AI 모델별 에이전트 설정
+│       ├── shared/              # AI 모델 공통 모듈
+│       │   ├── constants.mjs    # API URL 상수 (공공데이터포털, Finnhub)
+│       │   ├── public-data-api.mjs # 공공데이터포털 API 공통 유틸
+│       │   ├── local-symbols.mjs   # 한국 종목 로컬 검증 (캐시 기반)
+│       │   ├── stock-price.mjs     # 한국 종가 조회
+│       │   ├── kr-stock-history.mjs # 한국 일봉 히스토리 → 기술적 지표
+│       │   ├── technical-indicators.mjs # 기술적 지표 계산 (SMA, RSI, MACD 등)
+│       │   └── finnhub.mjs         # 미국 종목 검증/시세 조회
 │       ├── claude/              # Claude 에이전트 프로젝트
 │       │   ├── CLAUDE.md
 │       │   ├── .claude/agents/  # 에이전트 정의 (4개)
@@ -111,7 +119,7 @@ main (Node.js, child_process, fs)
 | `financial-analyst-kr` | 재무제표 분석 (매출, 영업이익률, PER, PBR, ROE, 부채비율) |
 | `sector-researcher` | 업종 리서치 (글로벌 시장, 경쟁사, 정책, 업종 전망) |
 | `news-sentiment-analyst` | 뉴스 감성 분석 (호재·악재, 시장 심리) |
-| `price-analyst` | 기술적 분석 (이동평균, RSI, MACD, 볼린저밴드, 지지·저항) |
+| `price-analyst` | 기술적 분석 (이동평균, RSI, MACD, 볼린저밴드, 지지·저항). 한국 종목은 공공데이터 일봉 기반 사전 계산 지표 사용 |
 | `valuation-analyst` | 밸류에이션 (목표주가, 적정주가 시나리오) |
 | `invest-type-classifier` | 투자 유형 분류 (6가지 유형) |
 | `aggressive-investment-strategist` | 최종 투자 판단 (매수/관망/매도, 목표가/손절가) |

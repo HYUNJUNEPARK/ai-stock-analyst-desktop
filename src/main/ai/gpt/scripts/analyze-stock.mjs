@@ -39,6 +39,7 @@ import { fileURLToPath } from 'node:url'
 import { config as loadDotenv } from 'dotenv'
 
 import { initCodex, getOutputFileName, runRole, runValidation, runPriceFetcher } from './lib/codex.mjs'
+import { fetchKrTechnicalData } from '../../shared/kr-stock-history.mjs'
 import {
   parseArgs,
   printHelp,
@@ -206,9 +207,20 @@ async function main() {
     outputPath: path.join(artifactDir, getOutputFileName('news-sentiment-analyst')),
     model: options.model
   })
+  // 한국 종목: 공공데이터포털에서 일봉 데이터를 가져와 기술적 지표를 사전 계산
+  // 기술적 지표가 있으면 price-analyst에게 TECHNICAL_DATA로 주입하여 "확인 불가" 방지
+  const technicalData = await fetchKrTechnicalData({
+    ticker: context.TICKER,
+    company: context.COMPANY,
+    currentPrice: Number(context.CURRENT_PRICE?.replace(/[^0-9.]/g, '')) || undefined
+  })
+  const priceAnalystContext = technicalData
+    ? { ...context, TECHNICAL_DATA: JSON.stringify(technicalData, null, 2) }
+    : context
+
   const pricePromise = runRole({
     role: 'price-analyst',
-    context,
+    context: priceAnalystContext,
     outputPath: path.join(artifactDir, getOutputFileName('price-analyst')),
     model: options.model
   })
