@@ -112,6 +112,36 @@
   margin-left: 18px;
 }
 
+.info-row-separator--nested {
+  margin-left: 18px;
+}
+
+/* ── 데이터 출처 ── */
+.info-source-provider .info-row-label {
+  font-weight: 600;
+}
+
+.info-source-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.info-source-api {
+  padding-left: 18px;
+}
+
+.info-source-api-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
 /* ── 모델 아이콘 ── */
 .info-model-icon {
   width: 22px;

@@ -28,9 +28,12 @@ export default function PromptInput({ value, onChange, onSubmit, market = 'auto'
   /** 자동완성 항목 선택으로 인한 onChange를 구분하기 위한 플래그 */
   const skipSearchRef = useRef(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestSearchRef = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const searchSymbols = useCallback(async (query: string) => {
+    const searchId = ++latestSearchRef.current
+
     if (query.length < MIN_QUERY_LENGTH) {
       setSuggestions([])
       setShowSuggestions(false)
@@ -39,13 +42,30 @@ export default function PromptInput({ value, onChange, onSubmit, market = 'auto'
 
     try {
       const results = await window.api.searchStockSymbols(query, MAX_RESULTS, market)
-      setSuggestions(results)
-      setShowSuggestions(results.length > 0)
+      if (searchId !== latestSearchRef.current) return
+
+      const marketResults = results.filter((symbol) => {
+        if (market === 'us') return symbol.market.toUpperCase() === 'US'
+        if (market === 'kr') return symbol.market.toUpperCase() !== 'US'
+        return true
+      })
+
+      setSuggestions(marketResults)
+      setShowSuggestions(marketResults.length > 0)
       setActiveIndex(-1)
     } catch {
+      if (searchId !== latestSearchRef.current) return
       setSuggestions([])
       setShowSuggestions(false)
     }
+  }, [market])
+
+  /** 시장이 바뀌면 이전 시장의 자동완성 후보를 즉시 닫고 진행 중인 검색을 무효화한다. */
+  useEffect(() => {
+    latestSearchRef.current += 1
+    setSuggestions([])
+    setShowSuggestions(false)
+    setActiveIndex(-1)
   }, [market])
 
   /** 입력값이 바뀔 때 디바운스로 검색 실행 */

@@ -124,9 +124,8 @@ async function searchUsSymbols(query: string, limit: number): Promise<SymbolReco
     }>
 
     // 미국 보통주만 필터 (해외 거래소 제외)
-    return results
+    const filtered = results
       .filter((r) => r.type === 'Common Stock' && !r.symbol.includes('.'))
-      .slice(0, limit)
       .map((r) => ({
         ticker: r.symbol,
         name: r.description,
@@ -134,6 +133,8 @@ async function searchUsSymbols(query: string, limit: number): Promise<SymbolReco
         isin: '',
         corpName: ''
       }))
+
+    return filtered.slice(0, limit)
   } catch {
     return []
   }

@@ -38,6 +38,7 @@ export async function validateWithFinnhub({ context, outputPath }) {
     // 티커가 있으면 티커로, 없으면 회사명으로 검색
     const query = context.TICKER || context.COMPANY || context.REQUEST
     if (!query) return null
+    if (!isLatinQuery(query)) return null
 
     const match = await searchSymbol(apiKey, query, context.TICKER, context.COMPANY)
     if (!match) return null
@@ -182,6 +183,11 @@ function getFinnhubKey() {
     return null
   }
   return key
+}
+
+/** Finnhub 검색 API에 보낼 수 있는 영문/티커 입력인지 판별한다. */
+function isLatinQuery(query) {
+  return /^[a-zA-Z]/.test(String(query || '').trim())
 }
 
 /** 시장 값에 미국 시장 키워드가 포함되어 있는지 판별한다. */
