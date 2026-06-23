@@ -111,6 +111,15 @@ declare global {
       onResponseChunk: (callback: (chunk: string) => void) => void
       onResponseDone: (callback: (result: { success: boolean; error?: string; authRequired?: boolean }) => void) => void
 
+      /* 종목 검색 (로컬 종목 마스터) */
+      searchStockSymbols: (query: string, limit?: number) => Promise<Array<{
+        ticker: string
+        name: string
+        market: string
+        isin: string
+        corpName: string
+      }>>
+
       /* 주식 멀티 에이전트 분석 */
       runStockAnalysis: (params: { model: string; prompt: string; market?: string }) => void
       cancelStockAnalysis: () => void

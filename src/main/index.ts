@@ -23,8 +23,18 @@
  *   ipc/stock-analysis.ts ← 주식 멀티 에이전트 분석
  */
 
+import { existsSync } from 'fs'
+import { join } from 'path'
+import { config as loadDotenv } from 'dotenv'
 import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp, registerHandlers } from './window'
+
+for (const envFile of ['.env.local', '.env']) {
+  const envPath = join(process.cwd(), envFile)
+  if (existsSync(envPath)) {
+    loadDotenv({ path: envPath, override: false, quiet: true })
+  }
+}
 
 let mainWindow: BrowserWindow | null = null
 

@@ -21,6 +21,7 @@ import { reportFilesApi } from './ipc/report-files'
 import { windowsApi } from './ipc/windows'
 import { registerPromptListeners, promptApi } from './ipc/prompt'
 import { registerStockAnalysisListeners, stockAnalysisApi } from './ipc/stock-analysis'
+import { stockSymbolsApi } from './ipc/stock-symbols'
 
 // main → renderer 방향 IPC 이벤트 수신 등록
 // (리스너는 콜백 등록 여부와 무관하게 앱 시작 시 항상 열려 있어야 한다)
@@ -46,6 +47,7 @@ if (process.contextIsolated) {
       ...windowsApi,       // 보조 창 열기, 외부 URL
       ...promptApi,        // 단발 프롬프트 실행
       ...stockAnalysisApi, // 주식 멀티 에이전트 분석
+      ...stockSymbolsApi,  // 로컬 종목 마스터 검색
     })
   } catch (error) {
     console.error(error)

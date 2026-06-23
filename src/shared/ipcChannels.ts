@@ -52,4 +52,7 @@ export const IPC = {
   SAVE_REPORT_PDF: 'save-report-pdf',
   SAVE_REPORT_PDF_BUNDLE: 'save-report-pdf-bundle',
   DELETE_GPT_REPORT_FILE: 'delete-gpt-report-file',
+
+  // 종목 검색 (로컬 종목 마스터)
+  SEARCH_STOCK_SYMBOLS: 'search-stock-symbols',
 } as const

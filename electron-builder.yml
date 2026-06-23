@@ -12,6 +12,10 @@ files:
 asarUnpack:
   - resources/**
 extraResources:
+  - from: src/main/ai/shared
+    to: ai/shared
+    filter:
+      - "**/*"
   - from: src/main/ai/claude
     to: ai/claude
     filter:

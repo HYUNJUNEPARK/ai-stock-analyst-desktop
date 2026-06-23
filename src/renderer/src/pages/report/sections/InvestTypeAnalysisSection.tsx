@@ -4,7 +4,7 @@
  */
 import { FiAlertTriangle } from 'react-icons/fi'
 import LinkText from '../components/LinkText'
-import { tryParseJson, BulletList, BulletCard, RiskSection } from './shared'
+import { tryParseJson, BulletCard, RiskSection } from './shared'
 
 export type InvestTypeData = {
   company: string

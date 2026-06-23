@@ -16,6 +16,7 @@ import { registerCliAuthHandlers } from './ipc/cli-auth'
 import { registerClearAuthHandlers } from './ipc/clear-auth'
 import { registerPromptHandlers } from './ipc/prompt'
 import { registerStockAnalysisHandlers } from './ipc/stock-analysis'
+import { registerStockSymbolsHandlers } from './ipc/stock-symbols'
 import { writeTerminalLog } from './utils/spawn'
 import icon from '../../resources/icon.png?asset'
 
@@ -83,6 +84,7 @@ export function registerHandlers(win: BrowserWindow): void {
   registerClearAuthHandlers()        // 인증 정보 삭제
   registerPromptHandlers(win)        // 단발 프롬프트 실행
   registerStockAnalysisHandlers(win) // 주식 멀티 에이전트 분석
+  registerStockSymbolsHandlers()     // 로컬 종목 마스터 검색
 }
 
 /**
