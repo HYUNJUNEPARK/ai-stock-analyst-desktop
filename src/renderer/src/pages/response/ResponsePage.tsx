@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { FiActivity, FiBookOpen, FiFileText, FiPieChart } from 'react-icons/fi'
+import { FiActivity, FiBookOpen, FiExternalLink, FiFileText, FiPieChart } from 'react-icons/fi'
 import NavBar from '../../components/NavBar'
 import ReportSidePanel from '../../components/ReportSidePanel'
 import { useApp } from '../../context/AppContext'
@@ -230,60 +230,84 @@ export default function ResponsePage(): React.JSX.Element {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
-            gap: 4,
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 0,
             paddingTop: 10,
             paddingBottom: 4
           }}
         >
           {[
-            { icon: <FiFileText size={13} />, label: '이전 보고서', onClick: openReportPanel },
-            {
-              icon: <FiPieChart size={13} />,
-              label: '투자 지표 용어 사전',
-              onClick: () => window.api.openGuideWindow('valuation')
-            },
-            {
-              icon: <FiActivity size={13} />,
-              label: '기술적 분석 용어 사전',
-              onClick: () => window.api.openGuideWindow('technical-analysis')
-            },
-            {
-              icon: <FiBookOpen size={13} />,
-              label: '투자 유형 기준',
-              onClick: () => window.api.openGuideWindow('investment')
-            }
-          ].map(({ icon, label, onClick }) => (
-            <button
-              key={label}
-              onClick={onClick}
+            [
+              { icon: <FiFileText size={13} />, label: '이전 보고서', onClick: openReportPanel },
+              {
+                icon: <FiExternalLink size={13} />,
+                label: '사용량 확인',
+                onClick: () => {
+                  if (effectiveModel === 'gpt')
+                    window.api.openExternalUrl('https://chatgpt.com/codex/settings/usage')
+                }
+              }
+            ],
+            [
+              {
+                icon: <FiPieChart size={13} />,
+                label: '투자 지표 용어 사전',
+                onClick: () => window.api.openGuideWindow('valuation')
+              },
+              {
+                icon: <FiActivity size={13} />,
+                label: '기술적 분석 용어 사전',
+                onClick: () => window.api.openGuideWindow('technical-analysis')
+              },
+              {
+                icon: <FiBookOpen size={13} />,
+                label: '투자 유형 기준',
+                onClick: () => window.api.openGuideWindow('investment')
+              }
+            ]
+          ].map((row, rowIndex) => (
+            <div
+              key={rowIndex}
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '5px 8px',
-                borderRadius: 8,
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                fontFamily: 'inherit',
-                transition: 'color 0.15s, background 0.15s',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--accent)'
-                e.currentTarget.style.background = 'var(--accent-light)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)'
-                e.currentTarget.style.background = 'none'
+                justifyContent: 'center',
+                gap: 4
               }}
             >
-              {icon}
-              {label}
-            </button>
+              {row.map(({ icon, label, onClick }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '5px 8px',
+                    borderRadius: 8,
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--text-tertiary)',
+                    fontFamily: 'inherit',
+                    transition: 'color 0.15s, background 0.15s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--accent)'
+                    e.currentTarget.style.background = 'var(--accent-light)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-tertiary)'
+                    e.currentTarget.style.background = 'none'
+                  }}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
+            </div>
           ))}
         </div>
       </div>
