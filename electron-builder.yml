@@ -12,6 +12,14 @@ files:
 asarUnpack:
   - resources/**
 extraResources:
+  - from: .env.local
+    to: .env.local
+    filter:
+      - "**/*"
+  - from: .env
+    to: .env
+    filter:
+      - "**/*"
   - from: src/main/ai/shared
     to: ai/shared
     filter:
@@ -38,6 +46,7 @@ mac:
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
+    CFBundleName: AI 투자 솔루션
     CFBundleDisplayName: AI 투자 솔루션
     NSCameraUsageDescription: Application requests access to the device's camera.
     NSMicrophoneUsageDescription: Application requests access to the device's microphone.

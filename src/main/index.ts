@@ -30,9 +30,17 @@ import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp, registerHandlers } from './window'
 
 for (const envFile of ['.env.local', '.env']) {
-  const envPath = join(process.cwd(), envFile)
-  if (existsSync(envPath)) {
-    loadDotenv({ path: envPath, override: false, quiet: true })
+  // Production: extraResources로 번들된 .env 파일 (process.resourcesPath)
+  // Dev: 프로젝트 루트의 .env 파일 (process.cwd())
+  const candidates = [
+    join(process.resourcesPath, envFile),
+    join(process.cwd(), envFile)
+  ]
+  for (const envPath of candidates) {
+    if (existsSync(envPath)) {
+      loadDotenv({ path: envPath, override: false, quiet: true })
+      break
+    }
   }
 }
 
