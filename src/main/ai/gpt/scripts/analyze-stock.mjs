@@ -32,11 +32,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { mkdir, writeFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { config as loadDotenv } from 'dotenv'
 
 import { initCodex, getOutputFileName, runRole, runValidation, runPriceFetcher } from './lib/codex.mjs'
 import { fetchKrTechnicalData } from '../../shared/kr-stock-history.mjs'
@@ -417,7 +416,20 @@ function loadEnvFiles(startDir) {
 
   for (const envPath of candidates) {
     if (existsSync(envPath)) {
-      loadDotenv({ path: envPath, override: false, quiet: true })
+      const content = readFileSync(envPath, 'utf8')
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith('#')) continue
+        const eqIdx = trimmed.indexOf('=')
+        if (eqIdx === -1) continue
+        const key = trimmed.slice(0, eqIdx).trim()
+        if (!key || process.env[key] !== undefined) continue
+        let val = trimmed.slice(eqIdx + 1).trim()
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1)
+        }
+        process.env[key] = val
+      }
     }
   }
 }

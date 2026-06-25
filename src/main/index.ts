@@ -28,6 +28,7 @@ import { join } from 'path'
 import { config as loadDotenv } from 'dotenv'
 import { app, BrowserWindow } from 'electron'
 import { createWindow, setupApp, registerHandlers } from './window'
+import { applySystemCerts } from './utils/system-certs'
 
 // 빌드 타임에 주입된 API 키를 process.env에 설정 (child process 상속용)
 // Dev 모드에서는 __ENV_*__ 가 치환되지 않으므로 .env 파일에서 로드
@@ -59,6 +60,7 @@ let mainWindow: BrowserWindow | null = null
 
 app.whenReady().then(() => {
   setupApp() // 앱 ID 설정, 단축키 최적화 등 초기 설정
+  applySystemCerts() // macOS 시스템 인증서를 process.env에 설정 (child process 상속용)
   mainWindow = createWindow()
   mainWindow.on('closed', () => {
     mainWindow = null

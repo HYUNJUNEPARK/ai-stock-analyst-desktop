@@ -12,7 +12,7 @@
  * 미국 종목을 추가 검색하여 결과를 병합한다.
  */
 
-import { ipcMain } from 'electron'
+import { ipcMain, net } from 'electron'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { homedir } from 'os'
@@ -113,7 +113,7 @@ async function searchUsSymbols(query: string, limit: number): Promise<SymbolReco
 
   try {
     const url = `https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${apiKey}`
-    const response = await fetch(url)
+    const response = await net.fetch(url)
     if (!response.ok) return []
 
     const data = await response.json()
