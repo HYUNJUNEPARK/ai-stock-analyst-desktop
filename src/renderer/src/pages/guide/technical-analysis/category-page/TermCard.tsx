@@ -11,11 +11,13 @@ import { termImages } from './types'
 export function TermCard({
   term,
   expanded,
-  onToggle
+  onToggle,
+  hideArrow
 }: {
   term: Term
   expanded: boolean
   onToggle: () => void
+  hideArrow?: boolean
 }): React.JSX.Element {
   return (
     <div
@@ -68,15 +70,17 @@ export function TermCard({
             {term.oneLiner}
           </div>
         </div>
-        <FiChevronDown
-          style={{
-            flexShrink: 0,
-            fontSize: 18,
-            color: 'var(--text-tertiary)',
-            transition: 'transform 0.2s',
-            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)'
-          }}
-        />
+        {!hideArrow && (
+          <FiChevronDown
+            style={{
+              flexShrink: 0,
+              fontSize: 18,
+              color: 'var(--text-tertiary)',
+              transition: 'transform 0.2s',
+              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)'
+            }}
+          />
+        )}
       </div>
 
       {expanded && (

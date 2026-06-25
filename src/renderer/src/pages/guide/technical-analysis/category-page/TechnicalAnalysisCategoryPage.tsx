@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import NavBar from '../../../../components/NavBar'
 import data from '../../../../data/technical-analysis-terms.json'
@@ -10,19 +9,7 @@ export default function TechnicalAnalysisCategoryPage(): React.JSX.Element {
   const { categoryId } = useParams<{ categoryId: string }>()
   const [searchParams] = useSearchParams()
   const isWindow = searchParams.get('mode') === 'window'
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-
   const category = data.categories.find((c) => c.id === categoryId)
-
-  function toggle(id: string): void {
-    // 추세 분석은 항상 펼침이므로 다른 카테고리만 토글
-    setExpandedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
 
   if (!category) {
     return (
@@ -97,8 +84,9 @@ export default function TechnicalAnalysisCategoryPage(): React.JSX.Element {
                 <TermCard
                   key={term.id}
                   term={term}
-                  expanded={expandedIds.has(term.id)}
-                  onToggle={() => toggle(term.id)}
+                  expanded
+                  onToggle={() => {}}
+                  hideArrow
                 />
               ))}
             </div>

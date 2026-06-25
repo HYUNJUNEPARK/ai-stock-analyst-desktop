@@ -118,13 +118,28 @@ export default function TechnicalAnalysisTermsPage(): React.JSX.Element {
                   </div>
                   <div
                     style={{
-                      fontSize: 11,
-                      color: 'var(--accent)',
-                      marginTop: 4,
-                      fontWeight: 500
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 4,
+                      marginTop: 6
                     }}
                   >
-                    용어 {category.terms.length}개
+                    {category.terms.map((t) => (
+                      <span
+                        key={t.id}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: 'var(--accent)',
+                          background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          lineHeight: 1.5
+                        }}
+                      >
+                        {t.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
 

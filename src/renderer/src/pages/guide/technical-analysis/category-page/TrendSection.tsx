@@ -23,7 +23,7 @@ export function TrendSection({
 
   return (
     <>
-      <TermCard term={movingAverage} expanded onToggle={() => {}} />
+      <TermCard term={movingAverage} expanded onToggle={() => {}} hideArrow />
 
       <SubGroupLabel>이동평균선의 배열</SubGroupLabel>
       <ComparisonPair
