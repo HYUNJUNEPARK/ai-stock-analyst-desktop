@@ -32,8 +32,8 @@ export default function AnalysisProgressView({
 
   const [financial, sector, news, price, valuation, classifier, strategy] = AGENT_CONFIG
 
-  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done').length
-  const anyRunningOrDone = Object.values(agentStatuses).some((s) => s === 'running' || s === 'done')
+  const doneCount = Object.values(agentStatuses).filter((s) => s === 'done' || s === 'error').length
+  const anyRunningOrDone = Object.values(agentStatuses).some((s) => s === 'running' || s === 'done' || s === 'error')
   const isValidating = !anyRunningOrDone
   const progressPct = Math.round((doneCount / AGENT_CONFIG.length) * 100)
 
@@ -65,14 +65,15 @@ export default function AnalysisProgressView({
     }
   }, [isValidating]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isDoneOrError = (s: AgentStatus | undefined): boolean => s === 'done' || s === 'error'
   const chainADone =
-    agentStatuses[financial.key] === 'done' && agentStatuses[sector.key] === 'done'
+    isDoneOrError(agentStatuses[financial.key]) && isDoneOrError(agentStatuses[sector.key])
   const wave1Done =
     chainADone &&
-    agentStatuses[valuation.key] === 'done' &&
-    agentStatuses[news.key] === 'done' &&
-    agentStatuses[price.key] === 'done'
-  const classifierDone = agentStatuses[classifier?.key] === 'done'
+    isDoneOrError(agentStatuses[valuation.key]) &&
+    isDoneOrError(agentStatuses[news.key]) &&
+    isDoneOrError(agentStatuses[price.key])
+  const classifierDone = isDoneOrError(agentStatuses[classifier?.key])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

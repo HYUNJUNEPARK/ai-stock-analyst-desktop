@@ -2,10 +2,15 @@
 
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, writeFile, rm, readdir, rmdir } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { validateWithLocalSymbols } from '../../shared/local-symbols.mjs'
+import { fetchStockPrice } from '../../shared/stock-price.mjs'
+import { validateWithFinnhub, fetchUsStockPrice } from '../../shared/finnhub.mjs'
+import { fetchKrTechnicalData } from '../../shared/kr-stock-history.mjs'
+import { fetchUsTechnicalData } from '../../shared/us-stock-history.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,6 +20,9 @@ const reportsDir = path.join(projectRoot, 'reports')
 const claudeCommand = process.env.CLAUDE_BIN || 'claude'
 let pendingArtifactDir = ''
 let pendingDateDir = ''
+
+// ── 환경변수 로드 ───────────────────────────────────────────────────
+loadEnvFiles(projectRoot)
 
 /** 역할 → 프롬프트 템플릿 파일명 (prompts/ 디렉토리) */
 const ROLE_FILES = {
@@ -68,30 +76,30 @@ const ROLE_TIMEOUT = {
  */
 const ROLE_MODEL = {
   'input-validator': 'haiku',
-  'price-fetcher': 'sonnet',
+  'price-fetcher': 'haiku',
   'financial-analyst-kr': 'sonnet',
   'news-sentiment-analyst': 'sonnet',
   'sector-researcher': 'sonnet',
   'price-analyst': 'sonnet',
   'valuation-analyst': 'sonnet',
-  'invest-type-classifier': 'sonnet',
+  'invest-type-classifier': 'haiku',
   'aggressive-investment-strategist': 'sonnet'
 }
 
 /**
  * 웹 검색이 필요한 역할 목록.
  * 이 목록에 없는 역할은 --allowedTools 없이 실행해 토큰·시간을 절약한다.
- * - input-validator: 학습 데이터로 기업 식별 가능, 검색 불필요
+ * - input-validator: 로컬/API 매칭 우선, 검색 불필요
+ * - price-fetcher: API 직접 조회 우선, 검색 불필요
+ * - price-analyst: 기술적 지표가 사전 계산되어 주입됨, 검색 불필요
+ * - valuation-analyst: 업스트림 재무+업종 데이터 종합, 검색 불필요
  * - invest-type-classifier: 업스트림 분석 데이터만 종합, 검색 불필요
  * - aggressive-investment-strategist: 업스트림 데이터 종합, 검색 불필요
  */
 const ROLES_NEED_SEARCH = new Set([
-  'price-fetcher',
   'financial-analyst-kr',
   'news-sentiment-analyst',
-  'sector-researcher',
-  'price-analyst',
-  'valuation-analyst'
+  'sector-researcher'
 ])
 
 function spawnCommand(command, args, options) {
@@ -202,9 +210,19 @@ async function main() {
     outputPath: path.join(artifactDir, getOutputFileName('news-sentiment-analyst')),
     model: options.model
   })
+  // 일봉 데이터를 가져와 기술적 지표를 사전 계산
+  // 한국 종목: 공공데이터포털, 미국 종목: FMP
+  const parsedPrice = Number(context.CURRENT_PRICE?.replace(/[^0-9.]/g, '')) || undefined
+  const technicalData =
+    (await fetchKrTechnicalData({ ticker: context.TICKER, company: context.COMPANY, currentPrice: parsedPrice })) ||
+    (await fetchUsTechnicalData({ ticker: context.TICKER, company: context.COMPANY, currentPrice: parsedPrice }))
+  const priceAnalystContext = technicalData
+    ? { ...context, TECHNICAL_DATA: JSON.stringify(technicalData, null, 2) }
+    : context
+
   const pricePromise = runRole({
     role: 'price-analyst',
-    context,
+    context: priceAnalystContext,
     outputPath: path.join(artifactDir, getOutputFileName('price-analyst')),
     model: options.model
   })
@@ -213,11 +231,11 @@ async function main() {
   const [financialOutcome, sectorOutcome] = await Promise.allSettled([financialPromise, sectorPromise])
 
   if (financialOutcome.status === 'rejected') {
-    console.error('[실패] financial-analyst-kr')
+    console.log('[fail] financial-analyst-kr')
     console.warn('[경고] 재무 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
   }
   if (sectorOutcome.status === 'rejected') {
-    console.error('[실패] sector-researcher')
+    console.log('[fail] sector-researcher')
     console.warn('[경고] 업종 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
   }
 
@@ -241,14 +259,15 @@ async function main() {
   ])
 
   if (newsOutcome.status === 'rejected') {
-    console.error('[실패] news-sentiment-analyst')
+    console.log('[fail] news-sentiment-analyst')
     console.warn('[경고] 뉴스 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
   }
   if (priceOutcome.status === 'rejected') {
-    console.error('[실패] price-analyst')
+    console.log('[fail] price-analyst')
     console.warn('[경고] 기술 분석 에이전트 실패. 해당 데이터 없이 계속 진행합니다.')
   }
   if (valuationOutcome.status === 'rejected') {
+    console.log('[fail] valuation-analyst')
     console.warn(`[경고] valuation-analyst 실패. 해당 데이터 없이 계속 진행합니다. (${valuationOutcome.reason?.message ?? 'unknown'})`)
   }
 
@@ -280,7 +299,7 @@ async function main() {
     })
     classifierContent = classifierResult.content
   } catch (err) {
-    console.error('[실패] invest-type-classifier')
+    console.log('[fail] invest-type-classifier')
     console.warn(`[경고] 투자 유형 분류 에이전트 실패. 해당 데이터 없이 계속 진행합니다. (${err?.message ?? 'unknown'})`)
   }
 
@@ -334,10 +353,26 @@ function getOutputFileName(role) {
 
 /**
  * 입력 검증을 실행한다.
- * runRole과 달리 [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
- * 검증 실패 시에도 분석을 중단하지 않고 fail-open으로 동작한다.
+ * 로컬 종목 마스터 → Finnhub API → Claude AI 순으로 시도하여
+ * 불필요한 AI 호출을 최소화한다.
+ * [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
  */
 async function runValidation({ context, outputPath, model }) {
+  // 한국 종목: 공공데이터포털 로컬 마스터로 검증 (AI 호출 없음, 즉시 완료)
+  const localResult = await validateWithLocalSymbols({ context, outputPath })
+  if (localResult) {
+    console.error('[info] input-validator 완료 (로컬 매칭)')
+    return localResult
+  }
+
+  // 미국 종목: Finnhub API로 검증
+  const finnhubResult = await validateWithFinnhub({ context, outputPath })
+  if (finnhubResult) {
+    console.error('[info] input-validator 완료 (Finnhub)')
+    return finnhubResult
+  }
+
+  // API 매칭 실패 → Claude AI fallback
   const promptTemplate = await loadPromptTemplate('input-validator')
   const prompt = applyTemplate(promptTemplate, context)
   const timeoutMs = ROLE_TIMEOUT['input-validator']
@@ -357,10 +392,31 @@ async function runValidation({ context, outputPath, model }) {
 
 /**
  * 주가를 조회한다.
- * runValidation과 동일하게 [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
- * 조회 실패 시에도 분석을 중단하지 않고 빈 값으로 계속 진행한다.
+ * 한국: 공공데이터포털 API, 미국: Finnhub API를 먼저 시도하고
+ * 실패 시에만 Claude AI로 fallback한다.
+ * [start]/[done] 로그를 출력하지 않아 UI 에이전트 상태에 영향을 주지 않는다.
  */
 async function runPriceFetcher({ context, outputPath, model }) {
+  // API 직접 조회 (AI 호출 없음)
+  const apiResult =
+    (await fetchStockPrice({
+      ticker: context.TICKER,
+      company: context.COMPANY,
+      market: context.MARKET
+    })) ||
+    (await fetchUsStockPrice({
+      ticker: context.TICKER,
+      company: context.COMPANY,
+      market: context.MARKET
+    }))
+
+  if (apiResult) {
+    await writeFile(outputPath, JSON.stringify(apiResult, null, 2), 'utf8')
+    console.error(`[info] price-fetcher 완료 (API: ${apiResult.source}): ${apiResult.company} ${apiResult.priceFormatted}`)
+    return apiResult
+  }
+
+  // API 조회 실패 → Claude AI fallback
   const promptTemplate = await loadPromptTemplate('price-fetcher')
   const prompt = applyTemplate(promptTemplate, context)
   const timeoutMs = ROLE_TIMEOUT['price-fetcher']
@@ -723,6 +779,41 @@ async function cleanupFailedArtifacts(artifactDir, dateDir) {
     }
   } catch (error) {
     console.warn(`[cleanup] failed to remove analysis artifacts: ${error instanceof Error ? error.message : String(error)}`)
+  }
+}
+
+/**
+ * .env 파일을 자동 탐색하여 환경변수를 로드한다.
+ * 시작 디렉토리부터 상위 8단계까지 .env.local / .env를 탐색한다.
+ */
+function loadEnvFiles(startDir) {
+  const candidates = []
+  let current = startDir
+
+  for (let i = 0; i < 8; i += 1) {
+    candidates.push(path.join(current, '.env.local'), path.join(current, '.env'))
+    const parent = path.dirname(current)
+    if (parent === current) break
+    current = parent
+  }
+
+  for (const envPath of candidates) {
+    if (existsSync(envPath)) {
+      const content = readFileSync(envPath, 'utf8')
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith('#')) continue
+        const eqIdx = trimmed.indexOf('=')
+        if (eqIdx === -1) continue
+        const key = trimmed.slice(0, eqIdx).trim()
+        if (!key || process.env[key] !== undefined) continue
+        let val = trimmed.slice(eqIdx + 1).trim()
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1)
+        }
+        process.env[key] = val
+      }
+    }
   }
 }
 

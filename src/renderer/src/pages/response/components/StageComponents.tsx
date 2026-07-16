@@ -2,7 +2,7 @@
  * AnalysisProgressView 서브 컴포넌트
  * StageBadge, StageCard, StageStatusIndicator, AgentCard, ValuationCard
  */
-import { FiCheck } from 'react-icons/fi'
+import { FiCheck, FiX } from 'react-icons/fi'
 import type { AgentStatus } from '../types'
 
 export function StageBadge({ num, color }: { num: number; color: string }): React.JSX.Element {
@@ -47,6 +47,23 @@ export function StageStatusIndicator({
       >
         <FiCheck size={12} />
         완료
+      </div>
+    )
+  }
+  if (status === 'error') {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 12,
+          color: '#EF4444',
+          fontWeight: 600
+        }}
+      >
+        <FiX size={12} />
+        실패
       </div>
     )
   }
@@ -160,6 +177,26 @@ function StatusBadge({ status }: { status: AgentStatus }): React.JSX.Element | n
         }}
       >
         <FiCheck size={9} color="#fff" />
+      </div>
+    )
+  }
+  if (status === 'error') {
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: 6,
+          right: 6,
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          background: '#EF4444',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <FiX size={9} color="#fff" />
       </div>
     )
   }

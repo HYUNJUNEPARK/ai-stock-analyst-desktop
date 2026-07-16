@@ -22,9 +22,13 @@ export function getSentimentStyle(text: string): SentimentStyle {
 
 export function tryParseJson<T>(text: string, validate: (parsed: unknown) => parsed is T): T | null {
   if (!text.trim()) return null
-  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim()
+  // 마크다운 코드 블록과 전후 설명 텍스트를 모두 제거하고 JSON 본문만 추출
+  const stripped = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim()
+  // 첫 번째 { ... } 블록을 추출 (앞뒤 설명 텍스트가 있는 경우 대응)
+  const match = stripped.match(/\{[\s\S]*\}/)
+  const jsonStr = match?.[0] ?? stripped
   try {
-    const parsed = JSON.parse(stripped)
+    const parsed = JSON.parse(jsonStr)
     return validate(parsed) ? parsed : null
   } catch {
     return null

@@ -8,7 +8,6 @@ import { LuDownload, LuZoomOut, LuZoomIn } from 'react-icons/lu'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import NavBar from '../../components/NavBar'
 import type { ComponentProps } from 'react'
-import MarkdownRenderer from './components/MarkdownRenderer'
 import ReportView, { ZOOM_LEVELS, DEFAULT_ZOOM_INDEX } from './ReportView'
 import { ROUTES } from '../../routes'
 
@@ -45,7 +44,6 @@ export default function ReportDetailPage(): React.JSX.Element {
     })
   }, [name])
 
-  const isGpt = searchParams.get('model') === 'gpt'
   const contentWidth = isStandaloneWindow ? 800 : 550
 
   function handleCloseOrBack(): void {
@@ -225,9 +223,7 @@ export default function ReportDetailPage(): React.JSX.Element {
               )}
 
               {!loading && !error && data && (
-                isGpt
-                  ? <ReportView data={data as unknown as GptReport} zoomIndex={zoomIndex} />
-                  : <MarkdownRenderer text={JSON.stringify(data, null, 2)} isStreaming={false} />
+                <ReportView data={data as unknown as GptReport} zoomIndex={zoomIndex} />
               )}
             </div>
           </div>

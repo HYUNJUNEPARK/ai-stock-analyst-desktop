@@ -1,5 +1,5 @@
 export type Status = 'streaming' | 'done' | 'error' | 'cancelled'
-export type AgentStatus = 'idle' | 'running' | 'done'
+export type AgentStatus = 'idle' | 'running' | 'done' | 'error'
 export type PreviewModel = 'gpt' | 'claude'
 
 export type ResponseLocationState = {

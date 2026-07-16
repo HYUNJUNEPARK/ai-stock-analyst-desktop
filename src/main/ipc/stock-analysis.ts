@@ -295,6 +295,14 @@ function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, get
         continue
       }
 
+      // [fail] <에이전트명> → 에이전트 실패 이벤트
+      const failMatch = line.match(/^\[fail\]\s+(.+)$/)
+      if (failMatch) {
+        sendLog(`${getStockAgentLabel(failMatch[1])}에 실패했습니다.`)
+        safeSend(win,IPC.STOCK_ANALYSIS_AGENT, { name: failMatch[1], status: 'error' })
+        continue
+      }
+
       // [실패], [경고], [error] 라인 → 에러 로그로 수집
       if (/^\[(실패|경고|error)\]/.test(line)) {
         errorLogLines.push(line)
@@ -520,6 +528,14 @@ function runClaudeAnalysis({ win, env, prompt, market, sendLog, setActiveChild, 
       if (doneMatch) {
         sendLog(`${getStockAgentLabel(doneMatch[1])}을 완료했습니다.`)
         safeSend(win, IPC.STOCK_ANALYSIS_AGENT, { name: doneMatch[1], status: 'done' })
+        continue
+      }
+
+      // [fail] <에이전트명> → 에이전트 실패 이벤트
+      const failMatch = line.match(/^\[fail\]\s+(.+)$/)
+      if (failMatch) {
+        sendLog(`${getStockAgentLabel(failMatch[1])}에 실패했습니다.`)
+        safeSend(win, IPC.STOCK_ANALYSIS_AGENT, { name: failMatch[1], status: 'error' })
         continue
       }
 
