@@ -21,6 +21,8 @@
 - `.env` 또는 `.env.local`에 `FINNHUB_API_KEY` 설정 (미국 종목 검증/주가 조회, 없으면 AI fallback)
 - `.env` 또는 `.env.local`에 `FMP_API_KEY` 설정 (미국 종목 일봉 히스토리/기술적 지표, 없으면 AI fallback)
 
+앱에서 실행할 때는 Codex CLI 버전을 자동으로 점검합니다. 지원하지 않는 오래된 버전 또는 모델 캐시 형식 오류가 발견되면 앱 전용 CLI를 최신 버전으로 업데이트하고 분석을 한 번 재시도합니다.
+
 실행 예시:
 
 ```bash

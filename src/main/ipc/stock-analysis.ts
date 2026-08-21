@@ -28,13 +28,14 @@
 import { ipcMain, type BrowserWindow } from 'electron'
 import { join } from 'path'
 import { spawn, type ChildProcess } from 'child_process'
-import { readFileSync, mkdirSync, writeFileSync } from 'fs'
+import { readFileSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { homedir } from 'os'
 import { IPC } from '../../shared/ipcChannels'
 import { STOCK_CLAUDE_DIR, STOCK_GPT_DIR } from '../constants'
 import { writeTerminalError, writeTerminalLine, writeTerminalLog, safeSend } from '../utils/spawn'
 import { resolveCliCommand, getEnhancedPath } from '../utils/cli'
 import { isCodexAuthErrorOutput } from '../utils/auth'
+import { ensureCodexCliCompatibility, isCodexModelsCacheCompatibilityError, updateCodexCli } from '../utils/codex-update'
 
 /** 에러 로그 저장 디렉토리: ~/.ai-cli-launcher/logs */
 const LOG_DIR = join(homedir(), '.ai-cli-launcher', 'logs')
@@ -107,6 +108,7 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    * null이면 실행 중인 분석이 없음을 의미한다.
    */
   let activeAnalysisChild: ChildProcess | null = null
+  let analysisRunId = 0
 
   /** 주식 분석 상태 메시지를 Electron 실행 콘솔에 기록하는 헬퍼 */
   function sendLog(message: string): void {
@@ -131,6 +133,8 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
    */
   ipcMain.on(IPC.CANCEL_STOCK_ANALYSIS, () => {
     writeTerminalLog('[cancel-stock-analysis] 주식 분석 취소 요청')
+    // CLI 자동 업데이트가 진행 중인 경우에도, 완료 뒤 분석을 시작하지 않도록 무효화한다.
+    analysisRunId += 1
     if (activeAnalysisChild) {
       const pid = activeAnalysisChild.pid
       activeAnalysisChild = null   // 먼저 null로 설정 → close 핸들러에서 취소 여부 판단
@@ -158,11 +162,18 @@ export function registerStockAnalysisHandlers(win: BrowserWindow): void {
     (_event, { model, prompt, market }: { model: string; prompt: string; market?: string }) => {
       writeTerminalLog(`[run-stock-analysis] 주식 분석 실행 시작: 모델=${model}, 시장=${market ?? 'auto'}`)
       const env: NodeJS.ProcessEnv = { ...process.env, PATH: getEnhancedPath() }
+      const runId = ++analysisRunId
+      const context: AnalysisContext = {
+        win, env, prompt, market, sendLog,
+        getActiveChild: () => activeAnalysisChild,
+        setActiveChild: (child) => { activeAnalysisChild = child },
+        isCurrent: () => analysisRunId === runId
+      }
 
       if (model === 'gpt') {
-        runGptAnalysis({ win, env, prompt, market, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
+        void runGptAnalysis(context)
       } else {
-        runClaudeAnalysis({ win, env, prompt, market, sendLog, getActiveChild: () => activeAnalysisChild, setActiveChild: (c) => { activeAnalysisChild = c } })
+        runClaudeAnalysis(context)
       }
     }
   )
@@ -183,6 +194,7 @@ interface AnalysisContext {
   sendLog: (msg: string) => void
   getActiveChild: () => ChildProcess | null
   setActiveChild: (child: ChildProcess | null) => void
+  isCurrent: () => boolean
 }
 
 /**
@@ -191,8 +203,8 @@ interface AnalysisContext {
  * analyze-stock.mjs 스크립트를 Node.js로 실행하고,
  * 스크립트의 stdout 텍스트 라인을 파싱해 진행 상황과 최종 보고서를 renderer에 전달한다.
  */
-function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, getActiveChild }: AnalysisContext): void {
-  const resolvedCodex = resolveCliCommand('codex')
+async function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, getActiveChild, isCurrent }: AnalysisContext, recoveryAttempt = false): Promise<void> {
+  let resolvedCodex = resolveCliCommand('codex')
   if (!resolvedCodex.command) {
     writeTerminalError('[stock-analysis:gpt] Codex CLI를 찾을 수 없음')
     const envLines = collectEnvironmentInfo('gpt', null, 'missing')
@@ -206,6 +218,31 @@ function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, get
     })
     return
   }
+
+  // 앱 전용 CLI가 오래된 경우 사용자의 조작 없이 먼저 최신 호환 버전으로 갱신한다.
+  // 시스템 PATH의 CLI만 있더라도 앱 전용 CLI를 설치해 이후 실행부터 안정적으로 사용한다.
+  try {
+    const updated = await ensureCodexCliCompatibility()
+    if (updated) {
+      sendLog('Codex 분석 도구를 최신 호환 버전으로 업데이트했습니다.')
+      resolvedCodex = resolveCliCommand('codex')
+      if (!resolvedCodex.command) throw new Error('업데이트 후 Codex CLI를 찾을 수 없습니다.')
+    }
+  } catch (error) {
+    if (!isCurrent()) return
+    const detail = error instanceof Error ? error.message : String(error)
+    writeTerminalError(`[stock-analysis:gpt] Codex CLI 자동 업데이트 실패: ${detail}`)
+    const errorLogLines = collectEnvironmentInfo('gpt', resolvedCodex.command, resolvedCodex.source)
+    errorLogLines.push(`[error] Codex CLI 자동 업데이트 실패: ${detail}`)
+    safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+      success: false,
+      error: 'Codex 분석 도구를 자동으로 업데이트하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+      errorLog: buildStandaloneErrorLog(errorLogLines)
+    })
+    return
+  }
+
+  if (!isCurrent()) return
 
   // 스크립트가 codex 경로를 환경변수로 받아 사용
   env['CODEX_BIN'] = resolvedCodex.command
@@ -401,6 +438,28 @@ function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, get
     }
 
     // 취소가 아닌 오류 종료일 때만 에러 이벤트 전송
+    const combinedOutput = errorLogLines.join('\n')
+    if (!wasCancelled && isCurrent() && !recoveryAttempt && isCodexModelsCacheCompatibilityError(combinedOutput)) {
+      try {
+        rmSync(join(homedir(), '.codex', 'models_cache.json'), { force: true })
+      } catch (error) {
+        writeTerminalError(`[stock-analysis:gpt] 손상된 Codex 모델 캐시 삭제 실패: ${error instanceof Error ? error.message : String(error)}`)
+      }
+      sendLog('Codex 분석 도구의 호환성 문제를 복구하고 분석을 다시 시작합니다.')
+      void updateCodexCli()
+        .then(() => runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, getActiveChild, isCurrent }, true))
+        .catch((error: unknown) => {
+          const detail = error instanceof Error ? error.message : String(error)
+          errorLogLines.push(`[error] Codex CLI 자동 업데이트 실패: ${detail}`)
+          safeSend(win,IPC.STOCK_ANALYSIS_DONE, {
+            success: false,
+            error: 'Codex 분석 도구를 자동으로 업데이트하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+            errorLog: buildAndSaveErrorLog()
+          })
+        })
+      return
+    }
+
     if (!wasCancelled) {
       writeTerminalError(`[stock-analysis:gpt] 프로세스 비정상 종료: exit code=${code}`)
       errorLogLines.push(`[error] 프로세스 비정상 종료 (exit code: ${code})`)
@@ -427,6 +486,13 @@ function runGptAnalysis({ win, env, prompt, market, sendLog, setActiveChild, get
       errorLog: buildAndSaveErrorLog()
     })
   })
+}
+
+/** 분석 프로세스가 시작되기 전 실패한 경우에도 동일한 형식의 로그를 남긴다. */
+function buildStandaloneErrorLog(errorLogLines: string[]): string {
+  const logPath = saveErrorLog('gpt', errorLogLines)
+  if (logPath) errorLogLines.push(`[info] 로그 저장 위치: ${logPath}`)
+  return errorLogLines.join('\n')
 }
 
 /**
